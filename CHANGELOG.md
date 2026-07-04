@@ -56,11 +56,64 @@
 
 ### Demo
 
-- **Dungeon Map Toolkit** — four-file demo showcasing all v0.5.0 module features:
+- **Dungeon Map Toolkit** — four-file demo introducing Axon modules:
   - `tiles.axn` — `export type Tile` tagged union, glyph/label helpers, 5 `@test`s
-  - `generator.axn` — LCG-seeded procedural map generator, 4 `@test`s
+  - `generator.axn` — procedural map generator, `@test`s
   - `renderer.axn` — HTML colour-span renderer, legend and stats bar
   - `main.axn` — imports from all three, DOM wiring, level names with `when` guards
+
+---
+
+## v0.5.1
+
+Patch release fixing compiler correctness bugs that made entry-point files fail silently,
+plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement rule.
+
+### Compiler
+
+- **`TopLevelLet` AST node** — top-level `let x = …` bindings now parse and emit correctly.
+  Previously the parser silently dropped them, breaking any entry file with a top-level
+  `let state = {…}` declaration.
+- **`TopLevelExpr` AST node** — bare expression statements at top level (e.g. `mount()`)
+  now parse and emit correctly. Previously also silently dropped.
+- **Bundler output path fix** — `axon --bundle` now correctly treats the second positional
+  argument as the output path; previously the output could be written to a literal file
+  named `-o`.
+- **Stdlib emitted once in bundles** — added `emitStdlib` flag to codegen so multi-module
+  bundles never duplicate the stdlib header, eliminating
+  `SyntaxError: Identifier 'map' has already been declared`.
+
+### Dungeon demo — generator (`generator.axn`)
+
+- **Room-based generator** — rewrote from scatter noise to a room-and-corridor
+  approach: randomly placed rectangular rooms carved from an all-wall grid, connected
+  by L-shaped corridors. Produces coherent dungeon layouts instead of uniform noise fields.
+- **Avalanche hash (`cell_hash`)** — two-step hash with distinct prime multipliers and
+  swapped roles for `r` / `c` in the second step, breaking row/column correlation. LCG
+  input normalised with `% 2147483648` to prevent JS float overflow and eliminate
+  Gantt-chart tile patterns.
+- **Tile density tuning** — chest and water probabilities significantly reduced; chests are
+  rare finds, water appears only occasionally.
+- **Door placement** — doors removed from random scatter. New `place_room_doors` scans
+  each room's four wall edges, places at most one door per edge (via `findIndex`), and
+  only if the corridor cell is flanked by walls on both perpendicular sides — a single-tile
+  bottleneck entrance, never a row of doors.
+- **Torch placement** — torches removed from random scatter. New `place_door_torches`
+  places a torch at each open floor diagonal of every door, like wall sconces bracketing
+  the entrance. A `@test` enforces the invariant: every torch must be diagonally adjacent
+  to a door.
+
+### Dungeon demo — state pattern (`main.axn`)
+
+- **Immutable `AppState` record** — replaced the mutable JS object `state` with an
+  `AppState` record. `render(s: AppState)` draws the dungeon and re-wires every button
+  `onclick` with a fresh closure over the *next* state value. No variable is ever mutated;
+  state flows through the call chain as data. This is the idiomatic Axon pattern until
+  v0.8 ships `store`:
+  ```axon
+  store AppState { level: int = 1, seed: int = 7777 }
+  on AppState.change { render(AppState) }
+  ```
 
 ---
 

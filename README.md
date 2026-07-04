@@ -254,7 +254,7 @@ Full language reference at **[axon-pl.github.io/axon/docs.html](https://axon-pl.
 | **v0.5** ✓ | Modules | `import` / `export`, `axon --bundle` — multi-file projects |
 | v0.6 | Safety | `Result<T>`, `?` propagation, error contracts |
 | v0.7 | Type System | Generics, `interface`, typed stdlib |
-| v0.8 | Async | `async fn`, `await`, enforced `@effects` |
+| v0.8 | Async & Reactive | `async fn`, `await`, `store` reactive state, enforced `@effects` |
 | v0.9 | Tooling | LSP, source maps, `axon fmt`, rich errors |
 | v1.0 | Stability | Frozen spec, semver promise, `axon spec` AI extraction |
 

@@ -142,7 +142,7 @@ fn place_room_doors(g: any, room: any) {
 // ── Special tile placement ────────────────────────────────────────────────────
 
 // Scatter specials inside a room; place Stairs at center of the last room.
-// Doors are handled separately by place_room_doors — not scattered here.
+// Doors and Torches are handled separately — not scattered here.
 fn scatter_room(g: any, room: any, level: int, seed: int, is_last: bool) {
   if is_last {
     gset(g, room_cr(room), room_cc(room), "Stairs")
@@ -150,17 +150,31 @@ fn scatter_room(g: any, room: any, level: int, seed: int, is_last: bool) {
   let dr = room.r2 - room.r1 + 1
   let dc = room.c2 - room.c1 + 1
   let cp = 0.007 + level * 0.003
-  let wp = 0.03 + level * 0.008
-  let tp = 0.025
+  let wp = 0.03  + level * 0.008
   Array.from({ length: dr }).forEach((_, i) => {
     Array.from({ length: dc }).forEach((_, j) => {
       let r   = room.r1 + i
       let c   = room.c1 + j
       let rng = cell_hash(seed, r, c)
       if gget(g, r, c) == "Floor" {
-        if rng < cp              { gset(g, r, c, "Chest") }
-        if rng >= cp && rng < cp + wp            { gset(g, r, c, "Water") }
-        if rng >= cp + wp && rng < cp + wp + tp  { gset(g, r, c, "Torch") }
+        if rng < cp                    { gset(g, r, c, "Chest") }
+        if rng >= cp && rng < cp + wp  { gset(g, r, c, "Water") }
+      }
+    })
+  })
+}
+
+// Place torches at every open floor diagonal of a door — like wall sconces
+// bracketing the entrance. Only fires if the diagonal cell is still Floor
+// (doors placed before scatter may have floor corners taken by chests/water).
+fn place_door_torches(g: any, rows: int, cols: int) {
+  Array.from({ length: rows }).forEach((_, r) => {
+    Array.from({ length: cols }).forEach((_, c) => {
+      if gget(g, r, c) == "Door" {
+        if r > 0 && c > 0              && gget(g, r - 1, c - 1) == "Floor" { gset(g, r - 1, c - 1, "Torch") }
+        if r > 0 && c < cols - 1      && gget(g, r - 1, c + 1) == "Floor" { gset(g, r - 1, c + 1, "Torch") }
+        if r < rows - 1 && c > 0      && gget(g, r + 1, c - 1) == "Floor" { gset(g, r + 1, c - 1, "Torch") }
+        if r < rows - 1 && c < cols - 1 && gget(g, r + 1, c + 1) == "Floor" { gset(g, r + 1, c + 1, "Torch") }
       }
     })
   })
@@ -198,7 +212,10 @@ export fn generate(rows: int, cols: int, level: int, seed: int) -> DungeonMap {
     scatter_room(g, rooms[i], level, lcg(seed + i * 1009), i == n - 1)
   })
 
-  // Step 4: convert flat grid to row-of-objects
+  // Step 5: torches at open floor diagonals of every door
+  place_door_torches(g, rows, cols)
+
+  // Step 6: convert flat grid to row-of-objects
   let grid = []
   Array.from({ length: rows }).forEach((_, r) => {
     let row = []
@@ -242,4 +259,22 @@ export fn count_tag(map: DungeonMap, tag: string) -> int {
 @test "stairs present in every map" {
   let m = generate(10, 14, 1, 12)
   count_tag(m, "Stairs") > 0
+}
+
+@test "every torch is diagonally adjacent to a door" {
+  let m    = generate(22, 48, 1, 7777)
+  let grid = JSON.parse(m.grid)
+  let bad  = 0
+  grid.forEach((row, r) => row.forEach((cell, c) => {
+    if cell.tag == "Torch" {
+      let diags = [[-1,-1],[-1,1],[1,-1],[1,1]]
+      let hasDoor = diags.some((d) => {
+        let nr = r + d[0]
+        let nc = c + d[1]
+        nr >= 0 && nc >= 0 && nr < grid.length && nc < row.length && grid[nr][nc].tag == "Door"
+      })
+      if !hasDoor { bad = bad + 1 }
+    }
+  }))
+  bad == 0
 }

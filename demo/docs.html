@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon Language Reference — v0.5.0</title>
+  <title>Axon Language Reference — v0.5.1</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -567,7 +567,7 @@
     <span class="top-header-title">Axon</span>
     <span class="top-header-sub">Language Reference</span>
     <div class="header-badges">
-      <span class="hbadge hbadge-ver">v0.5.0</span>
+      <span class="hbadge hbadge-ver">v0.5.1</span>
       <span class="hbadge hbadge-ai">AI-native</span>
     </div>
   </header>
@@ -1027,7 +1027,7 @@
         <h2 class="section-title"><code>@effects</code></h2>
         <div class="section-rule"></div>
 
-        <p>Declares the set of side effects a function produces. In v0.4 this is a documentation annotation; it becomes a compiler-enforced contract in v0.8 (the Async/Effects update).</p>
+        <p>Declares the set of side effects a function produces. In v0.4 this is a documentation annotation; it becomes a compiler-enforced contract in v0.8 (The Async &amp; Reactive Update).</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>axon</div>
@@ -1145,7 +1145,7 @@
 
       <!-- ── Modules ──────────────────────────────────────────────────────────── -->
       <section class="doc-section" id="modules">
-        <div class="section-eyebrow">Language · v0.5.0</div>
+        <div class="section-eyebrow">Language · v0.5.1</div>
         <h2 class="section-title">Modules</h2>
         <div class="section-rule"></div>
 
@@ -1202,9 +1202,22 @@ main()</pre>
 
         <div class="version-card vc-current">
           <div class="version-header">
+            <span class="version-tag">v0.5.1</span>
+            <span class="version-name">The Module Update — Patch</span>
+            <span class="version-status vs-current">Current</span>
+          </div>
+          <ul class="version-features">
+            <li><strong>Compiler: top-level <code>let</code> &amp; bare expressions</strong> — <code>TopLevelLet</code> and <code>TopLevelExpr</code> AST nodes; top-level <code>let x = …</code> and bare calls like <code>mount()</code> now parse and emit correctly (were silently dropped in v0.5.0)</li>
+            <li><strong>Bundler correctness</strong> — output path argument fix; stdlib emitted exactly once per bundle (eliminates duplicate-identifier crash on multi-module projects)</li>
+            <li><strong>Dungeon demo overhaul</strong> — room-based generator, avalanche hash for seed variety, wall-flanked door bottlenecks, torch sconces at door diagonals (<code>@test</code>-verified), immutable <code>AppState</code> closure-render pattern</li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
             <span class="version-tag">v0.5.0</span>
             <span class="version-name">The Module Update</span>
-            <span class="version-status vs-current">Current</span>
+            <span class="version-status vs-stable">Stable</span>
           </div>
           <ul class="version-features">
             <li><strong><code>import { x, y } from "./path"</code></strong> — multi-file projects; relative path resolution per-module</li>
@@ -1214,7 +1227,7 @@ main()</pre>
             <li><strong>Optional <code>if</code> parens</strong> — both <code>if (cond) { }</code> and <code>if cond { }</code> are valid</li>
             <li><strong>Return-type short-form</strong> — <code>fn f(x) -&gt; T = expr</code> and <code>fn f(x) -&gt; T { block }</code> both valid</li>
             <li><strong>Nested <code>fn</code> in blocks</strong> — local helper functions inside blocks, emitted as <code>let</code> lambdas</li>
-            <li><strong>Demo: Dungeon Map Toolkit</strong> — 4-file module demo with LCG generator, HTML renderer, 9 <code>@test</code>s</li>
+            <li><strong>Demo: Dungeon Map Toolkit</strong> — 4-file module demo introducing <code>import</code> / <code>export</code> across <code>tiles</code>, <code>generator</code>, <code>renderer</code>, and <code>main</code></li>
           </ul>
         </div>
 
@@ -1291,7 +1304,7 @@ main()</pre>
 
         <div class="roadmap-grid">
           <div class="roadmap-card" style="border-color:#39ff6a44;background:linear-gradient(135deg,#001a0d,#0d1a10)">
-            <div class="roadmap-ver" style="color:#39ff6a">v0.5 ✓</div>
+            <div class="roadmap-ver" style="color:#39ff6a">v0.5.1 ✓</div>
             <div class="roadmap-title">The Module Update</div>
             <div class="roadmap-desc">Shipped. Multi-file projects with recursive import resolution and a bundler.</div>
             <ul class="roadmap-features">
@@ -1378,7 +1391,7 @@ main()</pre>
   </div>
 
   <footer class="page-footer">
-    Axon v0.5.0 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
+    Axon v0.5.1 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
   </footer>
 
   <script>
