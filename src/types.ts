@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.4.0 — Token and AST type definitions
+// Axon v0.5.0 — Token and AST type definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type TokenType =
@@ -11,6 +11,9 @@ export type TokenType =
   | 'KW_TYPEOF' | 'KW_INSTANCEOF' | 'KW_NEW'
   | 'KW_WHEN'           // v0.4: match guard  — | pat when expr => body
   | 'KW_AS'             // v0.4: pipeline bind — |> as name
+  | 'KW_IMPORT'         // v0.5: import { ... } from "..."
+  | 'KW_EXPORT'         // v0.5: export fn / export type / export record
+  | 'KW_FROM'           // v0.5: from "path"
   // Literals
   | 'NUMBER' | 'STRING' | 'REGEX' | 'TEMPLATE'
   // Identifier
@@ -71,6 +74,8 @@ export type TopLevelDecl =
   | FnDecl
   | ModuleDecl
   | TestDecl          // v0.4
+  | ImportDecl        // v0.5
+  | ExportDecl        // v0.5
 
 export interface TypeAlias {
   kind: 'TypeAlias'
@@ -98,6 +103,21 @@ export interface TestDecl {
   kind: 'TestDecl'
   description: string
   body: Expr
+  line: number
+}
+
+// v0.5: import { name, name } from "./path"
+export interface ImportDecl {
+  kind: 'ImportDecl'
+  names: string[]       // imported names (empty = import all side-effects)
+  source: string        // module path string
+  line: number
+}
+
+// v0.5: export fn / export type / export record
+export interface ExportDecl {
+  kind: 'ExportDecl'
+  decl: FnDecl | TypeAlias | TaggedUnionDecl | RecordDecl
   line: number
 }
 

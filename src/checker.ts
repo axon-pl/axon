@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.4.0 — Static checker
+// Axon v0.5.0 — Static checker
 // Runs after parsing, before codegen. Produces warnings for:
 //   • @pure functions that call known side-effectful globals
 //   • @exhaustive matches missing wildcard/boolean/union coverage
@@ -45,6 +45,10 @@ export class Checker {
       if (decl.kind === 'TaggedUnionDecl') {
         this.unionVariants.set(decl.name, new Set(decl.variants.map(v => v.name)))
       }
+      // v0.5: exported tagged unions should also be registered
+      if (decl.kind === 'ExportDecl' && decl.decl.kind === 'TaggedUnionDecl') {
+        this.unionVariants.set(decl.decl.name, new Set(decl.decl.variants.map(v => v.name)))
+      }
     }
 
     for (const decl of program.body) {
@@ -58,6 +62,9 @@ export class Checker {
     if (decl.kind === 'ModuleDecl')       decl.body.forEach(d => this.checkTopLevel(d))
     // v0.4: warn if a @test body is a trivially false literal
     if (decl.kind === 'TestDecl')         this.checkTest(decl)
+    // v0.5: walk into exported declarations
+    if (decl.kind === 'ExportDecl')       this.checkTopLevel(decl.decl)
+    // v0.5: import declarations are validated by the CLI bundler, no checks here
   }
 
   private checkFn(fn: FnDecl): void {

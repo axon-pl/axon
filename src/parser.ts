@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.4.0 — Recursive-descent parser
+// Axon v0.5.0 — Recursive-descent parser
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -7,6 +7,7 @@ import {
   Program, TopLevelDecl,
   TypeAlias, TaggedUnionDecl, UnionVariant, TestDecl,
   RecordDecl, FieldDecl, FnDecl, ModuleDecl,
+  ImportDecl, ExportDecl,
   Annotation, FnParam, TypeExpr,
   Expr, BlockExpr, BlockStmt, MatchArm, MatchPattern,
   ObjectProperty, LambdaParam,
@@ -49,6 +50,10 @@ export class Parser {
     if (tok.type === 'KW_MODULE') return this.parseModule()
     // v0.4: top-level @test "description" { expr }
     if (tok.type === 'AT' && tok.value === '@test') return this.parseTestDecl()
+    // v0.5: import { ... } from "..."
+    if (tok.type === 'KW_IMPORT') return this.parseImportDecl()
+    // v0.5: export fn / export type / export record
+    if (tok.type === 'KW_EXPORT') return this.parseExportDecl()
     this.advance()
     return null
   }
@@ -61,6 +66,33 @@ export class Parser {
     const body = this.parseBlockBody()
     this.expect('RBRACE')
     return { kind: 'TestDecl', description, body, line }
+  }
+
+  // v0.5: import { name, name } from "./path"
+  private parseImportDecl(): ImportDecl {
+    const { line } = this.advance() // consume import
+    const names: string[] = []
+    this.expect('LBRACE')
+    while (!this.check('RBRACE') && !this.isEOF()) {
+      names.push(this.expect('IDENT').value)
+      if (this.check('COMMA')) this.advance()
+    }
+    this.expect('RBRACE')
+    this.expect('KW_FROM')
+    const source = this.expect('STRING').value
+    return { kind: 'ImportDecl', names, source, line }
+  }
+
+  // v0.5: export fn / export type / export record
+  private parseExportDecl(): ExportDecl {
+    const { line } = this.advance() // consume export
+    const tok = this.peek()
+    let decl: ExportDecl['decl']
+    if (tok.type === 'KW_FN')     decl = this.parseFnDecl()
+    else if (tok.type === 'KW_TYPE')   decl = this.parseTypeAliasOrUnion() as TypeAlias | TaggedUnionDecl
+    else if (tok.type === 'KW_RECORD') decl = this.parseRecord()
+    else throw new ParseError(`Expected fn, type, or record after export`, tok.line, tok.col)
+    return { kind: 'ExportDecl', decl, line }
   }
 
   // v0.4: detect tagged union syntax — type T = | Variant { fields } | ...
@@ -228,10 +260,26 @@ export class Parser {
         this.tryConsume('COMMA')
       }
       this.expect('RPAREN')
-      this.expect('ASSIGN')
-      const body = this.parseExpr()
-      const returnType: TypeExpr = { name: 'any' }
-      return { kind: 'FnDecl', name, params, returnType, annotations: [], body, shortForm: true, line }
+      // Short-form may optionally carry a return type: fn f(x) -> T = expr | { block }
+      let returnType: TypeExpr = { name: 'any' }
+      if (this.check('THIN_ARROW')) {
+        this.advance()
+        returnType = this.parseTypeExpr()
+      }
+      // Body: either `= expr` (expression form) or `{ block }` (block form)
+      let body: Expr
+      let isShort = true
+      if (this.check('ASSIGN')) {
+        this.advance()
+        body = this.parseExpr()
+      } else {
+        this.expect('LBRACE')
+        const annotations = this.parseAnnotations()
+        body = this.parseBlockBody()
+        this.expect('RBRACE')
+        isShort = false
+      }
+      return { kind: 'FnDecl', name, params, returnType, annotations: [], body, shortForm: isShort, line }
     }
 
     // Full form: fn name :: (params) -> ReturnType { body }
@@ -373,6 +421,19 @@ export class Parser {
         continue
       }
 
+      // Nested function declaration — treated as a let binding to a lambda/fn
+      if (this.check('KW_FN')) {
+        const fn = this.parseFnDecl()
+        // Emit as a let binding: `let name = fn(params) => body`
+        const lambdaExpr: Expr = {
+          kind: 'LambdaExpr',
+          params: fn.params.map(p => p.name as string),
+          body: fn.body,
+        }
+        stmts.push({ kind: 'LetStmt', name: fn.name, value: lambdaExpr })
+        continue
+      }
+
       // Let binding — including v0.4 destructuring forms
       if (this.check('KW_LET')) {
         this.advance()
@@ -455,9 +516,11 @@ export class Parser {
 
   private parseIfStmt(): BlockStmt {
     this.expect('KW_IF')
-    this.expect('LPAREN')
+    // Parentheses around condition are optional: both `if (x)` and `if x` work
+    const hasParens = this.check('LPAREN')
+    if (hasParens) this.advance()
     const test = this.parseExpr()
-    this.expect('RPAREN')
+    if (hasParens) this.expect('RPAREN')
     this.expect('LBRACE')
     const thenBody = this.parseBlockBody()
     this.expect('RBRACE')

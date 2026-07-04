@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dungeon Map Toolkit — Axon v0.5.0</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0 }
+
+    :root {
+      --bg:        #0d0d1a;
+      --surface:   #13132b;
+      --surface2:  #1a1a38;
+      --border:    #2a2a5a;
+      --pink:      #ff2d78;
+      --cyan:      #00e5ff;
+      --purple:    #b44fff;
+      --gold:      #ffd700;
+      --green:     #39ff6a;
+      --blue:      #4488ff;
+      --orange:    #ff8c00;
+      --dim:       #6666aa;
+      --text:      #ddd8ff;
+      --text-dim:  #9999cc;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, #1a0033 0%, #0d001a 60%, #000d1a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .page-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--pink), var(--purple), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.4px;
+    }
+
+    .page-subtitle { color: var(--text-dim); font-size: 0.85rem; margin-top: 2px; }
+
+    .page-badge {
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .page-body {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Module dependency strip */
+    .module-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .strip-label {
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-right: 4px;
+    }
+
+    .mod-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      color: var(--cyan);
+    }
+
+    .arrow-sep { color: var(--pink); font-size: 0.8rem; font-weight: 700; }
+    .bundle-note { color: var(--text-dim); font-size: 0.78rem; }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 9px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn:hover:not(:disabled) { border-color: var(--purple); color: var(--purple); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .btn-new {
+      background: linear-gradient(135deg, var(--pink), #b01a58);
+      border-color: transparent;
+      color: white;
+    }
+    .btn-new:hover:not(:disabled) {
+      background: linear-gradient(135deg, #ff4d90, var(--pink));
+      border-color: transparent;
+      color: white;
+    }
+
+    .btn-level {
+      background: linear-gradient(135deg, #1a1448, #22144a);
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+    .btn-level:hover:not(:disabled) { background: linear-gradient(135deg, #22144a, #2e1a5a); color: #cc88ff; }
+
+    /* Dungeon output */
+    #dungeon-output {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 200px;
+    }
+
+    .dungeon-header { margin-bottom: 12px; }
+
+    .level-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gold);
+      text-shadow: 0 0 14px rgba(255,215,0,0.35);
+      margin-bottom: 4px;
+    }
+
+    .level-desc {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    .map-stats {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      padding: 7px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      margin-bottom: 14px;
+      font-size: 0.79rem;
+      color: var(--text-dim);
+    }
+
+    .map-stats strong { color: var(--cyan); }
+
+    .dungeon-map {
+      font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+      font-size: 12.5px;
+      line-height: 1.25;
+      background: #04040e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 10px;
+      overflow-x: auto;
+      margin-bottom: 14px;
+    }
+
+    .map-row { white-space: nowrap; }
+    .tile { display: inline-block; width: 1ch; }
+
+    .t-floor  { color: #1e1e38; }
+    .t-wall   { color: #4a3a6a; }
+    .t-door   { color: #c87820; }
+    .t-stairs { color: var(--cyan); text-shadow: 0 0 7px var(--cyan); }
+    .t-chest  { color: var(--gold); text-shadow: 0 0 9px rgba(255,215,0,0.55); }
+    .t-water  { color: #2244cc; text-shadow: 0 0 5px #3366ff; }
+    .t-torch  { color: #ff7700; text-shadow: 0 0 9px #ff7700; }
+    .t-unknown { color: var(--pink); }
+
+    .map-legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 10px 0 2px;
+      border-top: 1px solid var(--border);
+    }
+
+    .legend-entry { display: flex; align-items: center; gap: 5px; font-size: 0.79rem; }
+    .legend-label { color: var(--text-dim); }
+
+    /* Source info grid */
+    .source-info {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+
+    .source-info h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+    }
+
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .source-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+    }
+
+    .source-card .fname {
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: var(--cyan);
+      margin-bottom: 5px;
+    }
+
+    .source-card .fdesc {
+      font-size: 0.77rem;
+      color: var(--text-dim);
+      line-height: 1.45;
+    }
+
+    .source-card .fdesc code {
+      color: var(--pink);
+      background: rgba(255,45,120,0.1);
+      border-radius: 3px;
+      padding: 0 3px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 22px;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    footer a { color: var(--pink); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header class="page-header">
+  <div>
+    <div class="page-title">Dungeon Map Toolkit</div>
+    <div class="page-subtitle">Multi-file modules — Axon v0.5.0</div>
+  </div>
+  <span class="page-badge">Axon v0.5.0</span>
+</header>
+
+<div class="page-body">
+
+  <div class="module-strip">
+    <span class="strip-label">Modules</span>
+    <span class="mod-chip">tiles.axn</span>
+    <span class="arrow-sep">→</span>
+    <span class="mod-chip">generator.axn</span>
+    <span class="arrow-sep">→</span>
+    <span class="mod-chip">renderer.axn</span>
+    <span class="arrow-sep">→</span>
+    <span class="mod-chip">main.axn</span>
+    <span class="bundle-note">bundled to one JS file by <code>axon --bundle</code></span>
+  </div>
+
+  <div class="controls">
+    <button id="btn-new"  class="btn btn-new">⟳ New Map</button>
+    <button id="btn-prev" class="btn btn-level" disabled>← Prev Level</button>
+    <button id="btn-next" class="btn btn-level">Next Level →</button>
+  </div>
+
+  <div id="dungeon-output">
+    <div class="dungeon-header">
+      <div class="level-name">Loading dungeon…</div>
+    </div>
+  </div>
+
+  <div class="source-info">
+    <h3>Source modules — v0.5.0 <code style="color:var(--pink)">import / export</code></h3>
+    <div class="source-grid">
+      <div class="source-card">
+        <div class="fname">tiles.axn</div>
+        <div class="fdesc"><code>export type Tile</code> tagged union with 7 variants. Glyph, label &amp; passability helpers. 5 <code>@test</code> declarations.</div>
+      </div>
+      <div class="source-card">
+        <div class="fname">generator.axn</div>
+        <div class="fdesc">LCG-seeded procedural map generator. Tile probability scales by level. <code>export fn generate</code> and <code>count_tag</code>. 4 <code>@test</code> declarations.</div>
+      </div>
+      <div class="source-card">
+        <div class="fname">renderer.axn</div>
+        <div class="fdesc"><code>export fn render_map</code>, <code>render_legend</code>, <code>render_stats</code>. Converts grid to HTML colour spans.</div>
+      </div>
+      <div class="source-card">
+        <div class="fname">main.axn</div>
+        <div class="fdesc">DOM wiring. Level names via <code>match</code> + <code>when</code> guards. Rendering via pipeline <code>|&gt;</code>. <code>import</code> from all three modules.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  All dungeon logic written in <strong>Axon v0.5.0</strong> across 4 source files, bundled to a single JS file by <code>axon --bundle</code>.
+  &nbsp;·&nbsp;
+  <a href="landing.html">About Axon</a>
+  &nbsp;·&nbsp;
+  <a href="docs.html">Docs</a>
+  &nbsp;·&nbsp;
+  <a href="rpg.html">RPG Demo</a>
+</footer>
+
+<script src="dungeon.sources.js"></script>
+</body>
+</html>

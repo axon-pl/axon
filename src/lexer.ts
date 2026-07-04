@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.4.0 — Lexer
+// Axon v0.5.0 — Lexer
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Token, TokenType } from './types.js'
@@ -22,6 +22,9 @@ const KEYWORDS: Record<string, TokenType> = {
   new:        'KW_NEW',
   when:       'KW_WHEN',   // v0.4: match guard
   as:         'KW_AS',     // v0.4: pipeline naming
+  import:     'KW_IMPORT', // v0.5: import { ... } from "..."
+  export:     'KW_EXPORT', // v0.5: export fn/type/record
+  from:       'KW_FROM',   // v0.5: from "path"
 }
 
 export class Lexer {

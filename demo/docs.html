@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon Language Reference — v0.4.0</title>
+  <title>Axon Language Reference — v0.5.0</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -566,7 +566,7 @@
     <span class="top-header-title">Axon</span>
     <span class="top-header-sub">Language Reference</span>
     <div class="header-badges">
-      <span class="hbadge hbadge-ver">v0.4.0</span>
+      <span class="hbadge hbadge-ver">v0.5.0</span>
       <span class="hbadge hbadge-ai">AI-native</span>
     </div>
   </header>
@@ -593,6 +593,7 @@
         <a class="nav-link" href="#strings">Strings</a>
         <a class="nav-link" href="#optional">Optional Chaining</a>
         <a class="nav-link" href="#control-flow">Control Flow</a>
+        <a class="nav-link" href="#modules">Modules <span style="color:var(--pink);font-size:0.65rem;vertical-align:top">v0.5</span></a>
       </div>
       <div class="nav-group">
         <div class="nav-group-label">Annotations</div>
@@ -607,6 +608,7 @@
         <div class="nav-group-label">Runtime</div>
         <a class="nav-link" href="#stdlib">Standard Library</a>
         <a class="nav-link" href="#cli">CLI</a>
+        <a class="nav-link" href="#modules">Modules <span style="color:var(--pink);font-size:0.65rem;vertical-align:top">v0.5</span></a>
       </div>
       <div class="nav-group">
         <div class="nav-group-label">Meta</div>
@@ -1128,8 +1130,60 @@
           <tbody>
             <tr><td>node dist/cli.js input.axn output.js</td><td>Transpile Axon source to JavaScript</td></tr>
             <tr><td>node dist/cli.js --test input.axn</td><td>Run all <code>@test</code> declarations and print pass/fail summary. Exits with code 1 on failure.</td></tr>
+            <tr><td>node dist/cli.js --bundle entry.axn out.js</td><td><strong>v0.5</strong> Bundle a multi-file project starting from an entry file. Resolves all imports recursively.</td></tr>
           </tbody>
         </table>
+      </section>
+
+      <!-- ── Modules ──────────────────────────────────────────────────────────── -->
+      <section class="doc-section" id="modules">
+        <div class="section-eyebrow">Language · v0.5.0</div>
+        <h2 class="section-title">Modules</h2>
+        <div class="section-rule"></div>
+
+        <p class="section-lead">Split a project across multiple <code>.axn</code> files. Use <code>import</code> to bring names into scope and <code>export</code> to mark declarations as public.</p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot dot-axn"></span>tiles.axn</div>
+          <pre>export type Tile = | Floor | Wall | Door | Stairs | Chest
+
+export fn tile_glyph(tag: string) -> string =
+  match tag {
+    | "Floor"  =&gt; "&middot;"
+    | "Wall"   =&gt; "&#9608;"
+    | "Door"   =&gt; "&#9647;"
+    | _        =&gt; "?"
+  }
+
+@test "wall glyph" { tile_glyph("Wall") == "&#9608;" }</pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot dot-axn"></span>main.axn</div>
+          <pre>import { tile_glyph } from "./tiles"
+import { generate }   from "./generator"
+import { render_map } from "./renderer"
+
+fn main() {
+  let map  = generate(20, 40, 1, 7777)
+  let html = render_map(map)
+  document.getElementById("output").innerHTML = html
+}
+
+main()</pre>
+        </div>
+
+        <table class="doc-table">
+          <thead><tr><th>Syntax</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>import { a, b } from "./path"</code></td><td>Bring named symbols into scope. Path is relative to the importing file. <code>.axn</code> extension is optional.</td></tr>
+            <tr><td><code>export fn name ...</code></td><td>Mark a function as part of the module's public API.</td></tr>
+            <tr><td><code>export type T = ...</code></td><td>Export a type alias or tagged union.</td></tr>
+            <tr><td><code>export record R { ... }</code></td><td>Export a record type declaration.</td></tr>
+          </tbody>
+        </table>
+
+        <p style="margin-top:14px;color:var(--text-dim);font-size:0.9rem">The <strong style="color:var(--text)">bundler</strong> resolves imports depth-first, topo-sorts modules so dependencies come before dependents, and emits a single JS file with the stdlib included once at the top. All bundled code shares a single flat scope — no runtime module system overhead.</p>
       </section>
 
       <!-- ── Version History ───────────────────────────────────────────────── -->
@@ -1140,9 +1194,27 @@
 
         <div class="version-card vc-current">
           <div class="version-header">
+            <span class="version-tag">v0.5.0</span>
+            <span class="version-name">The Module Update</span>
+            <span class="version-status vs-current">Current</span>
+          </div>
+          <ul class="version-features">
+            <li><strong><code>import { x, y } from "./path"</code></strong> — multi-file projects; relative path resolution per-module</li>
+            <li><strong><code>export fn / export type / export record</code></strong> — declare public API surface; bundler tracks exported symbols</li>
+            <li><strong><code>axon --bundle &lt;entry&gt; [out.js]</code></strong> — recursive import resolution, topo-sort, stdlib emitted once</li>
+            <li><strong>Auto-bundle in <code>--test</code></strong> — files with imports are auto-bundled before running <code>@test</code> declarations</li>
+            <li><strong>Optional <code>if</code> parens</strong> — both <code>if (cond) { }</code> and <code>if cond { }</code> are valid</li>
+            <li><strong>Return-type short-form</strong> — <code>fn f(x) -&gt; T = expr</code> and <code>fn f(x) -&gt; T { block }</code> both valid</li>
+            <li><strong>Nested <code>fn</code> in blocks</strong> — local helper functions inside blocks, emitted as <code>let</code> lambdas</li>
+            <li><strong>Demo: Dungeon Map Toolkit</strong> — 4-file module demo with LCG generator, HTML renderer, 9 <code>@test</code>s</li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
             <span class="version-tag">v0.4.0</span>
             <span class="version-name">The Guards &amp; Unions Update</span>
-            <span class="version-status vs-current">Current</span>
+            <span class="version-status vs-stable">Stable</span>
           </div>
           <ul class="version-features">
             <li><strong><code>when</code> guards in <code>match</code></strong> — boolean guard on any arm; binding patterns scope correctly via IIFE</li>
@@ -1210,16 +1282,16 @@
         <p class="section-lead">Each milestone ships a demo that couldn't be written before it. Internal plumbing without a visible payoff doesn't ship.</p>
 
         <div class="roadmap-grid">
-          <div class="roadmap-card">
-            <div class="roadmap-ver">v0.5</div>
+          <div class="roadmap-card" style="border-color:#39ff6a44;background:linear-gradient(135deg,#001a0d,#0d1a10)">
+            <div class="roadmap-ver" style="color:#39ff6a">v0.5 ✓</div>
             <div class="roadmap-title">The Module Update</div>
-            <div class="roadmap-desc">Multi-file projects. The single biggest gap between demo language and real tool.</div>
+            <div class="roadmap-desc">Shipped. Multi-file projects with recursive import resolution and a bundler.</div>
             <ul class="roadmap-features">
-              <li><code>import { fn, type } from "./path"</code></li>
-              <li><code>export fn name ...</code> declarations</li>
-              <li>CLI bundle mode — multiple <code>.axn</code> files</li>
-              <li>Cross-file name resolution in checker</li>
-              <li>Demo: multi-file RPG engine split into modules</li>
+              <li>✓ <code>import { fn, type } from "./path"</code></li>
+              <li>✓ <code>export fn name ...</code> declarations</li>
+              <li>✓ <code>axon --bundle</code> — topo-sort multi-file bundle</li>
+              <li>✓ Auto-bundle in <code>--test</code> mode</li>
+              <li>✓ Demo: Dungeon Map Toolkit (4 modules)</li>
             </ul>
           </div>
 
@@ -1296,7 +1368,7 @@
   </div>
 
   <footer class="page-footer">
-    Axon v0.4.0 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
+    Axon v0.5.0 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
   </footer>
 
   <script>

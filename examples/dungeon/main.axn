@@ -1,0 +1,102 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Axon v0.5.0 — dungeon/main.axn
+// Entry point for the dungeon map toolkit demo.
+// Wires together tiles, generator, and renderer; mounts to the DOM.
+//
+// Features showcased (v0.5.0):
+//   import { ... } from "./module"   — multi-file modules
+//   export fn / export type          — public API surface
+//   + all v0.4 features: tagged unions, when guards, @test, pipelines, etc.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { Floor, Wall, Door, Stairs, Chest, Water, Torch, tile_info } from "./tiles"
+import { generate, count_tag } from "./generator"
+import { render_map, render_legend, render_stats } from "./renderer"
+
+// ── State held in a JS object (mutable via direct property assignment) ────────
+
+let state = {
+  level: 1,
+  seed:  7777,
+  rows:  22,
+  cols:  48
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+fn next_seed(s: int) -> int =
+  (s * 6364136 + 1442695) % 9007199254740991
+
+fn level_name(level: int) -> string =
+  match level {
+    | 1 => "The Entrance Hall"
+    | 2 => "The Flooded Passage"
+    | 3 => "The Vault of Echoes"
+    | 4 => "The Sunken Catacombs"
+    | 5 => "The Abyssal Chamber"
+    | _ when level > 5 => "The Depths Beyond"
+    | _ => "Unknown Level"
+  }
+
+fn level_description(level: int) -> string =
+  match level {
+    | 1 => "Torch-lit corridors. Watch your step."
+    | 2 => "Flooded halls. Not all paths are safe."
+    | 3 => "Ancient vaults. Chests shimmer in the gloom."
+    | 4 => "The dead rest here. So might you."
+    | 5 => "No light reaches this deep."
+    | _ when level > 5 => "You shouldn't be here."
+    | _ => "Press onward."
+  }
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
+
+fn render_header(level: int) -> string =
+  "<div class=\"dungeon-header\">" +
+    "<h2 class=\"level-name\">Level " + level + " — " + level_name(level) + "</h2>" +
+    "<p class=\"level-desc\">" + level_description(level) + "</p>" +
+  "</div>"
+
+fn do_render() {
+  let map    = generate(state.rows, state.cols, state.level, state.seed)
+  let html   = render_header(state.level)
+            |> _ + render_stats(map, state.seed)
+            |> _ + render_map(map)
+            |> _ + render_legend()
+
+  document.getElementById("dungeon-output").innerHTML = html
+
+  document.getElementById("btn-prev").disabled = state.level <= 1
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+
+fn on_new_map() {
+  state.seed = next_seed(state.seed)
+  do_render()
+}
+
+fn on_next_level() {
+  state.level = state.level + 1
+  state.seed  = next_seed(state.seed)
+  do_render()
+}
+
+fn on_prev_level() {
+  if state.level > 1 {
+    state.level = state.level - 1
+    state.seed  = next_seed(state.seed)
+    do_render()
+  }
+}
+
+// ── Mount ─────────────────────────────────────────────────────────────────────
+
+fn mount() {
+  document.getElementById("btn-new").addEventListener("click",  () => on_new_map())
+  document.getElementById("btn-next").addEventListener("click", () => on_next_level())
+  document.getElementById("btn-prev").addEventListener("click", () => on_prev_level())
+  do_render()
+}
+
+mount()

@@ -1,6 +1,6 @@
 {
   "name": "axon-lang",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Axon — AI-native programming language that transpiles to JavaScript",
   "main": "dist/cli.js",
   "bin": {

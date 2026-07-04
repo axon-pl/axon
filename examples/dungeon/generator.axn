@@ -1,0 +1,94 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Axon v0.5.0 — dungeon/generator.axn
+// Procedural dungeon map generator.
+// Produces a DungeonMap whose grid is a JSON array of tile-info rows.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { Floor, Wall, Door, Stairs, Chest, Water, Torch } from "./tiles"
+
+// A dungeon map: grid is JSON-serialised array of rows
+export record DungeonMap {
+  grid:   string
+  rows:   int
+  cols:   int
+  level:  int
+}
+
+// Deterministic LCG — same seed always produces the same map
+fn lcg(seed: int) -> int =
+  (seed * 1664525 + 1013904223) % 2147483648
+
+fn rand_float(seed: int) -> float =
+  lcg(seed) / 2147483648.0
+
+// Pick a tile tag for a given cell
+fn pick_tag(row: int, col: int, rows: int, cols: int, level: int, seed: int) -> string {
+  let edge = row == 0 || col == 0 || row == rows - 1 || col == cols - 1
+  if edge { return "Wall" }
+
+  // Fixed landmark: stairs always in the bottom-right inner cell
+  if row == rows - 2 && col == cols - 2 { return "Stairs" }
+
+  let rng = rand_float(seed + row * 1000 + col * 37 + level * 13)
+  let chest_p = 0.03 + level * 0.01
+  let water_p = 0.04 + level * 0.015
+  let torch_p = 0.03
+  let wall_p  = 0.18 - level * 0.01
+  let door_p  = 0.04
+
+  if rng < chest_p                              { return "Chest"  }
+  if rng < chest_p + water_p                    { return "Water"  }
+  if rng < chest_p + water_p + torch_p          { return "Torch"  }
+  if rng < chest_p + water_p + torch_p + wall_p { return "Wall"   }
+  if rng < chest_p + water_p + torch_p + wall_p + door_p { return "Door" }
+  "Floor"
+}
+
+// Build the grid as a flat array-of-arrays of { tag, passable } objects, then JSON-encode it
+export fn generate(rows: int, cols: int, level: int, seed: int) -> DungeonMap {
+  let grid = []
+
+  // row loop via Array.from
+  Array.from({ length: rows }).forEach((_, r) => {
+    let row = []
+    Array.from({ length: cols }).forEach((_, c) => {
+      let tag      = pick_tag(r, c, rows, cols, level, seed)
+      let passable = tag != "Wall" && tag != "Chest" && tag != "Water"
+      row.push({ tag: tag, passable: passable })
+    })
+    grid.push(row)
+  })
+
+  { grid: JSON.stringify(grid), rows: rows, cols: cols, level: level }
+}
+
+// Count cells matching a specific tile tag
+export fn count_tag(map: DungeonMap, tag: string) -> int {
+  let grid  = JSON.parse(map.grid)
+  let count = 0
+  grid.forEach(row => row.forEach(cell => {
+    if cell.tag == tag { count = count + 1 }
+  }))
+  count
+}
+
+@test "map has expected dimensions" {
+  let m = generate(10, 20, 1, 42)
+  m.rows == 10 && m.cols == 20
+}
+
+@test "level-1 map has at least one floor tile" {
+  let m = generate(10, 20, 1, 42)
+  count_tag(m, "Floor") > 0
+}
+
+@test "outer border is all wall" {
+  let m = generate(8, 12, 1, 99)
+  let g = JSON.parse(m.grid)
+  g[0].every(t => t.tag == "Wall") && g[7].every(t => t.tag == "Wall")
+}
+
+@test "stairs present in every map" {
+  let m = generate(10, 14, 1, 12)
+  count_tag(m, "Stairs") > 0
+}
