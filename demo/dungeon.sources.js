@@ -368,19 +368,35 @@ const place_room_doors = (g, room) => {
   let dc = room.c2 - room.c1 + 1;
   let ri = Array.from({ length: dr }).findIndex((_, i) => gget(g, room.r1 + i, room.c2 + 1) == "Floor");
   if (ri >= 0) {
-    return gset(g, room.r1 + ri, room.c2, "Door");
+    let r = room.r1 + ri;
+    let c = room.c2 + 1;
+    if (gget(g, r - 1, c) == "Wall" && gget(g, r + 1, c) == "Wall") {
+      return gset(g, r, c, "Door");
+    }
   }
   let li = Array.from({ length: dr }).findIndex((_, i) => gget(g, room.r1 + i, room.c1 - 1) == "Floor");
   if (li >= 0) {
-    return gset(g, room.r1 + li, room.c1, "Door");
+    let r = room.r1 + li;
+    let c = room.c1 - 1;
+    if (gget(g, r - 1, c) == "Wall" && gget(g, r + 1, c) == "Wall") {
+      return gset(g, r, c, "Door");
+    }
   }
   let bi = Array.from({ length: dc }).findIndex((_, j) => gget(g, room.r2 + 1, room.c1 + j) == "Floor");
   if (bi >= 0) {
-    return gset(g, room.r2, room.c1 + bi, "Door");
+    let r = room.r2 + 1;
+    let c = room.c1 + bi;
+    if (gget(g, r, c - 1) == "Wall" && gget(g, r, c + 1) == "Wall") {
+      return gset(g, r, c, "Door");
+    }
   }
   let ti = Array.from({ length: dc }).findIndex((_, j) => gget(g, room.r1 - 1, room.c1 + j) == "Floor");
   if (ti >= 0) {
-    return gset(g, room.r1, room.c1 + ti, "Door");
+    let r = room.r1 - 1;
+    let c = room.c1 + ti;
+    if (gget(g, r, c - 1) == "Wall" && gget(g, r, c + 1) == "Wall") {
+      return gset(g, r, c, "Door");
+    }
   }
 };
 

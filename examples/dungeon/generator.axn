@@ -98,24 +98,45 @@ fn carve_corridor(g: any, r1: int, c1: int, r2: int, c2: int) {
 
 // ── Door placement ────────────────────────────────────────────────────────────
 
-// Place at most one door per wall edge where a corridor connects from outside.
-// findIndex returns -1 when nothing is found, so the door is only placed once
-// per edge even when a corridor runs parallel to the wall for several cells.
+// Place a door in the corridor just outside the room, one per wall edge.
+// The candidate cell must have walls on both perpendicular sides — a true
+// one-tile-wide bottleneck. Room interior cells fail this check, so doors
+// are never placed inside the room itself.
 fn place_room_doors(g: any, room: any) {
   let dr = room.r2 - room.r1 + 1
   let dc = room.c2 - room.c1 + 1
 
+  // Right: corridor exits through column room.c2+1; walls must flank above/below
   let ri = Array.from({ length: dr }).findIndex((_, i) => gget(g, room.r1 + i, room.c2 + 1) == "Floor")
-  if ri >= 0 { gset(g, room.r1 + ri, room.c2, "Door") }
+  if ri >= 0 {
+    let r = room.r1 + ri
+    let c = room.c2 + 1
+    if gget(g, r - 1, c) == "Wall" && gget(g, r + 1, c) == "Wall" { gset(g, r, c, "Door") }
+  }
 
+  // Left: corridor exits through column room.c1-1
   let li = Array.from({ length: dr }).findIndex((_, i) => gget(g, room.r1 + i, room.c1 - 1) == "Floor")
-  if li >= 0 { gset(g, room.r1 + li, room.c1, "Door") }
+  if li >= 0 {
+    let r = room.r1 + li
+    let c = room.c1 - 1
+    if gget(g, r - 1, c) == "Wall" && gget(g, r + 1, c) == "Wall" { gset(g, r, c, "Door") }
+  }
 
+  // Bottom: corridor exits through row room.r2+1; walls must flank left/right
   let bi = Array.from({ length: dc }).findIndex((_, j) => gget(g, room.r2 + 1, room.c1 + j) == "Floor")
-  if bi >= 0 { gset(g, room.r2, room.c1 + bi, "Door") }
+  if bi >= 0 {
+    let r = room.r2 + 1
+    let c = room.c1 + bi
+    if gget(g, r, c - 1) == "Wall" && gget(g, r, c + 1) == "Wall" { gset(g, r, c, "Door") }
+  }
 
+  // Top: corridor exits through row room.r1-1
   let ti = Array.from({ length: dc }).findIndex((_, j) => gget(g, room.r1 - 1, room.c1 + j) == "Floor")
-  if ti >= 0 { gset(g, room.r1, room.c1 + ti, "Door") }
+  if ti >= 0 {
+    let r = room.r1 - 1
+    let c = room.c1 + ti
+    if gget(g, r, c - 1) == "Wall" && gget(g, r, c + 1) == "Wall" { gset(g, r, c, "Door") }
+  }
 }
 
 // ── Special tile placement ────────────────────────────────────────────────────
