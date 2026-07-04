@@ -19,6 +19,7 @@ export type TokenType =
   | 'KW_BREAK'          // v0.5.2: break statement
   | 'KW_CONTINUE'       // v0.5.2: continue statement
   | 'KW_MUT'            // v0.5.2: mutable binding
+  | 'KW_REFINE'         // v0.6:   refine x: "semantic claim"
   // Literals
   | 'NUMBER' | 'STRING' | 'REGEX' | 'TEMPLATE'
   // Identifier
@@ -254,6 +255,7 @@ export type Expr =
   | BlockExpr
   | MatchExpr
   | RawJS
+  | ResultPropagateExpr  // v0.6: expr? — propagate Err, unwrap Ok
 
 export interface NumberLit  { kind: 'NumberLit';  value: number }
 export interface StringLit  { kind: 'StringLit';  value: string; raw: string }
@@ -371,6 +373,13 @@ export type BlockStmt =
   | { kind: 'ForInStmt';    varName: string; iter: Expr; body: BlockExpr }                              // v0.5.2
   | { kind: 'BreakStmt' }    // v0.5.2
   | { kind: 'ContinueStmt' } // v0.5.2
+  | { kind: 'RefineStmt'; name: string; claim: string }  // v0.6: refine x: "claim"
+
+// v0.6: expr? — if Err, propagate immediately; if Ok, unwrap the value
+export interface ResultPropagateExpr {
+  kind: 'ResultPropagateExpr'
+  value: Expr
+}
 
 export interface MatchExpr {
   kind: 'MatchExpr'

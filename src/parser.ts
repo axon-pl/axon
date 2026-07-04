@@ -56,6 +56,25 @@ export class Parser {
     if (tok.type === 'KW_EXPORT') return this.parseExportDecl()
     // v0.5: top-level let binding (e.g. let state = {...})
     if (tok.type === 'KW_LET') return this.parseTopLevelLet()
+    // v0.6: pre-fn annotations — @throws fn foo(...) / @pure fn bar(...)
+    // Collect the annotations, then expect fn/record/type to follow.
+    if (tok.type === 'AT' && tok.value !== '@test') {
+      const preAnns = this.parseAnnotations()
+      const next = this.peek()
+      if (next.type === 'KW_FN') {
+        const decl = this.parseFnDecl()
+        decl.annotations = [...preAnns, ...decl.annotations]
+        return decl
+      }
+      if (next.type === 'KW_EXPORT') {
+        const exported = this.parseExportDecl()
+        if (exported.decl.kind === 'FnDecl') {
+          exported.decl.annotations = [...preAnns, ...exported.decl.annotations]
+        }
+        return exported
+      }
+      // fallthrough — treat as top-level expr (annotations emitted as AT tokens)
+    }
     // v0.5: bare expression statement at top level (e.g. mount())
     if (tok.type !== 'EOF') {
       const line = tok.line
@@ -431,7 +450,7 @@ export class Parser {
       // Return statement
       if (this.check('KW_RETURN')) {
         this.advance()
-        const value = this.parseExpr()
+        const value = this.tryPropagation(this.parseExpr())  // v0.6: return expr?
         this.tryConsume('SEMICOLON')
         stmts.push({ kind: 'ReturnStmt', value })
         continue
@@ -468,6 +487,17 @@ export class Parser {
         this.advance()
         this.tryConsume('SEMICOLON')
         stmts.push({ kind: 'ContinueStmt' })
+        continue
+      }
+
+      // v0.6: refine name: "semantic claim"
+      if (this.check('KW_REFINE')) {
+        this.advance()
+        const name = this.expect('IDENT').value
+        this.expect('COLON')
+        const claim = this.expect('STRING').value
+        this.tryConsume('SEMICOLON')
+        stmts.push({ kind: 'RefineStmt', name, claim })
         continue
       }
 
@@ -541,13 +571,13 @@ export class Parser {
           name = this.expect('IDENT').value
         }
         this.expect('ASSIGN')
-        const value = this.parseExpr()
+        const value = this.tryPropagation(this.parseExpr())  // v0.6: let x = expr?
         stmts.push({ kind: 'LetStmt', name, value, mutable })
         this.tryConsume('SEMICOLON')
         continue
       }
 
-      const expr = this.parseExpr()
+      const expr = this.tryPropagation(this.parseExpr())  // v0.6: expr?
       this.tryConsume('SEMICOLON')
 
       if (!stmtMode && (this.check('RBRACE') || this.check('EOF'))) {
@@ -665,9 +695,20 @@ export class Parser {
   }
 
   // v0.4: ternary now wraps nullish, so ?? has higher precedence than ?:
+  // v0.6: if `?` and the NEXT token are on DIFFERENT lines, treat as Result
+  //        propagation postfix (expr?) rather than ternary (cond ? a : b).
+  //        This allows `let n = parse_int(s)?` with the body on the next line.
   private parseTernary(): Expr {
     const test = this.parseNullish()
     if (this.check('QUESTION')) {
+      const questionLine = this.tokens[this.pos].line
+      const afterLine    = this.tokens[this.pos + 1]?.line ?? questionLine + 1
+      if (afterLine > questionLine) {
+        // Propagation postfix: ? is the last thing on its line
+        this.advance()
+        return { kind: 'ResultPropagateExpr', value: test }
+      }
+      // Ternary
       this.advance()
       const consequent = this.parseExpr()
       this.expect('COLON')
@@ -675,6 +716,16 @@ export class Parser {
       return { kind: 'TernaryExpr', test, consequent, alternate }
     }
     return test
+  }
+
+  // v0.6: Also allow explicit ? in a statement-boundary position for same-line
+  // propagation: `let n = parse_int(s)?` where ? is followed by ; or }
+  private tryPropagation(expr: Expr): Expr {
+    if (this.check('QUESTION')) {
+      this.advance()
+      return { kind: 'ResultPropagateExpr', value: expr }
+    }
+    return expr
   }
 
   // v0.4: ?? nullish coalescing — lower precedence than ||, higher than ?:

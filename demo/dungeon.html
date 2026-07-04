@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dungeon Map Toolkit — Axon v0.5.2</title>
+  <title>Dungeon Map Toolkit — Axon v0.6.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0 }
 
@@ -147,6 +147,61 @@
     }
     .btn-level:hover:not(:disabled) { background: linear-gradient(135deg, #22144a, #2e1a5a); color: #cc88ff; }
 
+    /* v0.6: seed code input bar */
+    .config-chip { border-color: var(--cyan) !important; color: var(--cyan) !important; }
+
+    .code-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .code-bar-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    .code-input {
+      flex: 1;
+      min-width: 160px;
+      background: #0d0d1a;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--cyan);
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      padding: 7px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .code-input:focus { border-color: var(--cyan); }
+    .code-input::placeholder { color: #445; }
+    .btn-load {
+      background: linear-gradient(135deg, #003a3a, #004a40);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      white-space: nowrap;
+    }
+    .btn-load:hover { background: linear-gradient(135deg, #004a40, #006050); color: #88ffee; }
+    .code-error {
+      width: 100%;
+      font-size: 0.82rem;
+      color: var(--pink);
+      background: rgba(255,64,129,0.08);
+      border: 1px solid rgba(255,64,129,0.25);
+      border-radius: 6px;
+      padding: 7px 12px;
+      margin-top: 4px;
+    }
+
     /* Dungeon output */
     #dungeon-output {
       background: var(--surface);
@@ -289,9 +344,9 @@
 <header class="page-header">
   <div>
     <div class="page-title">Dungeon Map Toolkit</div>
-    <div class="page-subtitle">Multi-file modules — Axon v0.5.2</div>
+    <div class="page-subtitle">Multi-file modules — Axon v0.6.0</div>
   </div>
-  <span class="page-badge">Axon v0.5.2</span>
+  <span class="page-badge">Axon v0.6.0</span>
 </header>
 
 <div class="page-body">
@@ -304,8 +359,17 @@
     <span class="arrow-sep">→</span>
     <span class="mod-chip">renderer.axn</span>
     <span class="arrow-sep">→</span>
+    <span class="mod-chip config-chip">config.axn</span>
+    <span class="arrow-sep">→</span>
     <span class="mod-chip">main.axn</span>
     <span class="bundle-note">bundled to one JS file by <code>axon --bundle</code></span>
+  </div>
+
+  <div class="code-bar">
+    <div class="code-bar-label">Seed code</div>
+    <input id="code-input" class="code-input" type="text" placeholder="level:seed — e.g. 3:42" spellcheck="false" autocomplete="off" />
+    <button id="btn-load" class="btn btn-load">Load ↵</button>
+    <div id="code-error" class="code-error" style="display:none"></div>
   </div>
 
   <div class="controls">
@@ -321,7 +385,7 @@
   </div>
 
   <div class="source-info">
-    <h3>Source modules — v0.5.2 <code style="color:var(--pink)">import / export</code></h3>
+    <h3>Source modules — v0.6.0 <code style="color:var(--cyan)">Result</code> · <code style="color:var(--pink)">?</code> · <code style="color:var(--purple)">@throws</code> · <code style="color:var(--gold)">refine</code></h3>
     <div class="source-grid">
       <div class="source-card">
         <div class="fname">tiles.axn</div>
@@ -335,9 +399,13 @@
         <div class="fname">renderer.axn</div>
         <div class="fdesc"><code>export fn render_map</code>, <code>render_legend</code>, <code>render_stats</code>. Converts grid to HTML colour spans.</div>
       </div>
+      <div class="source-card" style="border-color:rgba(0,255,200,0.25)">
+        <div class="fname" style="color:var(--cyan)">config.axn ✦ v0.6</div>
+        <div class="fdesc">Parses <code>level:seed</code> codes into <code>DungeonConfig</code>. Three <code>@throws</code> functions chain via <code>?</code> — precise error messages at the exact field that fails. <code>refine</code> documents invariants. 9 <code>@test</code> declarations.</div>
+      </div>
       <div class="source-card">
         <div class="fname">main.axn</div>
-        <div class="fdesc">DOM wiring. Level names via <code>match</code> + <code>when</code> guards. Rendering via pipeline <code>|&gt;</code>. <code>import</code> from all three modules.</div>
+        <div class="fdesc">DOM wiring. Imports <code>parse_config</code> from config.axn — matches <code>Result</code> to render the dungeon or display the error inline. Code input auto-syncs to current state.</div>
       </div>
     </div>
   </div>
@@ -345,7 +413,7 @@
 </div>
 
 <footer>
-  All dungeon logic written in <strong>Axon v0.5.2</strong> across 4 source files, bundled to a single JS file by <code>axon --bundle</code>.
+  All dungeon logic written in <strong>Axon v0.6.0</strong> across 4 source files, bundled to a single JS file by <code>axon --bundle</code>.
   &nbsp;·&nbsp;
   <a href="landing.html">About Axon</a>
   &nbsp;·&nbsp;

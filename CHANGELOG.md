@@ -1,5 +1,71 @@
 # Axon Changelog
 
+## v0.6.0 — The Safety Update
+
+### New language features
+
+- **`Result` type + stdlib helpers**
+  `ok(value)` / `err(message)` constructors. `is_ok`, `is_err`, `unwrap`, `unwrap_or`
+  available in every Axon program.
+
+  ```axon
+  let r = ok(42)         // { tag: "Ok", value: 42 }
+  let e = err("oops")    // { tag: "Err", message: "oops" }
+  ```
+
+- **`?` propagation operator**
+  `let n = parse(s)?` — if `parse(s)` returns `Err`, the enclosing function
+  returns immediately with that error. If `Ok`, unwraps the value into `n`.
+  Line-aware disambiguation from ternary `?:` — `?` on its own line is always
+  propagation.
+
+  ```axon
+  @throws
+  fn process(input: string) -> any {
+    let n = parse_int(input)?   // propagates Err, unwraps Ok
+    ok(n * 2)
+  }
+  ```
+
+- **`@throws` annotation**
+  Marks a function as one that returns `Result`. The checker emits a warning
+  if a `@throws` function never calls `ok()` or `err()`. Pre-function syntax
+  (`@throws fn foo()`) is now supported alongside the existing inside-body form.
+
+- **`refine x: "semantic claim"`**
+  Documents an invariant about a value inline. Emitted as a structured comment
+  in JS today; becomes model-checkable in v1.0 via `axon spec`.
+
+  ```axon
+  let seed = Math.abs(n) % 2147483648
+  refine seed: "a non-negative dungeon seed in [0, 2^31)"
+  ```
+
+- **Pattern matching on `Result`**
+  `Ok` and `Err` work as tagged union patterns in `match` out of the box.
+
+  ```axon
+  match parse_config(input) {
+    | Ok  { value }   => render(value)
+    | Err { message } => show_error(message)
+  }
+  ```
+
+### Demo: Dungeon Configurator
+
+New `config.axn` module — parses `level:seed` codes with three chained
+`@throws` functions. Every field failure produces a precise error message
+rather than a generic crash. The seed code input in the dungeon demo
+auto-syncs to the current state and validates on Enter or button click.
+
+### Tests
+
+17 new `@test` cases in `examples/v06_features.axn`.
+9 new `@test` cases in `examples/dungeon/config.axn`.
+85 total tests across all example files, all passing.
+
+---
+
 ## v0.5.2 — The Ergonomics Update
 
 ### New language features

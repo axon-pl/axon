@@ -166,6 +166,61 @@ const __axon_presets = {
   hex:     /^#?[0-9a-fA-F]{3,8}$/,
 };
 
+// ── Axon v0.6.0 Result type ──────────────────────────────────────────────────
+// Result<T> = Ok { value: T } | Err { message: string }
+// Constructors and helpers available in every Axon program.
+
+/**
+ * Wrap a value in Ok. Use as the success return of a @throws function.
+ * @pure @total
+ * @param {*} value
+ * @returns {{ tag: 'Ok', value: * }}
+ */
+const ok = (value) => ({ tag: 'Ok', value });
+
+/**
+ * Wrap a message in Err. Use as the failure return of a @throws function.
+ * @pure @total
+ * @param {string} message
+ * @returns {{ tag: 'Err', message: string }}
+ */
+const err = (message) => ({ tag: 'Err', message });
+
+/**
+ * True if result is Ok.
+ * @pure @total
+ * @param {{ tag: string }} r
+ * @returns {boolean}
+ */
+const is_ok = (r) => r != null && r.tag === 'Ok';
+
+/**
+ * True if result is Err.
+ * @pure @total
+ * @param {{ tag: string }} r
+ * @returns {boolean}
+ */
+const is_err = (r) => r != null && r.tag === 'Err';
+
+/**
+ * Unwrap Ok value — throws if Err.
+ * @param {{ tag: string, value: *, message: string }} r
+ * @returns {*}
+ */
+const unwrap = (r) => {
+  if (r != null && r.tag === 'Ok') return r.value;
+  throw new Error(r != null ? r.message : 'unwrap called on null');
+};
+
+/**
+ * Unwrap Ok value, or return fallback if Err.
+ * @pure @total
+ * @param {{ tag: string, value: * }} r
+ * @param {*} fallback
+ * @returns {*}
+ */
+const unwrap_or = (r, fallback) => (r != null && r.tag === 'Ok') ? r.value : fallback;
+
 // ── Axon v0.4.0 test runner ──────────────────────────────────────────────────
 // @test declarations push entries here. Call __runAxonTests() to execute them.
 // Also exposed on globalThis so the CLI's vm context can access it.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon Language Reference — v0.5.2</title>
+  <title>Axon Language Reference — v0.6.0</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -567,7 +567,7 @@
     <span class="top-header-title">Axon</span>
     <span class="top-header-sub">Language Reference</span>
     <div class="header-badges">
-      <span class="hbadge hbadge-ver">v0.5.2</span>
+      <span class="hbadge hbadge-ver">v0.6.0</span>
       <span class="hbadge hbadge-ai">AI-native</span>
     </div>
   </header>
@@ -1145,7 +1145,7 @@
 
       <!-- ── Modules ──────────────────────────────────────────────────────────── -->
       <section class="doc-section" id="modules">
-        <div class="section-eyebrow">Language · v0.5.2</div>
+        <div class="section-eyebrow">Language · v0.6.0</div>
         <h2 class="section-title">Modules</h2>
         <div class="section-rule"></div>
 
@@ -1202,19 +1202,31 @@ main()</pre>
 
         <div class="version-card vc-current">
           <div class="version-header">
-            <span class="version-tag">v0.5.2</span>
-            <span class="version-name">The Ergonomics Update</span>
+            <span class="version-tag">v0.6.0</span>
+            <span class="version-name">The Safety Update</span>
             <span class="version-status vs-current">Current</span>
           </div>
           <ul class="version-features">
-            <li><strong><code>for i in lo..hi { }</code></strong> — exclusive range loop; compiles to a native JS <code>for</code> loop</li>
-            <li><strong><code>for i in lo..=hi { }</code></strong> — inclusive range loop</li>
-            <li><strong><code>for x in array { }</code></strong> — forEach loop over any iterable; compiles to <code>for...of</code></li>
-            <li><strong><code>break</code> / <code>continue</code></strong> — exit or skip iterations inside any <code>for</code> body</li>
-            <li><strong><code>let mut x = val</code></strong> — explicit mutable binding; plain <code>let</code> signals immutable intent</li>
-            <li><strong>Lexer: <code>..</code> and <code>..=</code> range tokens</strong> — number literal reader no longer greedily consumes <code>..</code></li>
-            <li><strong>Parser: <code>stmtMode</code></strong> — <code>if</code> blocks inside <code>for</code> bodies correctly emit expression statements instead of <code>return</code></li>
-            <li><strong>Dungeon rewrite</strong> — all <code>Array.from().forEach</code> replaced with <code>for</code> loops; all counters use <code>let mut</code></li>
+            <li><strong>Built-in <code>Result</code> type</strong> — <code>ok(value)</code> / <code>err(message)</code> constructors; <code>is_ok</code>, <code>is_err</code>, <code>unwrap</code>, <code>unwrap_or</code> in stdlib</li>
+            <li><strong><code>?</code> propagation operator</strong> — <code>let n = parse(s)?</code> returns <code>Err</code> immediately; line-aware disambiguation from ternary</li>
+            <li><strong><code>@throws</code> annotation</strong> — marks fallible functions; checker warns if <code>ok()</code>/<code>err()</code> are never called</li>
+            <li><strong><code>refine x: "claim"</code></strong> — semantic value narrowing; structured comment today, model-checked in v1.0</li>
+            <li><strong>Pre-function annotations</strong> — <code>@throws fn foo()</code> syntax now valid</li>
+            <li><strong>Demo: Dungeon Configurator</strong> — <code>config.axn</code> with chained <code>@throws</code> parsers; precise per-field error messages</li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
+            <span class="version-tag">v0.5.2</span>
+            <span class="version-name">The Ergonomics Update</span>
+            <span class="version-status vs-stable">Stable</span>
+          </div>
+          <ul class="version-features">
+            <li><strong><code>for i in lo..hi</code> / <code>lo..=hi</code></strong> — exclusive and inclusive range loops</li>
+            <li><strong><code>for x in array</code></strong> — forEach loop; compiles to <code>for...of</code></li>
+            <li><strong><code>break</code> / <code>continue</code></strong> — full loop control</li>
+            <li><strong><code>let mut x = val</code></strong> — explicit mutable binding</li>
           </ul>
         </div>
 
@@ -1322,7 +1334,7 @@ main()</pre>
 
         <div class="roadmap-grid">
           <div class="roadmap-card" style="border-color:#39ff6a44;background:linear-gradient(135deg,#001a0d,#0d1a10)">
-            <div class="roadmap-ver" style="color:#39ff6a">v0.5.2 ✓</div>
+            <div class="roadmap-ver" style="color:#39ff6a">v0.6.0 ✓</div>
             <div class="roadmap-title">The Module Update</div>
             <div class="roadmap-desc">Shipped. Multi-file projects with recursive import resolution and a bundler.</div>
             <ul class="roadmap-features">
@@ -1425,7 +1437,7 @@ main()</pre>
   </div>
 
   <footer class="page-footer">
-    Axon v0.5.2 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
+    Axon v0.6.0 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
   </footer>
 
   <script>

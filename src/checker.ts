@@ -70,9 +70,25 @@ export class Checker {
   private checkFn(fn: FnDecl): void {
     const isPure       = fn.annotations.some(a => a.name === 'pure')
     const isExhaustive = fn.annotations.some(a => a.name === 'exhaustive')
+    const isThrows     = fn.annotations.some(a => a.name === 'throws')
 
     if (isPure)       this.checkPurity(fn.body, fn.name, fn.line)
     if (isExhaustive) this.checkExhaustive(fn.body, fn.name, fn.line)
+    if (isThrows)     this.checkThrows(fn.body, fn.name, fn.line)
+  }
+
+  // v0.6: @throws — warn if the function never calls ok() or err()
+  private checkThrows(expr: Expr, fnName: string, fnLine: number): void {
+    let hasOk = false, hasErr = false
+    this.walkExpr(expr, (e) => {
+      if (e.kind === 'CallExpr' && e.callee.kind === 'Identifier') {
+        if (e.callee.name === 'ok')  hasOk  = true
+        if (e.callee.name === 'err') hasErr = true
+      }
+    })
+    if (!hasOk && !hasErr) {
+      this.warn(`@throws function '${fnName}' never calls ok() or err()`, fnLine)
+    }
   }
 
   private checkTest(decl: TestDecl): void {
@@ -202,7 +218,8 @@ export class Checker {
           this.walkExpr(a.body, visit)
         })
         break
-      case 'BlockExpr':    this.walkBlock(expr, visit); break
+      case 'BlockExpr':             this.walkBlock(expr, visit); break
+      case 'ResultPropagateExpr':   this.walkExpr(expr.value, visit); break  // v0.6
       default: break
     }
   }
@@ -232,6 +249,8 @@ export class Checker {
         case 'BreakStmt':
         case 'ContinueStmt':
           break
+        case 'RefineStmt':
+          break  // v0.6: semantic claim — no walk needed, no side effects
       }
     }
   }

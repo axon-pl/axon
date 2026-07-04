@@ -1,19 +1,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.5.0 — dungeon/main.axn
+// Axon v0.6 — dungeon/main.axn
 // Entry point for the dungeon map toolkit demo.
 //
 // State pattern: AppState is an immutable record. render(s) draws the dungeon
 // AND re-wires every button so it calls render() with a fresh state value.
 // No variable is ever mutated — state flows through the call chain as data.
 //
-// This is the idiomatic Axon pattern until v0.8 ships `store`:
-//   store AppState { level: int = 1, seed: int = 7777, ... }
-//   on AppState.change { render(AppState) }
+// v0.6: config.axn provides parse_config() which returns Result. The code
+// input in the page header chains @throws parsers via ? to produce precise
+// error messages on invalid codes.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Floor, Wall, Door, Stairs, Chest, Water, Torch } from "./tiles"
 import { generate, count_tag } from "./generator"
 import { render_map, render_legend, render_stats } from "./renderer"
+import { parse_config } from "./config"
 
 // ── App state ─────────────────────────────────────────────────────────────────
 
@@ -42,8 +43,6 @@ fn go_prev(s: AppState) -> AppState {
 
 // ── Map name generator ────────────────────────────────────────────────────────
 
-// Picks a unique name from adjective + noun word lists using the seed so
-// every "New Map" and every level gets a distinct title.
 fn map_name(level: int, seed: int) -> string {
   let adj = [
     "Sunken",    "Flooded",   "Forgotten", "Ancient",   "Crumbling",
@@ -82,10 +81,27 @@ fn render_header(level: int, seed: int) -> string =
     "<p class=\"level-desc\">" + level_description(level) + "</p>" +
   "</div>"
 
+// ── Config input handler (v0.6) ───────────────────────────────────────────────
+
+// Parse the code-input field and render the dungeon if valid, or show the error.
+// Uses Result helpers — no match arm block bodies needed.
+fn handle_code_input(s: AppState) {
+  let input  = document.getElementById("code-input").value
+  let result = parse_config(input)
+  let errEl  = document.getElementById("code-error")
+  if is_ok(result) {
+    let cfg = result.value
+    errEl.textContent = ""
+    errEl.style.display = "none"
+    render({ level: cfg.level, seed: cfg.seed, rows: s.rows, cols: s.cols })
+  } else {
+    errEl.textContent = result.message
+    errEl.style.display = "block"
+  }
+}
+
 // ── Render ────────────────────────────────────────────────────────────────────
 
-// Draws the dungeon from s and re-wires each button with a closure over the
-// *next* state value. onclick = replaces the previous handler cleanly.
 fn render(s: AppState) {
   let map  = generate(s.rows, s.cols, s.level, s.seed)
   let html = render_header(s.level, s.seed)
@@ -96,10 +112,17 @@ fn render(s: AppState) {
   document.getElementById("dungeon-output").innerHTML = html
   document.getElementById("btn-prev").disabled = s.level <= 1
 
-  document.getElementById("btn-new").onclick  = () => render(new_map(s))
-  document.getElementById("btn-next").onclick = () => render(go_next(s))
-  document.getElementById("btn-prev").onclick = () => {
+  // Update the code input to reflect the current state
+  document.getElementById("code-input").value = s.level + ":" + s.seed
+
+  document.getElementById("btn-new").onclick   = () => render(new_map(s))
+  document.getElementById("btn-next").onclick  = () => render(go_next(s))
+  document.getElementById("btn-prev").onclick  = () => {
     if s.level > 1 { render(go_prev(s)) }
+  }
+  document.getElementById("btn-load").onclick  = () => handle_code_input(s)
+  document.getElementById("code-input").onkeydown = (e) => {
+    if e.key == "Enter" { handle_code_input(s) }
   }
 }
 

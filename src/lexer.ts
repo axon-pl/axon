@@ -30,6 +30,7 @@ const KEYWORDS: Record<string, TokenType> = {
   break:      'KW_BREAK',    // v0.5.2: break out of for loop
   continue:   'KW_CONTINUE', // v0.5.2: continue to next iteration
   mut:        'KW_MUT',      // v0.5.2: let mut — mutable binding
+  refine:     'KW_REFINE',   // v0.6: refine x: "semantic claim"
 }
 
 export class Lexer {

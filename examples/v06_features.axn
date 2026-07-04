@@ -1,0 +1,139 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Axon v0.6 — Result type, ? propagation, @throws, refine
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── ok / err constructors ─────────────────────────────────────────────────────
+
+@test "ok wraps a value" {
+  let r = ok(42)
+  r.tag == "Ok" && r.value == 42
+}
+
+@test "err wraps a message" {
+  let r = err("oops")
+  r.tag == "Err" && r.message == "oops"
+}
+
+@test "is_ok and is_err work" {
+  is_ok(ok(1)) && is_err(err("x")) && !is_ok(err("x"))
+}
+
+@test "unwrap_or returns fallback on Err" {
+  unwrap_or(err("bad"), 99) == 99
+}
+
+@test "unwrap_or returns value on Ok" {
+  unwrap_or(ok(7), 99) == 7
+}
+
+// ── @throws functions ─────────────────────────────────────────────────────────
+
+@throws
+fn safe_div(a: int, b: int) -> any {
+  if b == 0 { err("division by zero") }
+  else { ok(a / b) }
+}
+
+@test "@throws fn returns Ok on success" {
+  let r = safe_div(10, 2)
+  r.tag == "Ok" && r.value == 5
+}
+
+@test "@throws fn returns Err on failure" {
+  let r = safe_div(10, 0)
+  r.tag == "Err" && r.message == "division by zero"
+}
+
+// ── ? propagation ─────────────────────────────────────────────────────────────
+
+@throws
+fn parse_positive(s: string) -> any {
+  let n = parseInt(s)
+  if isNaN(n)  { err("not a number: " + s) }
+  if n <= 0    { err("must be positive, got: " + n) }
+  ok(n)
+}
+
+@throws
+fn double_positive(s: string) -> any {
+  let n = parse_positive(s)?
+  ok(n * 2)
+}
+
+@test "? propagates Err upward" {
+  let r = double_positive("abc")
+  r.tag == "Err" && r.message == "not a number: abc"
+}
+
+@test "? unwraps Ok and continues" {
+  let r = double_positive("5")
+  r.tag == "Ok" && r.value == 10
+}
+
+@test "? propagates Err from inner condition" {
+  let r = double_positive("-3")
+  r.tag == "Err" && r.message == "must be positive, got: -3"
+}
+
+// ── Chained ? propagation ─────────────────────────────────────────────────────
+
+@throws
+fn parse_range(lo_s: string, hi_s: string) -> any {
+  let lo = parse_positive(lo_s)?
+  let hi = parse_positive(hi_s)?
+  if lo >= hi { err("lo must be less than hi") }
+  ok({ lo: lo, hi: hi })
+}
+
+@test "chained ? both succeed" {
+  let r = parse_range("2", "8")
+  r.tag == "Ok" && r.value.lo == 2 && r.value.hi == 8
+}
+
+@test "chained ? fails on first bad arg" {
+  let r = parse_range("bad", "8")
+  r.tag == "Err" && r.message == "not a number: bad"
+}
+
+@test "chained ? fails on second bad arg" {
+  let r = parse_range("2", "bad")
+  r.tag == "Err" && r.message == "not a number: bad"
+}
+
+// ── match on Result ───────────────────────────────────────────────────────────
+
+fn describe_result(r: any) -> string =
+  match r {
+    | Ok  { value }   => "success: " + value
+    | Err { message } => "error: " + message
+    | _               => "unknown"
+  }
+
+@test "match Ok branch" {
+  describe_result(ok("map loaded")) == "success: map loaded"
+}
+
+@test "match Err branch" {
+  describe_result(err("seed out of range")) == "error: seed out of range"
+}
+
+// ── refine ────────────────────────────────────────────────────────────────────
+
+@throws
+fn parse_seed(s: string) -> any {
+  let n = parseInt(s)
+  if isNaN(n) { err("seed must be a number, got: " + s) }
+  let seed = Math.abs(n) % 2147483648
+  refine seed: "a non-negative dungeon seed in [0, 2^31)"
+  ok(seed)
+}
+
+@test "refine does not affect runtime value" {
+  let r = parse_seed("9999")
+  r.tag == "Ok" && r.value == 9999
+}
+
+@test "parse_seed wraps negative seeds" {
+  let r = parse_seed("-42")
+  r.tag == "Ok" && r.value == 42
+}
