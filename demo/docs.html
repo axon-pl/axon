@@ -94,6 +94,7 @@
     }
 
     .hbadge-ver  { background: rgba(255,45,120,0.15); border: 1px solid rgba(255,45,120,0.35); color: var(--pink); }
+    .badge-new   { display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; vertical-align: middle; margin-left: 6px; background: rgba(255,45,120,0.15); border: 1px solid rgba(255,45,120,0.3); color: var(--pink); letter-spacing: 0.3px; font-family: sans-serif; }
     .hbadge-ai   { background: rgba(0,212,255,0.1);   border: 1px solid rgba(0,212,255,0.3);   color: var(--cyan); }
 
     /* ── Layout ──────────────────────────────────────────────────────────── */
@@ -608,7 +609,6 @@
         <div class="nav-group-label">Runtime</div>
         <a class="nav-link" href="#stdlib">Standard Library</a>
         <a class="nav-link" href="#cli">CLI</a>
-        <a class="nav-link" href="#modules">Modules <span style="color:var(--pink);font-size:0.65rem;vertical-align:top">v0.5</span></a>
       </div>
       <div class="nav-group">
         <div class="nav-group-label">Meta</div>
@@ -707,16 +707,24 @@
         <p>All functions in Axon are declared with <code>fn</code>. The <code>::</code> separator introduces the full type signature. Functions are first-class values and can be passed as arguments or returned from other functions.</p>
 
         <h3 class="subsection">Full-form function</h3>
+        <p>The canonical form uses <code>::</code> to separate the name from the typed signature, with the body in a block.</p>
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>axon</div>
           <pre id="fn-full-code"></pre>
         </div>
 
-        <h3 class="subsection">Short-form function</h3>
-        <p>When a function body is a single expression, the <code>= expr</code> shorthand eliminates the block.</p>
+        <h3 class="subsection">Short-form function <span class="badge-new">v0.5 expanded</span></h3>
+        <p>When the body is a single expression, use <code>= expr</code> to eliminate the block. An optional return-type annotation is supported with <code>-&gt;</code>. A block body <code>{ ... }</code> is also valid without the <code>::</code> sigil.</p>
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>axon</div>
           <pre id="fn-short-code"></pre>
+        </div>
+
+        <h3 class="subsection">Nested functions <span class="badge-new">v0.5</span></h3>
+        <p>A <code>fn</code> declaration inside a block body is emitted as a <code>let</code>-bound lambda — a local helper scoped to the enclosing function.</p>
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="fn-nested-code"></pre>
         </div>
 
         <h3 class="subsection">Lambda expressions</h3>
@@ -964,9 +972,9 @@
 
         <div class="callout callout-note">
           <div class="callout-head">No loops</div>
-          Axon has no <code>for</code> or <code>while</code> loops in v0.4. Iteration is handled
+          Axon has no <code>for</code> or <code>while</code> loops in v0.5. Iteration is handled
           through the standard library: <code>map</code>, <code>filter</code>, <code>reduce</code>,
-          <code>forEach</code>, and recursion. Dedicated loop syntax is on the roadmap for v0.5+.
+          <code>forEach</code>, and recursion. Dedicated loop syntax is on the roadmap for v0.6+.
         </div>
       </section>
 
@@ -1507,10 +1515,36 @@ fn add :: (a: int, b: int) -> int {
 `);
 
     setCode('fn-short-code', `
-// Short-form — body is a single expression
+// Expression body — no return type needed
 fn double(n: int) = n * 2
 fn greet(name: string) = "Hello, {name}!"
-fn square(x: float) = x * x
+
+// With optional return-type annotation  (v0.5)
+fn square(x: float) -> float = x * x
+fn clamp(n: int, lo: int, hi: int) -> int = n < lo ? lo : n > hi ? hi : n
+
+// Block body without :: sigil  (v0.5)
+fn describe_hp(hp: int, max: int) -> string {
+  let pct = hp * 100 / max
+  if pct <= 0  { return "DEAD" }
+  if pct <= 20 { return "Critical" }
+  if pct <= 50 { return "Hurt" }
+  "Healthy"
+}
+`);
+
+    setCode('fn-nested-code', `
+// fn inside a block is scoped to the enclosing function  (v0.5)
+fn process_scores(scores: list<int>) -> string {
+  fn letter(n: int) -> string =
+    n >= 90 ? "A" : n >= 80 ? "B" : n >= 70 ? "C" : "F"
+
+  fn summarise(n: int) -> string =
+    letter(n) + " (" + n + ")"
+
+  scores |> map(summarise) |> join(", ")
+}
+// letter and summarise are local — not visible outside process_scores
 `);
 
     setCode('fn-lambda-code', `
@@ -1761,13 +1795,21 @@ let display = hero.weapon?.name ?? hero.armor?.name ?? "unequipped"
 `);
 
     setCode('control-code', `
-// if / else — expression, not statement
-let label = if (hp > 0) { "alive" } else { "dead" }
+// if / else — parentheses around condition are optional  (v0.5)
+let label = if hp > 0 { "alive" } else { "dead" }
+let label = if (hp > 0) { "alive" } else { "dead" }  // also valid
 
-// Ternary — for inline conditionals
+// if as a statement (side-effectful)
+fn handle_death(hp: int) {
+  if hp <= 0 {
+    show_death_screen()
+  }
+}
+
+// Ternary — inline single-expression conditional
 let sign = n > 0 ? "positive" : n < 0 ? "negative" : "zero"
 
-// match — pattern-matching expression (see Pattern Matching section)
+// match — full pattern-matching expression (see Pattern Matching section)
 let grade = match score { | n when n >= 90 => "A" | _ => "B" }
 `);
 
@@ -1869,24 +1911,25 @@ fn opposite :: (d: Direction) -> Direction =
 `);
 
     setCode('cli-code', `
-# Transpile
+# Single-file transpile
 node dist/cli.js examples/rpg.axn demo/rpg.axon.js
-
-# Example output:
 #   ✓ Transpiled rpg.axn → rpg.axon.js
-#     1576 lines Axon → 2429 lines JS
+#     1576 lines Axon → 2436 lines JS
 
-# Run @test declarations
+# Run @test declarations  (auto-bundles if file has imports)
 node dist/cli.js --test examples/rpg.axn
-
-# Example output:
 #   Axon tests — rpg.axn
-#   ───────────────────────────────────────
+#   ────────────────────────────────────────
 #   ✓ level_title: mage lv10 = Archmage
 #   ✓ hp_status_label: 0 = DEAD
 #   15 passed, 0 failed, 15 total
 
-# npm scripts (from package.json)
+# Bundle a multi-file project  (v0.5)
+node dist/cli.js --bundle examples/dungeon/main.axn demo/dungeon.sources.js
+#   ✓ Bundled tiles.axn + generator.axn + renderer.axn + main.axn → dungeon.sources.js
+#     4 modules → 407 lines JS
+
+# npm scripts
 npm run build          # tsc — compile compiler sources
 npm run build-rpg      # transpile rpg.axn → demo/
 npm test               # run @test on rpg.axn + v04_features.axn
