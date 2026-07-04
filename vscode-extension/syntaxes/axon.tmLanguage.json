@@ -1,0 +1,249 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Axon",
+  "scopeName": "source.axon",
+  "fileTypes": ["axn"],
+
+  "patterns": [
+    { "include": "#block-comment" },
+    { "include": "#line-comment" },
+    { "include": "#annotation-effects" },
+    { "include": "#annotation-intent" },
+    { "include": "#annotation-flag" },
+    { "include": "#fn-declaration" },
+    { "include": "#record-declaration" },
+    { "include": "#type-declaration" },
+    { "include": "#control-keywords" },
+    { "include": "#declaration-keywords" },
+    { "include": "#builtin-types" },
+    { "include": "#type-reference" },
+    { "include": "#constants" },
+    { "include": "#string" },
+    { "include": "#number" },
+    { "include": "#pipeline-operator" },
+    { "include": "#match-arm-separator" },
+    { "include": "#arrow-lambda" },
+    { "include": "#arrow-return" },
+    { "include": "#type-annotation-sep" },
+    { "include": "#spread" },
+    { "include": "#field-shorthand" },
+    { "include": "#hash-pattern" },
+    { "include": "#comparison-operators" },
+    { "include": "#wildcard" }
+  ],
+
+  "repository": {
+
+    "block-comment": {
+      "name": "comment.block.axon",
+      "begin": "/\\*",
+      "end": "\\*/",
+      "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.axon" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.axon" } },
+      "patterns": [
+        { "name": "comment.block.axon", "match": "." }
+      ]
+    },
+
+    "line-comment": {
+      "name": "comment.line.double-slash.axon",
+      "match": "//.*$",
+      "captures": {
+        "0": { "name": "comment.line.double-slash.axon" }
+      }
+    },
+
+    "annotation-effects": {
+      "comment": "@effects [dom.write, state.mutable, rng, ...] — effects list gets its own color",
+      "match": "(@effects)\\s*(\\[[^\\]]*\\])?",
+      "captures": {
+        "1": { "name": "storage.modifier.annotation.axon" },
+        "2": { "name": "support.other.effects-list.axon" }
+      }
+    },
+
+    "annotation-intent": {
+      "comment": "@intent \"...\" — string value is part of the annotation, highlight together",
+      "begin": "(@intent)\\s*(\")",
+      "end": "\"",
+      "beginCaptures": {
+        "1": { "name": "storage.modifier.annotation.axon" },
+        "2": { "name": "punctuation.definition.string.begin.axon" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.axon" }
+      },
+      "contentName": "string.quoted.double.annotation-value.axon"
+    },
+
+    "annotation-flag": {
+      "comment": "Stand-alone boolean annotations: @pure @total @memo @exhaustive",
+      "name": "storage.modifier.annotation.axon",
+      "match": "@(pure|total|memo|exhaustive)\\b"
+    },
+
+    "fn-declaration": {
+      "comment": "fn functionName — highlights keyword and function name separately",
+      "match": "\\b(fn)\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.function.axon" },
+        "2": { "name": "entity.name.function.axon" }
+      }
+    },
+
+    "record-declaration": {
+      "comment": "record RecordName",
+      "match": "\\b(record)\\s+([A-Z][a-zA-Z0-9_$]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.type.axon" },
+        "2": { "name": "entity.name.type.axon" }
+      }
+    },
+
+    "type-declaration": {
+      "comment": "type TypeName = ...",
+      "match": "\\b(type)\\s+([A-Z][a-zA-Z0-9_$]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.type.axon" },
+        "2": { "name": "entity.name.type.axon" }
+      }
+    },
+
+    "control-keywords": {
+      "comment": "if else match return — control flow",
+      "name": "keyword.control.axon",
+      "match": "\\b(if|else|match|return)\\b"
+    },
+
+    "declaration-keywords": {
+      "comment": "let new where — declaration and constraint keywords",
+      "name": "keyword.other.axon",
+      "match": "\\b(let|new|where)\\b"
+    },
+
+    "builtin-types": {
+      "comment": "int float string bool void any — primitive type names",
+      "name": "support.type.primitive.axon",
+      "match": "\\b(int|float|string|bool|void|any)\\b"
+    },
+
+    "type-reference": {
+      "comment": "Capitalized identifiers used as type names: Hero, HP, StatValue, etc.",
+      "name": "support.type.axon",
+      "match": "\\b([A-Z][a-zA-Z0-9_$]*)\\b"
+    },
+
+    "constants": {
+      "name": "constant.language.axon",
+      "match": "\\b(true|false|null|undefined)\\b"
+    },
+
+    "string": {
+      "comment": "Double-quoted strings with {ident} and {ident.prop} interpolation",
+      "name": "string.quoted.double.axon",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.axon" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.string.end.axon" } },
+      "patterns": [
+        {
+          "comment": "String interpolation: {ident} or {ident.prop.nested}",
+          "name": "meta.interpolation.axon",
+          "match": "\\{[a-zA-Z_$][a-zA-Z0-9_$]*(?:\\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\\}",
+          "captures": {
+            "0": { "name": "variable.other.interpolated.axon" }
+          }
+        },
+        {
+          "comment": "Escape sequences",
+          "name": "constant.character.escape.axon",
+          "match": "\\\\."
+        }
+      ]
+    },
+
+    "number": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.axon",
+          "match": "\\b[0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.axon",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+
+    "pipeline-operator": {
+      "comment": "|> — the core composition operator, gets its own distinct scope",
+      "name": "keyword.operator.pipeline.axon",
+      "match": "\\|>"
+    },
+
+    "match-arm-separator": {
+      "comment": "| at the start of a match arm (not |>)",
+      "name": "punctuation.separator.match-arm.axon",
+      "match": "(?<=[\\s{(,])\\|(?!>)|^\\s*\\|(?!>)"
+    },
+
+    "arrow-lambda": {
+      "comment": "=> in lambda expressions and match arms",
+      "name": "keyword.operator.arrow.axon",
+      "match": "=>"
+    },
+
+    "arrow-return": {
+      "comment": "-> in function return type annotations: fn foo :: () -> int",
+      "name": "keyword.operator.return-type.axon",
+      "match": "->"
+    },
+
+    "type-annotation-sep": {
+      "comment": ":: separates a function name from its full type signature",
+      "name": "keyword.operator.type-annotation.axon",
+      "match": "::"
+    },
+
+    "spread": {
+      "comment": "... spread operator in object/array literals",
+      "name": "keyword.operator.spread.axon",
+      "match": "\\.\\.\\."
+    },
+
+    "field-shorthand": {
+      "comment": ".fieldName accessor shorthand in pipelines: filter(.alive), map(.name)",
+      "name": "variable.other.field-shorthand.axon",
+      "match": "(?<=[(,\\s])\\.[a-zA-Z_$][a-zA-Z0-9_$]*(?=[,)\\s])"
+    },
+
+    "hash-pattern": {
+      "comment": "#email #url — semantic regex pattern references in where clauses",
+      "name": "constant.other.pattern-ref.axon",
+      "match": "#[a-zA-Z_][a-zA-Z0-9_]*"
+    },
+
+    "comparison-operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.comparison.axon",
+          "match": "===|!==|>=|<=|>(?!>)|<(?!<)"
+        },
+        {
+          "name": "keyword.operator.logical.axon",
+          "match": "&&|\\|\\|"
+        },
+        {
+          "name": "keyword.operator.assignment.axon",
+          "match": "(?<!=)=(?![=>])"
+        }
+      ]
+    },
+
+    "wildcard": {
+      "comment": "_ wildcard in match patterns",
+      "name": "variable.language.wildcard.axon",
+      "match": "(?<=[\\s|])_(?=[\\s=>]|$)"
+    }
+  }
+}

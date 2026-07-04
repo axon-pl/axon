@@ -1,0 +1,51 @@
+{
+  "name": "axon-lang",
+  "version": "0.4.0",
+  "description": "Axon — AI-native programming language that transpiles to JavaScript",
+  "main": "dist/cli.js",
+  "bin": {
+    "axon": "dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "axon",
+    "language",
+    "transpiler",
+    "ai-native",
+    "functional",
+    "javascript",
+    "compiler"
+  ],
+  "homepage": "https://axon-lang.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/axon-pl/axon.git"
+  },
+  "bugs": {
+    "url": "https://github.com/axon-pl/axon/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "axon": "node dist/cli.js",
+    "transpile-demo": "node dist/cli.js examples/controls.axn demo/controls.axon.js",
+    "build-demo": "node dist/cli.js examples/controls.axn demo/controls.axon.js && node tools/embed_sources.js",
+    "build-music": "node dist/cli.js examples/music.axn demo/music.axon.js && node tools/embed_music.js",
+    "build-combat": "node dist/cli.js examples/combat.axn demo/combat.axon.js && node tools/embed_combat.js",
+    "build-rpg": "node dist/cli.js examples/rpg.axn demo/rpg.axon.js && node tools/embed_rpg.js",
+    "build-rpg-standalone": "node dist/cli.js examples/rpg.axn demo/rpg.axon.js && node tools/embed_rpg.js && node tools/build_standalone_rpg.js",
+    "test": "node dist/cli.js --test examples/rpg.axn && node dist/cli.js --test examples/v04_features.axn"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}

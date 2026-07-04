@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#07080f" />
+  <title>Axon RPG — 50-Battle Marathon</title>
+  <style>
+    /* ── Classic CRPG palette (dark slate + amber + gold) ──────────────────── */
+    :root {
+      --bg:         #07080f;
+      --bg-panel:   #0c0e1a;
+      --bg-log:     #060710;
+      --bg-shop:    #090b18;
+      --text:       #b0b8d8;
+      --gold:       #d4a020;
+      --gold-dim:   #7a5c12;
+      --accent:     #6090d0;
+      --green:      #50a868;
+      --red:        #c84040;
+      --red-dim:    #601818;
+      --dim:        #3a4060;
+      --border:     rgba(160,170,220,0.12);
+      --border-hi:  rgba(160,170,220,0.28);
+      --radius:     3px;
+      --safe-top:   env(safe-area-inset-top, 0px);
+      --safe-bot:   env(safe-area-inset-bottom, 0px);
+      --safe-left:  env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      font-family: 'Courier New', 'Lucida Console', monospace;
+      background: var(--bg);
+      background-image: radial-gradient(ellipse at 50% 0%, rgba(40,50,100,0.3) 0%, transparent 70%);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-size: 15px;
+      line-height: 1.55;
+      overflow-x: hidden;
+      padding-left: var(--safe-left);
+      padding-right: var(--safe-right);
+      padding-bottom: var(--safe-bot);
+    }
+
+    /* ── Page frame ────────────────────────────────────────────────────────── */
+    .page-header {
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      padding-top: calc(12px + var(--safe-top));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(30,35,70,0.5);
+    }
+
+    .page-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--gold);
+      letter-spacing: 2px;
+    }
+
+    .page-sub {
+      font-size: 12px;
+      color: var(--dim);
+      letter-spacing: 1px;
+    }
+
+    .page-badge {
+      font-size: 12px;
+      background: rgba(212,160,32,0.1);
+      border: 1px solid rgba(212,160,32,0.3);
+      color: var(--gold);
+      padding: 2px 8px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Game frame ────────────────────────────────────────────────────────── */
+    .game-frame {
+      max-width: 760px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    /* Game container */
+    #game {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-hi);
+      padding: 20px;
+      min-height: 460px;
+    }
+
+    /* ── Shared layout pieces ──────────────────────────────────────────────── */
+
+    .scene-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+    }
+
+    .scene-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--gold);
+      letter-spacing: 3px;
+    }
+
+    .gold-display {
+      color: var(--gold);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    .stage-info {
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .panel-label {
+      font-size: 12px;
+      color: var(--dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .dim { color: var(--dim); font-size: 13px; }
+
+    /* ── Party panel ───────────────────────────────────────────────────────── */
+    .party-panel {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .hero-row {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(60,70,100,0.3);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .hero-row:last-of-type { border-bottom: none; }
+
+    .hero-dead {
+      opacity: 0.3;
+      text-decoration: line-through;
+      color: var(--red-dim);
+    }
+
+    .equip-line { color: var(--dim); font-size: 13px; }
+
+    .party-summary {
+      margin-top: 10px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--dim);
+    }
+
+    .rest-note {
+      text-align: right;
+      margin-top: 8px;
+    }
+
+    /* ── Inventory panel ───────────────────────────────────────────────────── */
+    .inv-panel {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+
+    .inv-item {
+      font-size: 13px;
+      color: var(--green);
+    }
+
+    .inv-item-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(60,70,100,0.2);
+      font-size: 14px;
+    }
+    .inv-item-row:last-child { border-bottom: none; }
+
+    .inv-item-name {
+      color: var(--green);
+      min-width: 0;
+      flex: 1 1 100px;
+    }
+
+    .inv-item-desc {
+      flex: 1 1 120px;
+      min-width: 0;
+      font-size: 12px;
+    }
+
+    .btn-use-item {
+      background: rgba(80,168,104,0.1);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: 13px;
+      padding: 5px 12px;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+    .btn-use-item:hover:not(:disabled) { background: rgba(80,168,104,0.22); }
+
+    .item-target-panel {
+      background: rgba(10,14,32,0.95);
+      border: 1px solid var(--green);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .btn-target-hero {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      text-align: left;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      text-transform: none;
+    }
+    .btn-target-hero:hover {
+      background: rgba(80,168,104,0.15);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .target-name {
+      font-weight: bold;
+      color: var(--gold);
+      min-width: 64px;
+    }
+
+    .target-status {
+      margin-left: auto;
+      font-size: 13px;
+    }
+
+    /* ── Buttons ───────────────────────────────────────────────────────────── */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 9px 18px;
+      border-radius: var(--radius);
+      transition: all 0.12s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(212, 160, 32, 0.25);
+    }
+
+    .btn-primary {
+      background: rgba(100,140,210,0.15);
+      border: 1px solid var(--accent);
+      color: #90c0f0;
+    }
+    .btn-primary:hover {
+      background: rgba(100,140,210,0.28);
+      box-shadow: 0 0 10px rgba(100,140,210,0.25);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold-dim);
+    }
+    .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    .btn-attack {
+      background: rgba(200,60,60,0.12);
+      border: 1px solid var(--red);
+      color: #f08080;
+      font-weight: bold;
+      padding: 10px 24px;
+    }
+    .btn-attack:hover {
+      background: rgba(200,60,60,0.25);
+      box-shadow: 0 0 12px rgba(200,60,60,0.3);
+    }
+
+    .btn-item {
+      background: rgba(80,168,104,0.1);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: 13px;
+      padding: 9px 14px;
+    }
+    .btn-item:hover { background: rgba(80,168,104,0.22); }
+
+    .btn-buy {
+      background: transparent;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold-dim);
+      font-size: 13px;
+      padding: 5px 10px;
+      white-space: nowrap;
+    }
+    .btn-buy:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+
+    .btn-danger {
+      background: rgba(200,60,60,0.1);
+      border: 1px solid var(--red);
+      color: var(--red);
+    }
+    .btn-danger:hover { background: rgba(200,60,60,0.2); }
+
+    button:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+
+    /* ── ASCII art ─────────────────────────────────────────────────────────── */
+    pre.ascii-logo {
+      font-size: 15px;
+      color: var(--gold);
+      line-height: 1.5;
+      margin-bottom: 16px;
+      background: rgba(0,0,0,0.3);
+      padding: 16px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+    }
+
+    pre.ascii-logo.death   { color: var(--red);   }
+    pre.ascii-logo.victory { color: var(--gold);  }
+
+    pre.enemy-art {
+      font-size: 15px;
+      color: var(--red);
+      line-height: 1.5;
+      padding: 10px 14px;
+      background: rgba(100,0,0,0.1);
+      border: 1px solid rgba(200,60,60,0.15);
+      min-width: 180px;
+    }
+
+    /* ── Battle scene ──────────────────────────────────────────────────────── */
+    .enemy-panel {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .enemy-info { flex: 1; }
+
+    .enemy-name {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--red);
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+
+    .enemy-hp   { font-size: 14px; margin-bottom: 4px; }
+    .enemy-hint { font-size: 13px; color: var(--gold-dim); }
+
+    .combat-log {
+      background: var(--bg-log);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      height: 180px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .log-line {
+      font-size: 14px;
+      color: var(--text);
+      padding: 1px 0;
+      line-height: 1.6;
+    }
+
+    /* ── Shop ──────────────────────────────────────────────────────────────── */
+    .shop-header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--bg-panel);
+      padding-top: 4px;
+      margin-top: -4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .shop-section {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+
+    .shop-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+    }
+
+    .shop-row {
+      display: grid;
+      /* icon | name | stats/desc | class | buy — fixed tracks so columns line up */
+      grid-template-columns: 4ch 18ch minmax(12ch, 1fr) 8ch 9rem;
+      justify-items: start;
+      align-items: center;
+      column-gap: 12px;
+      row-gap: 4px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(60,70,100,0.2);
+      font-size: 14px;
+    }
+
+    .shop-row:last-child { border-bottom: none; }
+
+    .shop-row .item-icon {
+      grid-column: 1;
+      min-width: 0;
+      width: 4ch;
+      text-align: left;
+    }
+    .shop-row .item-name,
+    .shop-row .item-stats,
+    .shop-row .item-for {
+      min-width: 0;
+      max-width: 100%;
+      text-align: left;
+      justify-self: stretch;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .shop-row .item-name  {
+      grid-column: 2;
+      color: var(--text);
+    }
+    .shop-row .item-stats {
+      grid-column: 3;
+      color: var(--accent);
+      font-size: 13px;
+    }
+    .shop-row .item-for {
+      grid-column: 4;
+      color: var(--dim);
+      font-size: 13px;
+    }
+    .shop-row .btn-buy {
+      grid-column: 5;
+      justify-self: end;
+      box-sizing: border-box;
+      width: 9rem;
+      min-width: 9rem;
+      text-align: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .shop-row-sold {
+      opacity: 0.45;
+    }
+
+    .shop-row-sold .item-name {
+      text-decoration: line-through;
+    }
+
+    .btn-sold {
+      border-color: var(--dim) !important;
+      color: var(--dim) !important;
+      cursor: default;
+    }
+
+    /* ── Misc ──────────────────────────────────────────────────────────────── */
+    .title-info {
+      margin-bottom: 18px;
+      line-height: 1.8;
+    }
+
+    .scene-msg {
+      font-size: 19px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      margin: 12px 0;
+    }
+
+    .scene-msg.death   { color: var(--red); }
+    .scene-msg.victory { color: var(--gold); }
+
+    /* ── Portrait gallery ──────────────────────────────────────────────────── */
+    /* Always 3-up, no scroll — ASCII art font scales to each card's width. */
+    .portrait-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(6px, 1.2vw, 12px);
+      margin-bottom: 14px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .portrait-card {
+      min-width: 0;
+      max-width: 100%;
+      text-align: center;
+      background: rgba(20,25,50,0.5);
+      border: 1px solid var(--border);
+      padding: clamp(8px, 1.5vw, 14px) clamp(4px, 0.8vw, 10px);
+      transition: border-color 0.15s, background 0.15s;
+      overflow: hidden;
+      container-type: inline-size;
+      container-name: portrait-card;
+    }
+
+    .portrait-card:hover {
+      border-color: var(--border-hi);
+      background: rgba(30,40,80,0.5);
+    }
+
+    .portrait-card.portrait-dead {
+      opacity: 0.25;
+      filter: grayscale(0.9);
+    }
+
+    /* ~9-char art: size so glyph width * 9 fits in the card (ch ≈ 1 mono cell) */
+    pre.hero-portrait {
+      font-size: min(16px, calc(100cqi / 9.5));
+      color: var(--accent);
+      line-height: 1.35;
+      margin: 0 auto 4px;
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      text-align: center;
+      white-space: pre;
+      overflow: hidden;
+    }
+
+    /* Fallback when container query units are unavailable */
+    @supports not (font-size: 1cqi) {
+      pre.hero-portrait {
+        font-size: min(16px, 3.2vw);
+      }
+
+      .portrait-name {
+        font-size: clamp(11px, 2.4vw, 15px);
+      }
+
+      .portrait-class,
+      .portrait-hp {
+        font-size: clamp(10px, 2vw, 13px);
+      }
+    }
+
+    pre.hero-portrait.portrait-dead { color: var(--red-dim); }
+
+    .portrait-name {
+      font-size: min(15px, calc(100cqi / 8));
+      font-weight: bold;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .portrait-class {
+      font-size: min(13px, calc(100cqi / 9));
+      color: var(--dim);
+      margin-top: 1px;
+      letter-spacing: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .portrait-hp {
+      font-size: min(13px, calc(100cqi / 9));
+      color: var(--text);
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .equip-hero-card pre.hero-portrait {
+      font-size: min(17px, calc(100cqi / 9.5));
+    }
+
+    /* ── Equipment icons ────────────────────────────────────────────────────── */
+    .item-icon {
+      display: inline-block;
+      min-width: 34px;
+      color: var(--gold);
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+      flex-shrink: 0;
+    }
+
+    /* ── Battle hero face badges ────────────────────────────────────────────── */
+    .hero-row-battle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-face {
+      color: var(--accent);
+      font-size: 14px;
+      flex-shrink: 0;
+      min-width: 44px;
+      letter-spacing: 0;
+    }
+
+    /* ── Intro crawl screen ─────────────────────────────────────────────────── */
+    .intro-eyebrow {
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: var(--gold-dim);
+      margin-bottom: 12px;
+    }
+
+    .intro-slide-title {
+      text-align: center;
+      font-size: 17px;
+      font-weight: bold;
+      color: var(--gold);
+      letter-spacing: 3px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .intro-text-box {
+      background: rgba(6,7,18,0.7);
+      border: 1px solid var(--border);
+      padding: 18px 22px;
+      margin-bottom: 14px;
+      min-height: 220px;
+    }
+
+    .intro-line {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+      letter-spacing: 0.3px;
+    }
+
+    .intro-spacer {
+      height: 10px;
+    }
+
+    .intro-pager {
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 2px;
+      margin-bottom: 14px;
+    }
+
+    .intro-btn-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .btn-intro-next {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 9px 28px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-intro-next:hover { background: rgba(212,160,32,0.15); }
+
+    .btn-intro-skip {
+      background: transparent;
+      border: none;
+      color: var(--dim);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 4px;
+    }
+    .btn-intro-skip:hover { color: var(--text); }
+
+    /* ── Equipment management screen ────────────────────────────────────────── */
+    .equip-hero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .equip-hero-card {
+      background: rgba(12,14,30,0.6);
+      border: 1px solid var(--border);
+      padding: 12px 10px;
+      text-align: center;
+      min-width: 0;
+      overflow: hidden;
+      container-type: inline-size;
+      container-name: equip-card;
+    }
+
+    .equip-hero-stats {
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      margin: 4px 0 6px;
+    }
+
+    .equip-slot {
+      margin-top: 10px;
+      text-align: left;
+      border-top: 1px solid rgba(60,70,120,0.35);
+      padding-top: 8px;
+    }
+
+    .slot-label {
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    .slot-item {
+      font-size: 13px;
+      color: var(--text);
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 5px;
+    }
+
+    .slot-desc {
+      font-size: 12px;
+      color: var(--dim);
+      margin-left: 2px;
+    }
+
+    .slot-btns {
+      display: flex;
+      gap: 5px;
+    }
+
+    .btn-slot {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 3px 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+    .btn-slot:hover { background: rgba(96,144,208,0.15); }
+    .btn-slot:disabled { border-color: var(--dim); color: var(--dim); cursor: default; }
+
+    .btn-unequip {
+      background: transparent;
+      border: 1px solid var(--dim);
+      color: var(--dim);
+      padding: 3px 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+    .btn-unequip:hover:not([disabled]) { border-color: var(--red); color: var(--red); }
+    .btn-unequip:disabled { opacity: 0.3; cursor: default; }
+
+    /* ── Picker dialog ──────────────────────────────────────────────────────── */
+    #picker-dialog {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    #picker-dialog.hidden { display: none; }
+
+    .picker-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 5, 0.78);
+      backdrop-filter: blur(3px);
+    }
+
+    .picker-panel {
+      position: relative;
+      z-index: 1;
+      background: #0c0e1e;
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 40px rgba(96,144,208,0.25);
+      padding: 20px 18px;
+      width: 100%;
+      max-width: 420px;
+      max-height: 80vh;
+      overflow-y: auto;
+      border-radius: 4px;
+    }
+
+    .picker-dialog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .picker-label {
+      font-size: 13px;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+
+    .picker-close {
+      background: transparent;
+      border: 1px solid var(--dim);
+      color: var(--dim);
+      padding: 2px 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 2px;
+      line-height: 1.4;
+    }
+    .picker-close:hover { border-color: var(--red); color: var(--red); }
+
+    .btn-pick {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      text-align: left;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+    .btn-pick:hover {
+      background: rgba(96,144,208,0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .pick-stat {
+      font-size: 12px;
+      color: var(--dim);
+      margin-left: auto;
+    }
+
+    /* ── Stash panel ────────────────────────────────────────────────────────── */
+    .stash-panel {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .stash-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 2px;
+      border-bottom: 1px solid rgba(60,70,100,0.2);
+      font-size: 14px;
+    }
+    .stash-item:last-child { border-bottom: none; }
+
+    .stash-item .item-stats {
+      font-size: 12px;
+      color: var(--dim);
+      margin-left: 4px;
+    }
+
+    .stash-item .item-for {
+      font-size: 12px;
+      color: var(--gold-dim);
+      margin-left: auto;
+    }
+
+    .stash-inv-item {
+      color: var(--text);
+      letter-spacing: 0.3px;
+    }
+
+    .stash-hint {
+      margin-top: 6px;
+      font-size: 12px;
+    }
+
+    /* ── Source viewer ─────────────────────────────────────────────────────── */
+    .source-section {
+      max-width: 760px;
+      margin: 0 auto 32px;
+      padding: 0 16px;
+    }
+
+    .source-heading {
+      font-size: 12px;
+      color: var(--dim);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .source-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+
+    .source-tab {
+      background: transparent;
+      border: 1px solid var(--dim);
+      border-bottom: none;
+      color: var(--dim);
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      text-transform: none;
+    }
+
+    .source-tab.active { background: rgba(160,170,220,0.06); border-color: var(--border-hi); color: var(--text); }
+    .source-tab:hover:not(.active) { color: var(--text); }
+
+    .source-content { display: none; }
+    .source-content.active { display: block; }
+
+    pre.src {
+      background: var(--bg-log);
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.65;
+      overflow: auto;
+      max-height: 400px;
+      color: var(--dim);
+    }
+
+    /* ── Footer ────────────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 12px;
+      font-size: 12px;
+      color: var(--dim);
+      border-top: 1px solid var(--border);
+      letter-spacing: 1px;
+    }
+
+    /* ── Mobile / narrow screens ───────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      body { font-size: 14px; }
+
+      .page-header {
+        padding: 10px 12px;
+        padding-top: calc(10px + var(--safe-top));
+        flex-wrap: wrap;
+      }
+
+      .page-title { font-size: 15px; letter-spacing: 1px; }
+      .page-sub   { font-size: 11px; max-width: 100%; }
+
+      .game-frame {
+        margin: 10px auto;
+        padding: 0 8px;
+      }
+
+      #game {
+        padding: 12px 10px 16px;
+        min-height: 0;
+        border-left: none;
+        border-right: none;
+      }
+
+      .scene-header {
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .scene-title {
+        font-size: 15px;
+        letter-spacing: 2px;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .stage-info {
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
+      /* Touch-friendly action buttons */
+      .btn-row {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .btn-row > button,
+      .intro-btn-row > .btn-intro-next,
+      .intro-btn-row > .btn-primary {
+        width: 100%;
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 15px;
+      }
+
+      .btn-item,
+      .btn-buy,
+      .btn-slot,
+      .btn-unequip,
+      .btn-pick {
+        min-height: 40px;
+      }
+
+      .btn-buy {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+
+      .btn-slot,
+      .btn-unequip {
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+
+      .btn-pick {
+        padding: 12px;
+        flex-wrap: wrap;
+      }
+
+      .pick-stat {
+        margin-left: 0;
+        width: 100%;
+        padding-left: 42px;
+      }
+
+      .portrait-card {
+        padding: 8px 3px 6px;
+      }
+
+      /* Equipment roster: one hero per row */
+      .equip-hero-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .equip-hero-card { padding: 14px 12px; }
+
+      /* Shop rows as compact cards */
+      .shop-section { padding: 10px; }
+
+      .shop-row {
+        grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+        column-gap: 8px;
+        row-gap: 2px;
+        padding: 10px 0;
+      }
+
+      .shop-row .item-icon {
+        grid-column: 1;
+        grid-row: 1 / span 3;
+        align-self: start;
+        padding-top: 2px;
+      }
+
+      .shop-row .item-name,
+      .shop-row .item-stats,
+      .shop-row .item-for {
+        grid-column: 2;
+        text-align: left;
+        justify-self: stretch;
+      }
+
+      .shop-row .btn-buy {
+        grid-column: 3;
+        grid-row: 1 / span 3;
+        align-self: center;
+        justify-self: end;
+        white-space: nowrap;
+        width: 9rem;
+        min-width: 9rem;
+      }
+
+      .stash-item {
+        flex-wrap: wrap;
+        gap: 4px 8px;
+      }
+
+      .stash-item .item-for {
+        margin-left: 0;
+        width: 100%;
+        padding-left: 42px;
+      }
+
+      /* Battle layout */
+      .enemy-panel {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      pre.enemy-art {
+        min-width: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 14px;
+      }
+
+      .enemy-name { font-size: 16px; }
+
+      .combat-log {
+        height: min(181px, 32vh);
+        padding: 8px 10px;
+      }
+
+      .log-line { font-size: 13px; }
+
+      .hero-row-battle {
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .hero-face {
+        min-width: 36px;
+        font-size: 13px;
+        padding-top: 2px;
+      }
+
+      /* Intro */
+      .intro-slide-title {
+        font-size: 16px;
+        letter-spacing: 2px;
+        margin-bottom: 12px;
+      }
+
+      .intro-text-box {
+        min-height: 0;
+        padding: 12px 12px;
+        max-height: min(50vh, 360px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .intro-line {
+        font-size: 13px;
+        overflow-wrap: anywhere;
+      }
+
+      .intro-btn-row {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .btn-intro-skip {
+        text-align: center;
+        padding: 10px;
+        font-size: 13px;
+        min-height: 40px;
+      }
+
+      pre.ascii-logo {
+        font-size: clamp(10px, 2.6vw, 14px);
+        padding: 10px 8px;
+      }
+
+      .scene-msg {
+        font-size: 16px;
+        letter-spacing: 2px;
+        overflow-wrap: anywhere;
+      }
+
+      .title-info { font-size: 13px; }
+
+      /* Source viewer */
+      .source-section { padding: 0 8px 24px; }
+
+      .source-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+      }
+
+      .source-tab {
+        flex: 0 0 auto;
+        padding: 10px 12px;
+        min-height: 40px;
+        font-size: 12px;
+      }
+
+      pre.src {
+        font-size: 12px;
+        padding: 10px;
+        max-height: 50vh;
+      }
+
+      .footer {
+        padding: 12px 8px calc(12px + var(--safe-bot));
+        font-size: 11px;
+      }
+    }
+
+    /* Very small phones */
+    @media (max-width: 380px) {
+      .shop-row {
+        grid-template-columns: auto 1fr;
+      }
+
+      .shop-row .btn-buy {
+        grid-column: 1 / -1;
+        grid-row: auto;
+        width: 100%;
+        margin-top: 4px;
+      }
+
+      .shop-row .item-icon { grid-row: 1 / span 2; }
+    }
+
+    /* Prefer larger tap targets when primary input is touch */
+    @media (hover: none) and (pointer: coarse) {
+      button:hover { box-shadow: none; }
+
+      .btn-primary:active,
+      .btn-secondary:active,
+      .btn-attack:active,
+      .btn-item:active,
+      .btn-buy:active:not(:disabled),
+      .btn-intro-next:active,
+      .btn-pick:active {
+        filter: brightness(1.25);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <div>
+      <div class="page-title">AXON RPG</div>
+      <div class="page-sub" id="page-sub">50-battle marathon · equipment stash · all game logic in pure functions</div>
+    </div>
+    <div class="page-badge">v0.4.0</div>
+  </header>
+
+  <!-- Floating equip picker dialog — shown when CHANGE is clicked -->
+  <div id="picker-dialog" class="hidden">
+    <div class="picker-backdrop" id="picker-backdrop"></div>
+    <div class="picker-panel" id="picker-panel-inner"></div>
+  </div>
+
+  <div class="game-frame">
+    <div id="game"></div>
+  </div>
+
+  <div class="source-section">
+    <div class="source-heading">SOURCE CODE</div>
+    <div class="source-tabs">
+      <button class="source-tab active" id="tab-btn-axn" onclick="showTab('axn')">rpg.axn</button>
+      <button class="source-tab"        id="tab-btn-js"  onclick="showTab('js')">rpg.axon.js</button>
+    </div>
+    <div id="tab-axn" class="source-content active"><pre id="axn-src" class="src">Loading…</pre></div>
+    <div id="tab-js"  class="source-content"><pre id="js-src" class="src">Loading…</pre></div>
+  </div>
+
+  <footer class="footer">
+    AXON v0.4.0 · 50-BATTLE MARATHON DEMO · AI-NATIVE LANGUAGE · TRANSPILES TO JAVASCRIPT
+  </footer>
+
+  <script src="rpg.axon.js"></script>
+  <script src="rpg.sources.js"></script>
+  <script>
+    render_game('game');
+
+    function showTab(name) {
+      document.querySelectorAll('.source-tab').forEach((b, i) =>
+        b.classList.toggle('active', ['axn','js'][i] === name)
+      );
+      ['axn','js'].forEach(n => {
+        document.getElementById('tab-' + n).classList.toggle('active', n === name);
+      });
+    }
+
+    function lineCount(src) {
+      if (!src) return 0;
+      return src.replace(/\n$/, '').split('\n').length;
+    }
+
+    function updateChrome(axnLines, jsLines) {
+      const sub = document.getElementById('page-sub');
+      if (sub) {
+        sub.textContent =
+          axnLines + ' lines Axon · ' + jsLines + ' lines JS · 50-battle marathon · pure game logic';
+      }
+      const axnBtn = document.getElementById('tab-btn-axn');
+      const jsBtn  = document.getElementById('tab-btn-js');
+      if (axnBtn) axnBtn.textContent = 'rpg.axn (' + axnLines + ' lines)';
+      if (jsBtn)  jsBtn.textContent  = 'rpg.axon.js (' + jsLines + ' lines)';
+    }
+
+    if (window.RPG_SOURCES) {
+      document.getElementById('axn-src').textContent = RPG_SOURCES.axn;
+      document.getElementById('js-src').textContent  = RPG_SOURCES.js;
+      updateChrome(lineCount(RPG_SOURCES.axn), lineCount(RPG_SOURCES.js));
+    }
+  </script>
+
+</body>
+</html>

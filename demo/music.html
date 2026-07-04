@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Axon v0.4.0 — Synthwave Music Library</title>
+  <style>
+    /* ── Synthwave dark palette ─────────────────────────────────────────── */
+    :root {
+      --bg:          #0d0221;
+      --bg-card:     #120330;
+      --bg-input:    #1a0440;
+      --bg-form:     #0f0228;
+      --text:        #e2d5ff;
+      --text-muted:  #8060b0;
+      --text-dim:    #5a3d80;
+      --pink:        #ff2d78;
+      --cyan:        #00d4ff;
+      --purple:      #b060ff;
+      --amber:       #ffb020;
+      --green:       #00e5a0;
+      --border:      rgba(176, 96, 255, 0.2);
+      --border-card: rgba(176, 96, 255, 0.12);
+      --glow-pink:   0 0 24px rgba(255, 45, 120, 0.35);
+      --glow-cyan:   0 0 24px rgba(0, 212, 255, 0.35);
+      --glow-purple: 0 0 20px rgba(176, 96, 255, 0.25);
+      --radius:      10px;
+      --radius-sm:   6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    .page-header {
+      padding: 28px 40px 24px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,45,120,0.06) 0%, transparent 100%);
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .header-glyph {
+      font-size: 40px;
+      line-height: 1;
+      filter: drop-shadow(0 0 12px rgba(255,45,120,0.6));
+    }
+
+    .header-text { flex: 1; }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, var(--pink) 0%, var(--purple) 60%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    .lang-badge {
+      font-size: 11px;
+      background: rgba(255,45,120,0.15);
+      border: 1px solid rgba(255,45,120,0.3);
+      color: var(--pink);
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────────── */
+    .page-body {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* ── Stats bar ───────────────────────────────────────────────────────── */
+    .stats-section { margin-bottom: 20px; }
+
+    .stats-bar {
+      background: linear-gradient(135deg, rgba(255,45,120,0.08) 0%, rgba(176,96,255,0.08) 100%);
+      border: 1px solid rgba(255,45,120,0.2);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .stats-text {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .memo-badge {
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.25);
+      color: var(--cyan);
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* ── Filter row ──────────────────────────────────────────────────────── */
+    .filters-section { margin-bottom: 20px; }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: rgba(176, 96, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover {
+      border-color: rgba(176,96,255,0.4);
+      color: var(--purple);
+    }
+
+    .filter-btn--active {
+      background: rgba(255,45,120,0.15);
+      border-color: rgba(255,45,120,0.5);
+      color: var(--pink);
+      box-shadow: var(--glow-pink);
+    }
+
+    /* ── Track list ──────────────────────────────────────────────────────── */
+    .track-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .track-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .track-card:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--glow-purple);
+      border-color: rgba(176,96,255,0.3);
+    }
+
+    .track-featured {
+      border-color: rgba(255,45,120,0.3);
+      background: linear-gradient(135deg, rgba(255,45,120,0.05) 0%, var(--bg-card) 60%);
+    }
+
+    .track-featured:hover {
+      box-shadow: var(--glow-pink);
+    }
+
+    .track-main { flex: 1; min-width: 0; }
+
+    .track-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 8px;
+    }
+
+    .track-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Genre badge colors */
+    .genre-badge { color: #fff; }
+    .g-sw      { background: rgba(255,45,120,0.25);  border: 1px solid rgba(255,45,120,0.4); color: var(--pink); }
+    .g-ds      { background: rgba(0,212,255,0.15);   border: 1px solid rgba(0,212,255,0.35); color: var(--cyan); }
+    .g-amb     { background: rgba(0,229,160,0.15);   border: 1px solid rgba(0,229,160,0.35); color: var(--green); }
+    .g-rw      { background: rgba(255,176,32,0.15);  border: 1px solid rgba(255,176,32,0.35); color: var(--amber); }
+    .g-cp      { background: rgba(176,96,255,0.15);  border: 1px solid rgba(176,96,255,0.35); color: var(--purple); }
+    .g-default { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted); }
+
+    .tempo-badge { background: rgba(176,96,255,0.12); border: 1px solid rgba(176,96,255,0.25); color: var(--purple); }
+    .dur-badge   { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); }
+    .bpm-badge   { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); }
+
+    .featured-mark {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--pink);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ── Add form ────────────────────────────────────────────────────────── */
+    .form-section { margin-bottom: 32px; }
+
+    .add-form {
+      background: var(--bg-form);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .form-header { margin-bottom: 16px; }
+
+    .form-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .form-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .form-fields { margin-bottom: 14px; }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .form-inp {
+      flex: 1;
+      min-width: 140px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-inp:focus {
+      border-color: rgba(176,96,255,0.5);
+      box-shadow: 0 0 0 3px rgba(176,96,255,0.12);
+    }
+
+    .form-inp::placeholder { color: var(--text-dim); }
+
+    .form-err {
+      font-size: 12px;
+      color: var(--pink);
+      min-height: 18px;
+      margin-bottom: 12px;
+    }
+
+    .add-btn {
+      background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+      border: none;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: opacity 0.15s, box-shadow 0.15s;
+    }
+
+    .add-btn:hover {
+      opacity: 0.9;
+      box-shadow: var(--glow-pink);
+    }
+
+    /* ── Source panel ────────────────────────────────────────────────────── */
+    .source-panel {
+      background: var(--bg-form);
+      border-top: 1px solid var(--border);
+      padding: 28px 24px;
+    }
+
+    .source-inner { max-width: 960px; margin: 0 auto; }
+
+    .source-heading {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .source-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    .source-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 6px 6px 0 0;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .source-tab.active {
+      background: rgba(176,96,255,0.12);
+      border-color: var(--border);
+      color: var(--purple);
+    }
+
+    .source-tab:hover:not(.active) { color: var(--text); }
+
+    .source-content { display: none; }
+    .source-content.active { display: block; }
+
+    pre {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      font-size: 12px;
+      line-height: 1.65;
+      overflow: auto;
+      max-height: 480px;
+      color: #c8b8f0;
+      tab-size: 2;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+    }
+
+    .footer code {
+      background: rgba(176,96,255,0.1);
+      border: 1px solid rgba(176,96,255,0.2);
+      color: var(--purple);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <div class="header-glyph">🎛</div>
+    <div class="header-text">
+      <div class="page-title">
+        Synthwave Music Library
+        <span class="lang-badge">Axon v0.4.0</span>
+      </div>
+      <div class="page-subtitle">
+        A full-feature Axon demo — string interpolation · .field shorthand · param validation injection · @memo · pipelines · pattern matching · constrained types · stdlib
+      </div>
+    </div>
+  </header>
+
+  <div class="page-body">
+    <div id="library"></div>
+  </div>
+
+  <!-- Source viewer -->
+  <section class="source-panel">
+    <div class="source-inner">
+      <div class="source-heading">Source Code</div>
+      <div class="source-tabs">
+        <button class="source-tab active" onclick="showTab('axn')">music.axn (Axon source)</button>
+        <button class="source-tab"        onclick="showTab('js')">music.axon.js (transpiled)</button>
+      </div>
+      <div id="tab-axn" class="source-content active">
+        <pre id="axn-src">Loading…</pre>
+      </div>
+      <div id="tab-js" class="source-content">
+        <pre id="js-src">Loading…</pre>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>
+      Axon v0.4.0 · Designed by AI for AI · Transpiles to JavaScript ·
+      <code>"Hello {name}"</code> string interpolation ·
+      <code>filter(.active)</code> .field shorthand ·
+      <code>@memo</code> memoization
+    </p>
+  </footer>
+
+  <!-- Transpiled Axon -->
+  <script src="music.axon.js"></script>
+
+  <!-- Embedded sources for viewer -->
+  <script src="music.sources.js"></script>
+
+  <script>
+    // ── Initial track data ─────────────────────────────────────────────────
+    const seedTracks = [
+      { id: 1, title: "Midnight Drive",    artist: "ChromaWave",    bpm: 112, duration: 245, genre: "synthwave",  featured: true  },
+      { id: 2, title: "Neon Eclipse",      artist: "VoidRunner",    bpm: 134, duration: 198, genre: "darksynth",  featured: false },
+      { id: 3, title: "Crystal Shore",     artist: "Auraveil",      bpm: 84,  duration: 312, genre: "ambient",    featured: true  },
+      { id: 4, title: "Turbo Ghost",       artist: "ChromaWave",    bpm: 148, duration: 221, genre: "retrowave",  featured: false },
+      { id: 5, title: "Electric Haze",     artist: "Nox Sequencer", bpm: 118, duration: 267, genre: "synthwave",  featured: true  },
+      { id: 6, title: "Binary Sunset",     artist: "VoidRunner",    bpm: 96,  duration: 189, genre: "retrowave",  featured: false },
+      { id: 7, title: "Void Protocol",     artist: "HEXAGON",       bpm: 140, duration: 304, genre: "darksynth",  featured: true  },
+      { id: 8, title: "Dream Cascade",     artist: "Auraveil",      bpm: 72,  duration: 358, genre: "ambient",    featured: false },
+      { id: 9, title: "Laser Grid",        artist: "Nox Sequencer", bpm: 155, duration: 182, genre: "cyberpunk",  featured: false },
+      { id:10, title: "Retro Horizon",     artist: "ChromaWave",    bpm: 103, duration: 295, genre: "retrowave",  featured: true  },
+    ];
+
+    // Bootstrap the library
+    render_library('library', seedTracks);
+
+    // ── Source viewer ──────────────────────────────────────────────────────
+    function showTab(name) {
+      document.querySelectorAll('.source-tab').forEach((b, i) => {
+        b.classList.toggle('active', ['axn','js'][i] === name)
+      });
+      document.querySelectorAll('.source-content').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    if (window.MUSIC_SOURCES) {
+      document.getElementById('axn-src').textContent = MUSIC_SOURCES.axn;
+      document.getElementById('js-src').textContent  = MUSIC_SOURCES.js;
+    }
+  </script>
+
+</body>
+</html>

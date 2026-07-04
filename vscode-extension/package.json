@@ -1,0 +1,40 @@
+{
+  "name": "axon-language",
+  "displayName": "Axon Language",
+  "description": "Syntax highlighting, bracket matching, and language support for the Axon programming language (.axn files)",
+  "version": "0.1.0",
+  "publisher": "axon-lang",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/axon-lang/axon"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "axon",
+        "aliases": ["Axon", "axon"],
+        "extensions": [".axn"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icon.png",
+          "dark": "./icon.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "axon",
+        "scopeName": "source.axon",
+        "path": "./syntaxes/axon.tmLanguage.json"
+      }
+    ]
+  }
+}

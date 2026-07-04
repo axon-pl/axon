@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Axon v0.4.0 — Combat Engine</title>
+  <style>
+    /* ── Terminal / dungeon palette ─────────────────────────────────────── */
+    :root {
+      --bg:        #080c08;
+      --bg-panel:  #0d140d;
+      --bg-log:    #070b07;
+      --bg-input:  #0a110a;
+      --green:     #78c878;
+      --green-dim: #3a6a3a;
+      --green-hi:  #a0f0a0;
+      --amber:     #d4a020;
+      --amber-dim: #7a5a10;
+      --red:       #d04040;
+      --red-dim:   #602020;
+      --cyan:      #40c0c0;
+      --white:     #c0d0c0;
+      --dim:       #304030;
+      --border:    rgba(120,200,120,0.18);
+      --radius:    4px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier New', 'Lucida Console', monospace;
+      background: var(--bg);
+      color: var(--green);
+      min-height: 100vh;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    .page-header {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      background: rgba(120,200,120,0.04);
+    }
+
+    .page-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--amber);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .page-subtitle {
+      font-size: 11px;
+      color: var(--green-dim);
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      background: rgba(212,160,32,0.12);
+      border: 1px solid rgba(212,160,32,0.3);
+      color: var(--amber);
+      padding: 1px 6px;
+      border-radius: 2px;
+      margin-left: 8px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Main layout ─────────────────────────────────────────────────────── */
+    .page-body {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    /* ── Battle panels row ───────────────────────────────────────────────── */
+    .battle-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .panel-party,
+    .panel-enemy {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      padding: 14px;
+    }
+
+    /* ── Party panel ─────────────────────────────────────────────────────── */
+    .party-panel { }
+
+    .hero-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--dim);
+      font-size: 12px;
+    }
+
+    .hero-row:last-child { border-bottom: none; }
+
+    .hero-dead { opacity: 0.35; text-decoration: line-through; color: var(--red-dim); }
+
+    .hero-sym  { color: var(--amber); min-width: 36px; font-weight: bold; }
+    .hero-label { flex: 1; color: var(--green); }
+    .hero-pwr  { color: var(--cyan); font-size: 11px; min-width: 60px; text-align: right; }
+
+    .party-summary {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--dim);
+      color: var(--green-dim);
+      font-size: 11px;
+    }
+
+    /* ── Enemy panel ─────────────────────────────────────────────────────── */
+    .enemy-panel { }
+
+    .enemy-name {
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--red);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .enemy-bar   { color: var(--green); margin-bottom: 6px; font-size: 12px; }
+    .enemy-hint  { color: var(--amber); font-size: 11px; margin-bottom: 6px; }
+    .enemy-stats { color: var(--green-dim); font-size: 11px; }
+
+    /* ── Combat log ──────────────────────────────────────────────────────── */
+    .combat-log {
+      background: var(--bg-log);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      height: 220px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .log-entry {
+      color: var(--white);
+      padding: 2px 0;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .log-entry:first-child { color: var(--green-dim); font-style: italic; }
+
+    /* Round separators */
+    .combat-log .log-entry:has(──) { color: var(--green-dim); }
+
+    /* Victory/defeat messages */
+    .log-entry:last-child:has(\*\*) { color: var(--amber); font-weight: bold; }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .btn-attack {
+      background: rgba(120,200,120,0.1);
+      border: 1px solid var(--green);
+      color: var(--green-hi);
+      padding: 10px 28px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.12s, box-shadow 0.12s;
+    }
+
+    .btn-attack:hover:not(:disabled) {
+      background: rgba(120,200,120,0.2);
+      box-shadow: 0 0 12px rgba(120,200,120,0.3);
+    }
+
+    .btn-attack:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .btn-reset {
+      background: transparent;
+      border: 1px solid var(--amber-dim);
+      color: var(--amber-dim);
+      padding: 10px 20px;
+      font-family: inherit;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+
+    .btn-reset:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* ── Feature legend ──────────────────────────────────────────────────── */
+    .feature-legend {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .feature-item {
+      background: var(--bg-panel);
+      border: 1px solid var(--dim);
+      padding: 8px 12px;
+      font-size: 11px;
+    }
+
+    .feature-tag {
+      color: var(--amber);
+      font-weight: bold;
+      margin-right: 6px;
+    }
+
+    .feature-desc { color: var(--green-dim); }
+
+    /* ── Source panel ────────────────────────────────────────────────────── */
+    .source-panel {
+      border-top: 1px solid var(--border);
+      padding: 20px 24px;
+      background: rgba(120,200,120,0.02);
+    }
+
+    .source-inner { max-width: 900px; margin: 0 auto; }
+
+    .source-heading {
+      font-size: 11px;
+      color: var(--green-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .source-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .source-tab {
+      background: transparent;
+      border: 1px solid var(--dim);
+      border-bottom: none;
+      color: var(--green-dim);
+      padding: 7px 14px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: all 0.12s;
+    }
+
+    .source-tab.active {
+      background: rgba(120,200,120,0.08);
+      border-color: var(--border);
+      color: var(--green);
+    }
+
+    .source-tab:hover:not(.active) { color: var(--white); }
+
+    .source-content { display: none; }
+    .source-content.active { display: block; }
+
+    pre {
+      background: var(--bg-log);
+      border: 1px solid var(--dim);
+      border-top: none;
+      padding: 14px 16px;
+      font-size: 11px;
+      line-height: 1.65;
+      overflow: auto;
+      max-height: 420px;
+      color: var(--green-dim);
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 14px;
+      font-size: 11px;
+      color: var(--dim);
+      border-top: 1px solid var(--dim);
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <div class="page-title">
+      Axon Combat Engine
+      <span class="badge">v0.4.0</span>
+    </div>
+    <div class="page-subtitle">
+      pure damage formulas · nested pattern matching · @memo cached computations · constrained stat types · .field party pipelines
+    </div>
+  </header>
+
+  <div class="page-body">
+
+    <!-- Feature legend -->
+    <div class="feature-legend">
+      <div class="feature-item">
+        <span class="feature-tag">@memo</span>
+        <span class="feature-desc">compute_damage() cached — same atk/def/bonus/roll = cache hit</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-tag">nested match</span>
+        <span class="feature-desc">element_bonus(heroClass, weakness) — two axes in one expression</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-tag">param guards</span>
+        <span class="feature-desc">create_hero() injects 5 validators — HP, StatValue×2, Level, HeroName</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-tag">.field pipelines</span>
+        <span class="feature-desc">party |> filter(.alive) |> map(.hp) |> sum</span>
+      </div>
+    </div>
+
+    <!-- Combat UI mounted here -->
+    <div id="combat"></div>
+
+  </div>
+
+  <!-- Source viewer -->
+  <section class="source-panel">
+    <div class="source-inner">
+      <div class="source-heading">Source Code</div>
+      <div class="source-tabs">
+        <button class="source-tab active" onclick="showTab('axn')">combat.axn</button>
+        <button class="source-tab"        onclick="showTab('js')">combat.axon.js (transpiled)</button>
+      </div>
+      <div id="tab-axn" class="source-content active"><pre id="axn-src">Loading…</pre></div>
+      <div id="tab-js"  class="source-content"><pre id="js-src">Loading…</pre></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    AXON v0.4.0 · AI-NATIVE LANGUAGE · TRANSPILES TO JAVASCRIPT
+  </footer>
+
+  <script src="combat.axon.js"></script>
+  <script src="combat.sources.js"></script>
+  <script>
+    render_combat('combat');
+
+    function showTab(name) {
+      document.querySelectorAll('.source-tab').forEach((b, i) =>
+        b.classList.toggle('active', ['axn','js'][i] === name)
+      );
+      document.querySelectorAll('.source-content').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    if (window.COMBAT_SOURCES) {
+      document.getElementById('axn-src').textContent = COMBAT_SOURCES.axn;
+      document.getElementById('js-src').textContent  = COMBAT_SOURCES.js;
+    }
+  </script>
+
+</body>
+</html>

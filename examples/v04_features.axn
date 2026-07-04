@@ -1,0 +1,266 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Axon v0.4.0 — Feature demonstration
+// Tests all 7 new language features:
+//   1. when guards in match
+//   2. ?. optional chaining
+//   3. ?? nullish coalescing
+//   4. Record destructuring let
+//   5. Triple-quote multiline strings
+//   6. Tagged union types
+//   7. @test declarations
+//   8. Pipeline |> as naming
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── 1. when guards in match ───────────────────────────────────────────────────
+
+fn classify_score :: (score: int) -> string {
+  @pure @total
+  @intent "Grade a numeric score with guarded match arms"
+  match score {
+    | n when n >= 90 => "A"
+    | n when n >= 80 => "B"
+    | n when n >= 70 => "C"
+    | n when n >= 60 => "D"
+    | _              => "F"
+  }
+}
+
+@test "classify_score: 95 → A" { classify_score(95) === "A" }
+@test "classify_score: 85 → B" { classify_score(85) === "B" }
+@test "classify_score: 55 → F" { classify_score(55) === "F" }
+
+fn describe_hp :: (hp: int, maxHp: int) -> string {
+  @pure @total
+  @intent "Describe health status with guarded match on ratio"
+  let ratio = hp * 100 / maxHp
+  match ratio {
+    | n when n <= 0  => "dead"
+    | n when n <= 25 => "critical"
+    | n when n <= 50 => "wounded"
+    | n when n <= 75 => "hurt"
+    | _              => "healthy"
+  }
+}
+
+@test "describe_hp: 0 → dead"     { describe_hp(0, 100) === "dead" }
+@test "describe_hp: 20 → critical" { describe_hp(20, 100) === "critical" }
+@test "describe_hp: 70 → hurt"    { describe_hp(70, 100) === "hurt" }
+
+// ── 2 & 3. Optional chaining ?. and nullish coalescing ?? ─────────────────────
+
+record Character {
+  name: string,
+  weapon: object?,
+  guild: object?
+}
+
+fn weapon_name :: (hero: Character) -> string {
+  @pure @total
+  @intent "Safely read nested optional property with ?. and ??"
+  hero.weapon?.name ?? "bare hands"
+}
+
+fn guild_rank :: (hero: Character) -> string {
+  @pure @total
+  @intent "Chain multiple optional accesses"
+  hero.guild?.rank ?? hero.guild?.name ?? "freelancer"
+}
+
+fn safe_power :: (hero: Character) -> int {
+  @pure @total
+  @intent "Numeric fallback via ??"
+  hero.weapon?.power ?? 1
+}
+
+@test "weapon_name: no weapon → bare hands" {
+  weapon_name({ name: "Alice", weapon: null, guild: null }) === "bare hands"
+}
+@test "weapon_name: has weapon" {
+  weapon_name({ name: "Alice", weapon: { name: "Sword" }, guild: null }) === "Sword"
+}
+@test "safe_power: no weapon → 1" {
+  safe_power({ name: "Bob", weapon: null, guild: null }) === 1
+}
+@test "safe_power: has weapon" {
+  safe_power({ name: "Bob", weapon: { power: 15 }, guild: null }) === 15
+}
+
+// ── 4. Record destructuring let ──────────────────────────────────────────────
+
+record Point { x: float, y: float }
+record Rect3 { x: float, y: float, w: float, h: float }
+
+fn distance :: (a: Point, b: Point) -> float {
+  @pure @total
+  @intent "Destructure both points to compute Euclidean distance"
+  let { x: ax, y: ay } = a
+  let { x: bx, y: by } = b
+  let dx = bx - ax
+  let dy = by - ay
+  Math.sqrt(dx * dx + dy * dy)
+}
+
+fn rect_area :: (r: Rect3) -> float {
+  @pure @total
+  @intent "Destructure width and height from a rect record"
+  let { w, h } = r
+  w * h
+}
+
+fn first_two :: (nums: int[]) -> int {
+  @pure @total
+  @intent "Array destructuring to extract first two elements"
+  let [a, b] = nums
+  a + b
+}
+
+@test "rect_area: 4×3 = 12"   { rect_area({ x: 0, y: 0, w: 4, h: 3 }) === 12 }
+@test "first_two: [10,20,30]" { first_two([10, 20, 30]) === 30 }
+
+// ── 5. Triple-quote multiline strings ────────────────────────────────────────
+
+fn game_intro :: () -> string {
+  @pure
+  @intent "Multiline string using triple-quote syntax"
+  """
+In a land of eternal fog,
+where heroes are born from spreadsheets,
+one adventurer dares to click buttons
+in pursuit of imaginary gold.
+
+  — The Ballad of the Budget Warrior
+"""
+}
+
+@test "game_intro contains 'fog'" {
+  game_intro().includes("fog")
+}
+
+fn greeting :: (name: string) -> string {
+  @pure @total
+  @intent "Triple-quote string with interpolation"
+  """
+Welcome, {name}!
+Your quest begins now.
+"""
+}
+
+@test "greeting interpolates name" {
+  greeting("Mist").includes("Mist")
+}
+
+// ── 6. Tagged union types ─────────────────────────────────────────────────────
+
+type Shape =
+  | Circle { r: float }
+  | Rect   { w: float, h: float }
+  | Triangle { base: float, height: float }
+  | Point
+
+fn area :: (shape: Shape) -> float {
+  @pure @total @exhaustive
+  @intent "Compute area for all shape variants"
+  match shape {
+    | Circle { r }           => 3.14159 * r * r
+    | Rect { w, h }          => w * h
+    | Triangle { base, height } => base * height / 2
+    | Point                  => 0.0
+  }
+}
+
+fn describe_shape :: (shape: Shape) -> string {
+  @pure @total
+  @intent "Describe a shape with when guards on tag patterns"
+  match shape {
+    | Circle { r } when r > 10 => "big circle"
+    | Circle { r }             => "small circle"
+    | Rect { w, h } when w === h => "square"
+    | Rect                     => "rectangle"
+    | Triangle                 => "triangle"
+    | Point                    => "point"
+  }
+}
+
+@test "area of Circle r=1 ≈ 3.14"  { Math.abs(area(Circle(1.0)) - 3.14159) < 0.001 }
+@test "area of Rect 4×3 = 12"      { area(Rect(4.0, 3.0)) === 12 }
+@test "area of Triangle 6×4 = 12"  { area(Triangle(6.0, 4.0)) === 12 }
+@test "area of Point = 0"          { area(Point) === 0.0 }
+@test "describe big circle"        { describe_shape(Circle(15.0)) === "big circle" }
+@test "describe square"            { describe_shape(Rect(5.0, 5.0)) === "square" }
+
+// ── Tagged union: game event log ──────────────────────────────────────────────
+
+type GameEvent =
+  | Attack  { attacker: string, target: string, dmg: int }
+  | Heal    { target: string, amount: int }
+  | LevelUp { hero: string, newLevel: int }
+  | Escaped
+
+fn describe_event :: (evt: GameEvent) -> string {
+  @pure @total
+  @intent "Format a game event for the combat log"
+  match evt {
+    | Attack { attacker, target, dmg } => "{attacker} hit {target} for {dmg} damage"
+    | Heal { target, amount }          => "{target} recovered {amount} HP"
+    | LevelUp { hero, newLevel }       => "{hero} reached level {newLevel}!"
+    | Escaped                          => "The enemy fled!"
+  }
+}
+
+@test "describe Attack event" {
+  describe_event(Attack("Aria", "Goblin", 42)) === "Aria hit Goblin for 42 damage"
+}
+@test "describe Heal event" {
+  describe_event(Heal("Theron", 30)) === "Theron recovered 30 HP"
+}
+@test "describe LevelUp event" {
+  describe_event(LevelUp("Lyra", 5)) === "Lyra reached level 5!"
+}
+@test "describe Escaped event" {
+  describe_event(Escaped) === "The enemy fled!"
+}
+
+// ── 7. Pipeline |> as naming ──────────────────────────────────────────────────
+
+fn top_scores :: (players: object[]) -> object[] {
+  @pure
+  @intent "Filter active players, sort by score, take top 3 — with named pipeline steps"
+  players
+    |> filter(.active)    |> as active
+    |> filter(.score)     |> as scored
+    |> map(.score)        |> as scores
+    |> sum
+}
+
+fn pipeline_demo :: (nums: int[]) -> int {
+  @pure @total
+  @intent "Named pipeline steps for clarity"
+  nums
+    |> filter(n => n > 0) |> as positives
+    |> map(n => n * 2)    |> as doubled
+    |> sum
+}
+
+@test "pipeline_demo: [1,-2,3,-4,5] → 18" {
+  pipeline_demo([1, -2, 3, -4, 5]) === 18
+}
+
+// ── Combined feature showcase ─────────────────────────────────────────────────
+
+fn analyze_party :: (party: object[]) -> object {
+  @intent "Showcase multiple v0.4 features working together"
+  let aliveCount = party |> filter(.alive) |> as alive |> count
+  let totalHp = party
+    |> filter(.alive)
+    |> map(.hp)       |> as hpValues
+    |> sum
+  let leader = party[0]
+  let leaderName = leader?.name ?? "nobody"
+  let leaderWeapon = leader?.weapon?.name ?? "fists"
+  {
+    alive: aliveCount,
+    totalHp,
+    leaderName,
+    leaderWeapon
+  }
+}
