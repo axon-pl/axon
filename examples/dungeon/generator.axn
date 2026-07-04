@@ -161,7 +161,7 @@ fn scatter_room(g: any, room: any, level: int, seed: int, is_last: bool) {
   let dr = room.r2 - room.r1 + 1
   let dc = room.c2 - room.c1 + 1
   let cp = 0.025
-  let wp = 0.02
+  let wp = 0.015 + Math.min(level * 0.002, 0.02)
   for i in 0..dr {
     for j in 0..dc {
       let r   = room.r1 + i
