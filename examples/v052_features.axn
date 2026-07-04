@@ -1,0 +1,63 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Axon v0.5.2 — feature tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+@test "exclusive range sums correctly" {
+  let mut total = 0
+  for i in 0..5 { total = total + i }
+  total == 10
+}
+
+@test "inclusive range sums correctly" {
+  let mut total = 0
+  for i in 0..=4 { total = total + i }
+  total == 10
+}
+
+@test "for-in iterates array values" {
+  let mut s = 0
+  let arr = [1, 2, 3, 4]
+  for x in arr { s = s + x }
+  s == 10
+}
+
+@test "break exits loop early" {
+  let mut n = 0
+  for i in 0..100 {
+    if i == 5 { break }
+    n = n + 1
+  }
+  n == 5
+}
+
+@test "continue skips odd iterations" {
+  let mut evens = 0
+  for i in 0..10 {
+    if i % 2 != 0 { continue }
+    evens = evens + 1
+  }
+  evens == 5
+}
+
+@test "let mut reassignment works" {
+  let mut x = 1
+  x = x * 10
+  x == 10
+}
+
+@test "nested for loops work" {
+  let mut sum = 0
+  for i in 0..3 {
+    for j in 0..3 {
+      sum = sum + 1
+    }
+  }
+  sum == 9
+}
+
+@test "for-in with objects" {
+  let items = [{ v: 10 }, { v: 20 }, { v: 30 }]
+  let mut total = 0
+  for item in items { total = total + item.v }
+  total == 60
+}

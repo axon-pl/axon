@@ -1,6 +1,67 @@
 # Axon Changelog
 
-## v0.5.0
+## v0.5.2 — The Ergonomics Update
+
+### New language features
+
+- **`for i in lo..hi { body }` — exclusive range loop**
+  Compiles to a native JS `for (let i = lo; i < hi; i++)` loop.
+  No more `Array.from({ length: n }).forEach((_, i) => ...)` boilerplate.
+
+- **`for i in lo..=hi { body }` — inclusive range loop**
+  Compiles to `for (let i = lo; i <= hi; i++)`.
+
+- **`for x in array { body }` — forEach loop**
+  Iterates over any array or iterable. Compiles to `for (const x of array)`.
+
+- **`break` and `continue`**
+  Exit or skip iterations inside any `for` body. Work across nested loops.
+
+  ```axon
+  for i in 0..100 {
+    if i == 5 { break }    // exit loop
+  }
+  for i in 0..10 {
+    if i % 2 != 0 { continue }   // skip odds
+    process(i)
+  }
+  ```
+
+- **`let mut x = val` — explicit mutable binding**
+  Plain `let` signals immutable intent. `let mut` opts into reassignment.
+  The compiler distinction prepares for full enforcement in v0.6.
+
+  ```axon
+  let     x = 5        // immutable by intent
+  let mut n = 0        // explicitly mutable
+  n = n + 1            // valid — n is mut
+  ```
+
+### Compiler fixes
+
+- **Lexer: `..` and `..=` range tokens** — `DOTDOT` and `DOTDOTEQ` tokens added.
+  The number literal reader was fixed to stop consuming `.` greedily (it
+  previously lexed `0..5` as number `0..` followed by `5`).
+
+- **Parser: `stmtMode` propagation** — `if` blocks nested inside `for` bodies
+  now correctly emit their last expression as a statement rather than
+  `return`, which would have exited the enclosing function early.
+
+### Demo rewrite
+
+- **`generator.axn`** — all `Array.from().forEach` patterns replaced with
+  `for` loops; all accumulator variables use `let mut`; `count_tag` uses
+  `for row in grid { for cell in row { } }`.
+
+### Tests
+
+- **`examples/v052_features.axn`** — 8 new `@test` declarations covering all
+  new constructs: exclusive range, inclusive range, `for...in`, `break`,
+  `continue`, `let mut`, nested loops, and object iteration.
+
+---
+
+## v0.5.1
 
 ### New features
 

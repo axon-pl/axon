@@ -219,6 +219,19 @@ export class Checker {
           this.walkBlock(stmt.then, visit)
           if (stmt.else_) this.walkBlock(stmt.else_, visit)
           break
+        // v0.5.2: for loops
+        case 'ForRangeStmt':
+          this.walkExpr(stmt.lo, visit)
+          this.walkExpr(stmt.hi, visit)
+          this.walkBlock(stmt.body, visit)
+          break
+        case 'ForInStmt':
+          this.walkExpr(stmt.iter, visit)
+          this.walkBlock(stmt.body, visit)
+          break
+        case 'BreakStmt':
+        case 'ContinueStmt':
+          break
       }
     }
   }

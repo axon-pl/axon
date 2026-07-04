@@ -40,18 +40,30 @@ fn go_prev(s: AppState) -> AppState {
   { level: s.level - 1, seed: next_seed(s.seed), rows: s.rows, cols: s.cols }
 }
 
-// ── Level text ────────────────────────────────────────────────────────────────
+// ── Map name generator ────────────────────────────────────────────────────────
 
-fn level_name(level: int) -> string =
-  match level {
-    | 1 => "The Entrance Hall"
-    | 2 => "The Flooded Passage"
-    | 3 => "The Vault of Echoes"
-    | 4 => "The Sunken Catacombs"
-    | 5 => "The Abyssal Chamber"
-    | _ when level > 5 => "The Depths Beyond"
-    | _ => "Unknown Level"
-  }
+// Picks a unique name from adjective + noun word lists using the seed so
+// every "New Map" and every level gets a distinct title.
+fn map_name(level: int, seed: int) -> string {
+  let adj = [
+    "Sunken",    "Flooded",   "Forgotten", "Ancient",   "Crumbling",
+    "Darkened",  "Shattered", "Cursed",    "Hollow",    "Ruined",
+    "Scorched",  "Mossy",     "Twisted",   "Silent",    "Pale",
+    "Burning",   "Frozen",    "Gilded",    "Haunted",   "Blighted",
+    "Crimson",   "Ashen",     "Murky",     "Lost",      "Forsaken",
+    "Tarnished", "Rotting",   "Sealed",    "Fractured", "Drowned"
+  ]
+  let noun = [
+    "Hall",      "Vault",     "Passage",   "Chamber",   "Catacombs",
+    "Sanctum",   "Tomb",      "Cavern",    "Lair",      "Pit",
+    "Maze",      "Crypt",     "Gallery",   "Abyss",     "Warren",
+    "Cellar",    "Archive",   "Ossuary",   "Barrow",    "Grotto",
+    "Keep",      "Depths",    "Ruin",      "Antechamber","Oubliette"
+  ]
+  let h1 = (seed % adj.length  + adj.length)  % adj.length
+  let h2 = ((seed + level * 7) % noun.length + noun.length) % noun.length
+  "The " + adj[h1] + " " + noun[h2]
+}
 
 fn level_description(level: int) -> string =
   match level {
@@ -64,9 +76,9 @@ fn level_description(level: int) -> string =
     | _ => "Press onward."
   }
 
-fn render_header(level: int) -> string =
+fn render_header(level: int, seed: int) -> string =
   "<div class=\"dungeon-header\">" +
-    "<h2 class=\"level-name\">Level " + level + " — " + level_name(level) + "</h2>" +
+    "<h2 class=\"level-name\">Level " + level + " — " + map_name(level, seed) + "</h2>" +
     "<p class=\"level-desc\">" + level_description(level) + "</p>" +
   "</div>"
 
@@ -76,7 +88,7 @@ fn render_header(level: int) -> string =
 // *next* state value. onclick = replaces the previous handler cleanly.
 fn render(s: AppState) {
   let map  = generate(s.rows, s.cols, s.level, s.seed)
-  let html = render_header(s.level)
+  let html = render_header(s.level, s.seed)
            + render_stats(map, s.seed)
            + render_map(map)
            + render_legend()

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.5.0 — Token and AST type definitions
+// Axon v0.5.2 — Token and AST type definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type TokenType =
@@ -11,9 +11,14 @@ export type TokenType =
   | 'KW_TYPEOF' | 'KW_INSTANCEOF' | 'KW_NEW'
   | 'KW_WHEN'           // v0.4: match guard  — | pat when expr => body
   | 'KW_AS'             // v0.4: pipeline bind — |> as name
-  | 'KW_IMPORT'         // v0.5: import { ... } from "..."
-  | 'KW_EXPORT'         // v0.5: export fn / export type / export record
-  | 'KW_FROM'           // v0.5: from "path"
+  | 'KW_IMPORT'         // v0.5:   import { ... } from "..."
+  | 'KW_EXPORT'         // v0.5:   export fn / export type / export record
+  | 'KW_FROM'           // v0.5:   from "path"
+  | 'KW_FOR'            // v0.5.2: for loop
+  | 'KW_IN'             // v0.5.2: for...in keyword
+  | 'KW_BREAK'          // v0.5.2: break statement
+  | 'KW_CONTINUE'       // v0.5.2: continue statement
+  | 'KW_MUT'            // v0.5.2: mutable binding
   // Literals
   | 'NUMBER' | 'STRING' | 'REGEX' | 'TEMPLATE'
   // Identifier
@@ -32,6 +37,8 @@ export type TokenType =
   | 'AND'               // &&
   | 'OR'                // ||
   | 'SPREAD'            // ...
+  | 'DOTDOT'            // ..   v0.5.2: exclusive range
+  | 'DOTDOTEQ'          // ..=  v0.5.2: inclusive range
   | 'OPTIONAL_CHAIN'    // ?.  v0.4 — optional member/index/call
   | 'NULL_COALESCE'     // ??  v0.4 — nullish coalescing
   // Single-char operators
@@ -355,11 +362,15 @@ export interface BlockExpr {
 }
 
 export type BlockStmt =
-  | { kind: 'LetStmt'; name: string | null; value: Expr }
+  | { kind: 'LetStmt'; name: string | null; value: Expr; mutable?: boolean }
   | { kind: 'DestructureStmt'; style: 'object' | 'array'; names: string[]; value: Expr }  // v0.4
   | { kind: 'ReturnStmt'; value: Expr }
   | { kind: 'ExprStmt'; value: Expr }
   | { kind: 'IfStmt'; test: Expr; then: BlockExpr; else_?: BlockExpr }
+  | { kind: 'ForRangeStmt'; varName: string; lo: Expr; hi: Expr; inclusive: boolean; body: BlockExpr }  // v0.5.2
+  | { kind: 'ForInStmt';    varName: string; iter: Expr; body: BlockExpr }                              // v0.5.2
+  | { kind: 'BreakStmt' }    // v0.5.2
+  | { kind: 'ContinueStmt' } // v0.5.2
 
 export interface MatchExpr {
   kind: 'MatchExpr'

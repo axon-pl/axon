@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.5.0 — Lexer
+// Axon v0.5.2 — Lexer
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Token, TokenType } from './types.js'
@@ -22,9 +22,14 @@ const KEYWORDS: Record<string, TokenType> = {
   new:        'KW_NEW',
   when:       'KW_WHEN',   // v0.4: match guard
   as:         'KW_AS',     // v0.4: pipeline naming
-  import:     'KW_IMPORT', // v0.5: import { ... } from "..."
-  export:     'KW_EXPORT', // v0.5: export fn/type/record
-  from:       'KW_FROM',   // v0.5: from "path"
+  import:     'KW_IMPORT',   // v0.5:   import { ... } from "..."
+  export:     'KW_EXPORT',   // v0.5:   export fn/type/record
+  from:       'KW_FROM',     // v0.5:   from "path"
+  for:        'KW_FOR',      // v0.5.2: for i in lo..hi / for x in array
+  in:         'KW_IN',       // v0.5.2: for loop iteration keyword
+  break:      'KW_BREAK',    // v0.5.2: break out of for loop
+  continue:   'KW_CONTINUE', // v0.5.2: continue to next iteration
+  mut:        'KW_MUT',      // v0.5.2: let mut — mutable binding
 }
 
 export class Lexer {
@@ -80,9 +85,15 @@ export class Lexer {
         continue
       }
 
-      // Spread ...
+      // Spread ... and range ..= and range .. (check longest first)
       if (ch === '.' && this.src[this.pos + 1] === '.' && this.src[this.pos + 2] === '.') {
         this.emit('SPREAD', '...', 3); continue
+      }
+      if (ch === '.' && this.src[this.pos + 1] === '.' && this.src[this.pos + 2] === '=') {
+        this.emit('DOTDOTEQ', '..=', 3); continue  // v0.5.2: inclusive range
+      }
+      if (ch === '.' && this.src[this.pos + 1] === '.') {
+        this.emit('DOTDOT', '..', 2); continue     // v0.5.2: exclusive range
       }
 
       // Multi-char operators — check triple before double before single
@@ -231,9 +242,16 @@ export class Lexer {
   private readNumber(): void {
     const startCol = this.col
     let num = ''
-    while (this.pos < this.src.length && (this.isDigit(this.src[this.pos]) || this.src[this.pos] === '.')) {
-      num += this.src[this.pos]
-      this.advance()
+    while (this.pos < this.src.length) {
+      const ch = this.src[this.pos]
+      if (this.isDigit(ch)) {
+        num += ch; this.advance()
+      } else if (ch === '.' && this.isDigit(this.src[this.pos + 1] ?? '')) {
+        // Only consume '.' if followed by a digit — prevents eating '..' in ranges
+        num += ch; this.advance()
+      } else {
+        break
+      }
     }
     this.tokens.push({ type: 'NUMBER', value: num, line: this.line, col: startCol })
   }

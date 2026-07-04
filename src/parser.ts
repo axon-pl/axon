@@ -423,7 +423,8 @@ export class Parser {
 
   // ── Function body block ──────────────────────────────────────────────────────
 
-  private parseBlockBody(): Expr {
+  // stmtMode: true for for-loop bodies — last expression becomes ExprStmt, not ReturnStmt
+  private parseBlockBody(stmtMode = false): Expr {
     const stmts: BlockStmt[] = []
 
     while (!this.check('RBRACE') && !this.isEOF()) {
@@ -438,7 +439,7 @@ export class Parser {
 
       // If statement
       if (this.check('KW_IF')) {
-        const ifStmt = this.parseIfStmt()
+        const ifStmt = this.parseIfStmt(stmtMode)
         stmts.push(ifStmt)
         continue
       }
@@ -456,9 +457,36 @@ export class Parser {
         continue
       }
 
-      // Let binding — including v0.4 destructuring forms
+      // v0.5.2: break / continue
+      if (this.check('KW_BREAK')) {
+        this.advance()
+        this.tryConsume('SEMICOLON')
+        stmts.push({ kind: 'BreakStmt' })
+        continue
+      }
+      if (this.check('KW_CONTINUE')) {
+        this.advance()
+        this.tryConsume('SEMICOLON')
+        stmts.push({ kind: 'ContinueStmt' })
+        continue
+      }
+
+      // v0.5.2: for loop — range or forEach
+      //   for i in lo..hi  { body }   exclusive range
+      //   for i in lo..=hi { body }   inclusive range
+      //   for x in array   { body }   forEach (for..of)
+      if (this.check('KW_FOR')) {
+        stmts.push(this.parseForStmt())
+        continue
+      }
+
+      // Let binding — including v0.4 destructuring forms and v0.5.2 let mut
       if (this.check('KW_LET')) {
         this.advance()
+
+        // v0.5.2: let mut name = expr
+        const mutable = this.check('KW_MUT')
+        if (mutable) this.advance()
 
         // v0.4: object destructuring — let { a, b, c } = expr
         //       or with rename  — let { x: myX, y: myY } = expr
@@ -505,7 +533,7 @@ export class Parser {
           continue
         }
 
-        // Normal let binding
+        // Normal let / let mut binding
         let name: string | null
         if (this.check('UNDERSCORE') || (this.check('IDENT') && this.peek().value === '_')) {
           this.advance(); name = null
@@ -514,7 +542,7 @@ export class Parser {
         }
         this.expect('ASSIGN')
         const value = this.parseExpr()
-        stmts.push({ kind: 'LetStmt', name, value })
+        stmts.push({ kind: 'LetStmt', name, value, mutable })
         this.tryConsume('SEMICOLON')
         continue
       }
@@ -522,21 +550,23 @@ export class Parser {
       const expr = this.parseExpr()
       this.tryConsume('SEMICOLON')
 
-      if (this.check('RBRACE') || this.check('EOF')) {
+      if (!stmtMode && (this.check('RBRACE') || this.check('EOF'))) {
         stmts.push({ kind: 'ReturnStmt', value: expr })
       } else {
         stmts.push({ kind: 'ExprStmt', value: expr })
       }
     }
 
-    if (stmts.length === 1 && stmts[0].kind === 'ReturnStmt') {
+    if (!stmtMode && stmts.length === 1 && stmts[0].kind === 'ReturnStmt') {
       return stmts[0].value
     }
 
     return { kind: 'BlockExpr', stmts }
   }
 
-  private parseIfStmt(): BlockStmt {
+  // stmtMode propagates from the enclosing for-loop body so nested if blocks
+  // also emit their last expression as ExprStmt instead of return.
+  private parseIfStmt(stmtMode = false): BlockStmt {
     this.expect('KW_IF')
     // Parentheses around condition are optional: both `if (x)` and `if x` work
     const hasParens = this.check('LPAREN')
@@ -544,28 +574,60 @@ export class Parser {
     const test = this.parseExpr()
     if (hasParens) this.expect('RPAREN')
     this.expect('LBRACE')
-    const thenBody = this.parseBlockBody()
+    const thenBody = this.parseBlockBody(stmtMode)
     this.expect('RBRACE')
+    const fallback = stmtMode ? 'ExprStmt' : 'ReturnStmt'
     const thenBlock: BlockExpr = thenBody.kind === 'BlockExpr'
       ? thenBody
-      : { kind: 'BlockExpr', stmts: [{ kind: 'ReturnStmt', value: thenBody }] }
+      : { kind: 'BlockExpr', stmts: [{ kind: fallback, value: thenBody }] }
 
     let elseBlock: BlockExpr | undefined
     if (this.check('KW_ELSE')) {
       this.advance()
       if (this.check('KW_IF')) {
-        const nested = this.parseIfStmt()
+        const nested = this.parseIfStmt(stmtMode)
         elseBlock = { kind: 'BlockExpr', stmts: [nested] }
       } else {
         this.expect('LBRACE')
-        const elseBody = this.parseBlockBody()
+        const elseBody = this.parseBlockBody(stmtMode)
         this.expect('RBRACE')
         elseBlock = elseBody.kind === 'BlockExpr'
           ? elseBody
-          : { kind: 'BlockExpr', stmts: [{ kind: 'ReturnStmt', value: elseBody }] }
+          : { kind: 'BlockExpr', stmts: [{ kind: fallback, value: elseBody }] }
       }
     }
     return { kind: 'IfStmt', test, then: thenBlock, else_: elseBlock }
+  }
+
+  // v0.5.2: for i in lo..hi { } / for i in lo..=hi { } / for x in array { }
+  private parseForStmt(): BlockStmt {
+    this.expect('KW_FOR')
+    const varName = this.expect('IDENT').value
+    this.expect('KW_IN')
+    const lo = this.parseExpr()   // parse lo, or the whole iterable if no range follows
+
+    // Range form: lo..hi or lo..=hi
+    if (this.check('DOTDOT') || this.check('DOTDOTEQ')) {
+      const inclusive = this.check('DOTDOTEQ')
+      this.advance()
+      const hi = this.parseExpr()
+      this.expect('LBRACE')
+      const rawBody = this.parseBlockBody(true)   // stmtMode — no implicit return
+      this.expect('RBRACE')
+      const body: BlockExpr = rawBody.kind === 'BlockExpr'
+        ? rawBody
+        : { kind: 'BlockExpr', stmts: [{ kind: 'ExprStmt', value: rawBody }] }
+      return { kind: 'ForRangeStmt', varName, lo, hi, inclusive, body }
+    }
+
+    // forEach form: for x in array { }  — lo is the iterable
+    this.expect('LBRACE')
+    const rawBody = this.parseBlockBody(true)     // stmtMode — no implicit return
+    this.expect('RBRACE')
+    const body: BlockExpr = rawBody.kind === 'BlockExpr'
+      ? rawBody
+      : { kind: 'BlockExpr', stmts: [{ kind: 'ExprStmt', value: rawBody }] }
+    return { kind: 'ForInStmt', varName, iter: lo, body }
   }
 
   // ── Expression parsing (precedence climbing) ─────────────────────────────────
