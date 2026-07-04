@@ -50,6 +50,7 @@ OOP and mutable state exist to help *humans* manage large codebases. AI code gen
 | Tagged unions | Sum types with exhaustive pattern matching |
 | `@test` | Inline test declarations, runnable with `--test` |
 | `\|>` pipelines | Left-to-right functional composition with optional `as` naming |
+| `import` / `export` | Multi-file modules — bundled to a single JS file with `axon --bundle` |
 
 ---
 
@@ -73,8 +74,11 @@ npx tsc
 ## Usage
 
 ```bash
-# Transpile
+# Transpile a single file
 axon input.axn output.js
+
+# Bundle a multi-file project (v0.5)
+axon --bundle main.axn output.js
 
 # Run @test declarations
 axon --test input.axn
@@ -170,6 +174,36 @@ Crops wilt.  Rivers run backwards.
 Something must be done."""
 ```
 
+### Modules (v0.5)
+
+```axon
+// tiles.axn
+export type Tile = | Floor | Wall | Door | Stairs | Chest | Water | Torch
+
+export fn tile_glyph(tag: string) -> string =
+  match tag {
+    | "Floor"  => "·"  | "Wall"  => "█"
+    | "Stairs" => "≋"  | _       => "?"
+  }
+
+// main.axn
+import { tile_glyph } from "./tiles"
+import { generate }   from "./generator"
+import { render_map } from "./renderer"
+
+fn mount() {
+  let map = generate(22, 48, 1, 7777)
+  document.getElementById("out").innerHTML = render_map(map)
+}
+mount()
+```
+
+```bash
+axon --bundle main.axn bundle.js
+# ✓ Bundled tiles.axn + generator.axn + renderer.axn + main.axn
+#   4 modules → 407 lines JS
+```
+
 ### Built-in testing
 
 ```axon
@@ -190,10 +224,10 @@ axon --test shapes.axn
 
 | Demo | Description |
 |---|---|
+| [Dungeon Map Toolkit](https://axon-pl.github.io/axon/dungeon.html) | **v0.5** — 4-file module demo, `axon --bundle`, procedural map generation |
 | [RPG Adventure](https://axon-pl.github.io/axon/rpg.standalone.html) | 50-battle dungeon crawl — 1576 lines of pure Axon game logic |
 | [Combat Engine](https://axon-pl.github.io/axon/combat.html) | Turn-based combat system |
 | [Music Library](https://axon-pl.github.io/axon/music.html) | Synthwave track browser |
-| [Web Controls](https://axon-pl.github.io/axon/landing.html) | Interactive landing page |
 
 ---
 
@@ -206,6 +240,7 @@ Full language reference at **[axon-pl.github.io/axon/docs.html](https://axon-pl.
 - [Tagged Unions](https://axon-pl.github.io/axon/docs.html#tagged-unions)
 - [Pattern Matching](https://axon-pl.github.io/axon/docs.html#pattern-matching)
 - [Annotations](https://axon-pl.github.io/axon/docs.html#ann-pure)
+- [Modules](https://axon-pl.github.io/axon/docs.html#modules)
 - [Version History](https://axon-pl.github.io/axon/docs.html#version-history)
 - [Roadmap](https://axon-pl.github.io/axon/docs.html#roadmap)
 
@@ -215,8 +250,8 @@ Full language reference at **[axon-pl.github.io/axon/docs.html](https://axon-pl.
 
 | Version | Theme | Key feature |
 |---|---|---|
-| **v0.4** ✓ | Guards & Unions | `when` guards, tagged unions, `@test`, `?.` / `??`, destructuring, heredocs |
-| v0.5 | Modules | `import` / `export` — multi-file projects |
+| v0.4 ✓ | Guards & Unions | `when` guards, tagged unions, `@test`, `?.` / `??`, destructuring, heredocs |
+| **v0.5** ✓ | Modules | `import` / `export`, `axon --bundle` — multi-file projects |
 | v0.6 | Safety | `Result<T>`, `?` propagation, error contracts |
 | v0.7 | Type System | Generics, `interface`, typed stdlib |
 | v0.8 | Async | `async fn`, `await`, enforced `@effects` |
