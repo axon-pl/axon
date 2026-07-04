@@ -96,29 +96,50 @@ fn carve_corridor(g: any, r1: int, c1: int, r2: int, c2: int) {
   carve_v(g, c2, Math.min(r1, r2), Math.max(r1, r2))
 }
 
+// ── Door placement ────────────────────────────────────────────────────────────
+
+// Place doors at room perimeter cells where a corridor connects from outside.
+// Scans all four edges of the room; any edge cell whose exterior neighbour is
+// Floor (carved by a corridor) gets a Door on the room side.
+fn place_room_doors(g: any, room: any) {
+  let dr = room.r2 - room.r1 + 1
+  let dc = room.c2 - room.c1 + 1
+  // Left and right edges
+  Array.from({ length: dr }).forEach((_, i) => {
+    let r = room.r1 + i
+    if gget(g, r, room.c1 - 1) == "Floor" { gset(g, r, room.c1, "Door") }
+    if gget(g, r, room.c2 + 1) == "Floor" { gset(g, r, room.c2, "Door") }
+  })
+  // Top and bottom edges
+  Array.from({ length: dc }).forEach((_, j) => {
+    let c = room.c1 + j
+    if gget(g, room.r1 - 1, c) == "Floor" { gset(g, room.r1, c, "Door") }
+    if gget(g, room.r2 + 1, c) == "Floor" { gset(g, room.r2, c, "Door") }
+  })
+}
+
 // ── Special tile placement ────────────────────────────────────────────────────
 
-// Scatter specials inside a room; place Stairs at center of the last room
+// Scatter specials inside a room; place Stairs at center of the last room.
+// Doors are handled separately by place_room_doors — not scattered here.
 fn scatter_room(g: any, room: any, level: int, seed: int, is_last: bool) {
   if is_last {
     gset(g, room_cr(room), room_cc(room), "Stairs")
   }
   let dr = room.r2 - room.r1 + 1
   let dc = room.c2 - room.c1 + 1
-  let cp = 0.012 + level * 0.004
-  let wp = 0.08 + level * 0.02
-  let tp = 0.06
-  let dp = 0.04
+  let cp = 0.007 + level * 0.003
+  let wp = 0.03 + level * 0.008
+  let tp = 0.025
   Array.from({ length: dr }).forEach((_, i) => {
     Array.from({ length: dc }).forEach((_, j) => {
       let r   = room.r1 + i
       let c   = room.c1 + j
       let rng = cell_hash(seed, r, c)
       if gget(g, r, c) == "Floor" {
-        if rng < cp                                       { gset(g, r, c, "Chest") }
-        if rng >= cp && rng < cp + wp                     { gset(g, r, c, "Water") }
-        if rng >= cp + wp && rng < cp + wp + tp           { gset(g, r, c, "Torch") }
-        if rng >= cp + wp + tp && rng < cp + wp + tp + dp { gset(g, r, c, "Door") }
+        if rng < cp              { gset(g, r, c, "Chest") }
+        if rng >= cp && rng < cp + wp            { gset(g, r, c, "Water") }
+        if rng >= cp + wp && rng < cp + wp + tp  { gset(g, r, c, "Torch") }
       }
     })
   })
@@ -146,7 +167,12 @@ export fn generate(rows: int, cols: int, level: int, seed: int) -> DungeonMap {
     )
   })
 
-  // Step 3: scatter specials (Stairs last)
+  // Step 3: place doors at corridor-room junctions
+  Array.from({ length: n }).forEach((_, i) => {
+    place_room_doors(g, rooms[i])
+  })
+
+  // Step 4: scatter specials (Stairs last)
   Array.from({ length: n }).forEach((_, i) => {
     scatter_room(g, rooms[i], level, lcg(seed + i * 1009), i == n - 1)
   })

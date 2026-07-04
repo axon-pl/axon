@@ -361,6 +361,34 @@ const carve_corridor = (g, r1, c1, r2, c2) => {
 /**
  * @param {*} g
  * @param {*} room
+ * @returns {*}
+ */
+const place_room_doors = (g, room) => {
+  let dr = room.r2 - room.r1 + 1;
+  let dc = room.c2 - room.c1 + 1;
+  Array.from({ length: dr }).forEach((_, i) => {
+    let r = room.r1 + i;
+    if (gget(g, r, room.c1 - 1) == "Floor") {
+      return gset(g, r, room.c1, "Door");
+    }
+    if (gget(g, r, room.c2 + 1) == "Floor") {
+      return gset(g, r, room.c2, "Door");
+    }
+});
+  return Array.from({ length: dc }).forEach((_, j) => {
+    let c = room.c1 + j;
+    if (gget(g, room.r1 - 1, c) == "Floor") {
+      return gset(g, room.r1, c, "Door");
+    }
+    if (gget(g, room.r2 + 1, c) == "Floor") {
+      return gset(g, room.r2, c, "Door");
+    }
+});
+};
+
+/**
+ * @param {*} g
+ * @param {*} room
  * @param {number} level
  * @param {number} seed
  * @param {boolean} is_last
@@ -372,10 +400,9 @@ const scatter_room = (g, room, level, seed, is_last) => {
   }
   let dr = room.r2 - room.r1 + 1;
   let dc = room.c2 - room.c1 + 1;
-  let cp = 0.012 + level * 0.004;
-  let wp = 0.08 + level * 0.02;
-  let tp = 0.06;
-  let dp = 0.04;
+  let cp = 0.007 + level * 0.003;
+  let wp = 0.03 + level * 0.008;
+  let tp = 0.025;
   return Array.from({ length: dr }).forEach((_, i) => {
     return Array.from({ length: dc }).forEach((_, j) => {
       let r = room.r1 + i;
@@ -390,9 +417,6 @@ const scatter_room = (g, room, level, seed, is_last) => {
         }
         if (rng >= cp + wp && rng < cp + wp + tp) {
           return gset(g, r, c, "Torch");
-        }
-        if (rng >= cp + wp + tp && rng < cp + wp + tp + dp) {
-          return gset(g, r, c, "Door");
         }
       }
 });
@@ -417,6 +441,9 @@ const generate = (rows, cols, level, seed) => {
 });
   Array.from({ length: n - 1 }).forEach((_, i) => {
     return carve_corridor(g, room_cr(rooms[i]), room_cc(rooms[i]), room_cr(rooms[i + 1]), room_cc(rooms[i + 1]));
+});
+  Array.from({ length: n }).forEach((_, i) => {
+    return place_room_doors(g, rooms[i]);
 });
   Array.from({ length: n }).forEach((_, i) => {
     return scatter_room(g, rooms[i], level, lcg(seed + i * 1009), i == n - 1);
