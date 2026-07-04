@@ -435,7 +435,7 @@ const scatter_room = (g, room, level, seed, is_last) => {
   let dr = room.r2 - room.r1 + 1;
   let dc = room.c2 - room.c1 + 1;
   let cp = 0.025;
-  let wp = 0.03 + level * 0.008;
+  let wp = 0.015 + level * 0.004;
   for (let i = 0; i < dr; i++) {
     for (let j = 0; j < dc; j++) {
       let r = room.r1 + i;
