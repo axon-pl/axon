@@ -239,49 +239,164 @@ __axon_tests.push({ desc: "door label is correct", fn: () => tile_label("Door") 
  * }} DungeonMap
  */
 
-const lcg = (seed) => (seed * 1664525 + 1013904223) % 2147483648;
-
-const rand_float = (seed) => lcg(seed) / 2147483648;
+const lcg = (s) => (s * 1664525 + 1013904223) % 2147483648;
 
 /**
- * @param {number} row
- * @param {number} col
+ * @param {number} s
+ * @param {number} r
+ * @param {number} c
+ * @returns {number}
+ */
+const cell_hash = (s, r, c) => {
+  let h1 = lcg(lcg(s) + r * 374761393);
+  let h2 = lcg(h1 + c * 1013904223);
+  let h3 = lcg(h2 + r * c);
+  return h3 / 2147483648;
+};
+
+/**
  * @param {number} rows
  * @param {number} cols
+ * @returns {*}
+ */
+const make_grid = (rows, cols) => {
+  let data = [];
+  Array.from({ length: rows * cols }).forEach(_ => data.push("Wall"));
+  return { data: data, cols: cols };
+};
+
+const gget = (g, r, c) => g.data[r * g.cols + c];
+
+/**
+ * @param {*} g
+ * @param {number} r
+ * @param {number} c
+ * @param {string} tag
+ * @returns {*}
+ */
+const gset = (g, r, c, tag) => g.data[r * g.cols + c] = tag;
+
+const room_cr = (room) => room.r1 + Math.floor((room.r2 - room.r1) / 2);
+
+const room_cc = (room) => room.c1 + Math.floor((room.c2 - room.c1) / 2);
+
+/**
+ * @param {number} rows
+ * @param {number} cols
+ * @param {number} s
+ * @returns {*}
+ */
+const pick_room = (rows, cols, s) => {
+  let s1 = lcg(s);
+  let maxh = Math.max(2, Math.floor(rows / 3));
+  let maxw = Math.max(3, Math.floor(cols / 4));
+  let h = 2 + s1 % maxh;
+  let s2 = lcg(s1);
+  let w = 3 + s2 % maxw;
+  let s3 = lcg(s2);
+  let r1 = 1 + s3 % Math.max(1, rows - h - 2);
+  let s4 = lcg(s3);
+  let c1 = 1 + s4 % Math.max(1, cols - w - 2);
+  return { r1: r1, c1: c1, r2: r1 + h, c2: c1 + w };
+};
+
+/**
+ * @param {*} g
+ * @param {*} room
+ * @returns {*}
+ */
+const carve_room = (g, room) => {
+  let dr = room.r2 - room.r1 + 1;
+  let dc = room.c2 - room.c1 + 1;
+  return Array.from({ length: dr }).forEach((_, i) => {
+    return Array.from({ length: dc }).forEach((_, j) => {
+      return gset(g, room.r1 + i, room.c1 + j, "Floor");
+});
+});
+};
+
+/**
+ * @param {*} g
+ * @param {number} r
+ * @param {number} clo
+ * @param {number} chi
+ * @returns {*}
+ */
+const carve_h = (g, r, clo, chi) => {
+  return Array.from({ length: chi - clo + 1 }).forEach((_, i) => {
+  if (gget(g, r, clo + i) == "Wall") {
+    return gset(g, r, clo + i, "Floor");
+  }
+});
+};
+
+/**
+ * @param {*} g
+ * @param {number} c
+ * @param {number} rlo
+ * @param {number} rhi
+ * @returns {*}
+ */
+const carve_v = (g, c, rlo, rhi) => {
+  return Array.from({ length: rhi - rlo + 1 }).forEach((_, i) => {
+  if (gget(g, rlo + i, c) == "Wall") {
+    return gset(g, rlo + i, c, "Floor");
+  }
+});
+};
+
+/**
+ * @param {*} g
+ * @param {number} r1
+ * @param {number} c1
+ * @param {number} r2
+ * @param {number} c2
+ * @returns {*}
+ */
+const carve_corridor = (g, r1, c1, r2, c2) => {
+  carve_h(g, r1, Math.min(c1, c2), Math.max(c1, c2));
+  return carve_v(g, c2, Math.min(r1, r2), Math.max(r1, r2));
+};
+
+/**
+ * @param {*} g
+ * @param {*} room
  * @param {number} level
  * @param {number} seed
- * @returns {string}
+ * @param {boolean} is_last
+ * @returns {*}
  */
-const pick_tag = (row, col, rows, cols, level, seed) => {
-  let edge = row == 0 || col == 0 || row == rows - 1 || col == cols - 1;
-  if (edge) {
-    return "Wall";
+const scatter_room = (g, room, level, seed, is_last) => {
+  if (is_last) {
+    return gset(g, room_cr(room), room_cc(room), "Stairs");
   }
-  if (row == rows - 2 && col == cols - 2) {
-    return "Stairs";
-  }
-  let rng = rand_float(seed + row * 1000 + col * 37 + level * 13);
-  let chest_p = 0.03 + level * 0.01;
-  let water_p = 0.04 + level * 0.015;
-  let torch_p = 0.03;
-  let wall_p = 0.18 - level * 0.01;
-  let door_p = 0.04;
-  if (rng < chest_p) {
-    return "Chest";
-  }
-  if (rng < chest_p + water_p) {
-    return "Water";
-  }
-  if (rng < chest_p + water_p + torch_p) {
-    return "Torch";
-  }
-  if (rng < chest_p + water_p + torch_p + wall_p) {
-    return "Wall";
-  }
-  if (rng < chest_p + water_p + torch_p + wall_p + door_p) {
-    return "Door";
-  }
-  return "Floor";
+  let dr = room.r2 - room.r1 + 1;
+  let dc = room.c2 - room.c1 + 1;
+  let cp = 0.05 + level * 0.015;
+  let wp = 0.08 + level * 0.02;
+  let tp = 0.06;
+  let dp = 0.04;
+  return Array.from({ length: dr }).forEach((_, i) => {
+    return Array.from({ length: dc }).forEach((_, j) => {
+      let r = room.r1 + i;
+      let c = room.c1 + j;
+      let rng = cell_hash(seed, r, c);
+      if (gget(g, r, c) == "Floor") {
+        if (rng < cp) {
+          return gset(g, r, c, "Chest");
+        }
+        if (rng >= cp && rng < cp + wp) {
+          return gset(g, r, c, "Water");
+        }
+        if (rng >= cp + wp && rng < cp + wp + tp) {
+          return gset(g, r, c, "Torch");
+        }
+        if (rng >= cp + wp + tp && rng < cp + wp + tp + dp) {
+          return gset(g, r, c, "Door");
+        }
+      }
+});
+});
 };
 
 /**
@@ -292,11 +407,25 @@ const pick_tag = (row, col, rows, cols, level, seed) => {
  * @returns {DungeonMap}
  */
 const generate = (rows, cols, level, seed) => {
+  let g = make_grid(rows, cols);
+  let rooms = [];
+  let n = 4 + lcg(seed) % 4;
+  Array.from({ length: n }).forEach((_, i) => {
+    let room = pick_room(rows, cols, lcg(seed + i * 997 + level * 113));
+    rooms.push(room);
+    return carve_room(g, room);
+});
+  Array.from({ length: n - 1 }).forEach((_, i) => {
+    return carve_corridor(g, room_cr(rooms[i]), room_cc(rooms[i]), room_cr(rooms[i + 1]), room_cc(rooms[i + 1]));
+});
+  Array.from({ length: n }).forEach((_, i) => {
+    return scatter_room(g, rooms[i], level, lcg(seed + i * 1009), i == n - 1);
+});
   let grid = [];
   Array.from({ length: rows }).forEach((_, r) => {
     let row = [];
     Array.from({ length: cols }).forEach((_, c) => {
-      let tag = pick_tag(r, c, rows, cols, level, seed);
+      let tag = gget(g, r, c);
       let passable = tag != "Wall" && tag != "Chest" && tag != "Water";
       return row.push({ tag: tag, passable: passable });
 });

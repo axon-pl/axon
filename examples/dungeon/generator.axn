@@ -1,12 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Axon v0.5.0 — dungeon/generator.axn
-// Procedural dungeon map generator.
-// Produces a DungeonMap whose grid is a JSON array of tile-info rows.
+// Room-based procedural dungeon map generator.
+// Carves rectangular rooms from an all-wall grid and connects them with
+// L-shaped corridors. Special tiles are scattered inside rooms only.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Floor, Wall, Door, Stairs, Chest, Water, Torch } from "./tiles"
 
-// A dungeon map: grid is JSON-serialised array of rows
 export record DungeonMap {
   grid:   string
   rows:   int
@@ -14,45 +14,148 @@ export record DungeonMap {
   level:  int
 }
 
-// Deterministic LCG — same seed always produces the same map
-fn lcg(seed: int) -> int =
-  (seed * 1664525 + 1013904223) % 2147483648
+// ── RNG ───────────────────────────────────────────────────────────────────────
 
-fn rand_float(seed: int) -> float =
-  lcg(seed) / 2147483648.0
+fn lcg(s: int) -> int =
+  (s * 1664525 + 1013904223) % 2147483648
 
-// Pick a tile tag for a given cell
-fn pick_tag(row: int, col: int, rows: int, cols: int, level: int, seed: int) -> string {
-  let edge = row == 0 || col == 0 || row == rows - 1 || col == cols - 1
-  if edge { return "Wall" }
-
-  // Fixed landmark: stairs always in the bottom-right inner cell
-  if row == rows - 2 && col == cols - 2 { return "Stairs" }
-
-  let rng = rand_float(seed + row * 1000 + col * 37 + level * 13)
-  let chest_p = 0.03 + level * 0.01
-  let water_p = 0.04 + level * 0.015
-  let torch_p = 0.03
-  let wall_p  = 0.18 - level * 0.01
-  let door_p  = 0.04
-
-  if rng < chest_p                              { return "Chest"  }
-  if rng < chest_p + water_p                    { return "Water"  }
-  if rng < chest_p + water_p + torch_p          { return "Torch"  }
-  if rng < chest_p + water_p + torch_p + wall_p { return "Wall"   }
-  if rng < chest_p + water_p + torch_p + wall_p + door_p { return "Door" }
-  "Floor"
+// Three-step avalanche hash — nearby seeds give very different outputs
+fn cell_hash(s: int, r: int, c: int) -> float {
+  let h1 = lcg(lcg(s) + r * 374761393)
+  let h2 = lcg(h1 + c * 1013904223)
+  let h3 = lcg(h2 + r * c)
+  h3 / 2147483648.0
 }
 
-// Build the grid as a flat array-of-arrays of { tag, passable } objects, then JSON-encode it
-export fn generate(rows: int, cols: int, level: int, seed: int) -> DungeonMap {
-  let grid = []
+// ── Flat mutable grid ─────────────────────────────────────────────────────────
 
-  // row loop via Array.from
+fn make_grid(rows: int, cols: int) -> any {
+  let data = []
+  Array.from({ length: rows * cols }).forEach(_ => data.push("Wall"))
+  { data: data, cols: cols }
+}
+
+fn gget(g: any, r: int, c: int) -> string =
+  g.data[r * g.cols + c]
+
+fn gset(g: any, r: int, c: int, tag: string) {
+  g.data[r * g.cols + c] = tag
+}
+
+// ── Room helpers ──────────────────────────────────────────────────────────────
+
+fn room_cr(room: any) -> int =
+  room.r1 + Math.floor((room.r2 - room.r1) / 2)
+
+fn room_cc(room: any) -> int =
+  room.c1 + Math.floor((room.c2 - room.c1) / 2)
+
+// Pick a random room that fits inside the grid (1-cell border stays Wall)
+fn pick_room(rows: int, cols: int, s: int) -> any {
+  let s1   = lcg(s)
+  let maxh = Math.max(2, Math.floor(rows / 3))
+  let maxw = Math.max(3, Math.floor(cols / 4))
+  let h    = 2 + (s1 % maxh)
+  let s2   = lcg(s1)
+  let w    = 3 + (s2 % maxw)
+  let s3   = lcg(s2)
+  let r1   = 1 + (s3 % Math.max(1, rows - h - 2))
+  let s4   = lcg(s3)
+  let c1   = 1 + (s4 % Math.max(1, cols - w - 2))
+  { r1: r1, c1: c1, r2: r1 + h, c2: c1 + w }
+}
+
+fn carve_room(g: any, room: any) {
+  let dr = room.r2 - room.r1 + 1
+  let dc = room.c2 - room.c1 + 1
+  Array.from({ length: dr }).forEach((_, i) => {
+    Array.from({ length: dc }).forEach((_, j) => {
+      gset(g, room.r1 + i, room.c1 + j, "Floor")
+    })
+  })
+}
+
+// ── Corridors ─────────────────────────────────────────────────────────────────
+
+fn carve_h(g: any, r: int, clo: int, chi: int) {
+  Array.from({ length: chi - clo + 1 }).forEach((_, i) => {
+    if gget(g, r, clo + i) == "Wall" { gset(g, r, clo + i, "Floor") }
+  })
+}
+
+fn carve_v(g: any, c: int, rlo: int, rhi: int) {
+  Array.from({ length: rhi - rlo + 1 }).forEach((_, i) => {
+    if gget(g, rlo + i, c) == "Wall" { gset(g, rlo + i, c, "Floor") }
+  })
+}
+
+// L-shaped corridor: horizontal then vertical
+fn carve_corridor(g: any, r1: int, c1: int, r2: int, c2: int) {
+  carve_h(g, r1, Math.min(c1, c2), Math.max(c1, c2))
+  carve_v(g, c2, Math.min(r1, r2), Math.max(r1, r2))
+}
+
+// ── Special tile placement ────────────────────────────────────────────────────
+
+// Scatter specials inside a room; place Stairs at center of the last room
+fn scatter_room(g: any, room: any, level: int, seed: int, is_last: bool) {
+  if is_last {
+    gset(g, room_cr(room), room_cc(room), "Stairs")
+  }
+  let dr = room.r2 - room.r1 + 1
+  let dc = room.c2 - room.c1 + 1
+  let cp = 0.05 + level * 0.015
+  let wp = 0.08 + level * 0.02
+  let tp = 0.06
+  let dp = 0.04
+  Array.from({ length: dr }).forEach((_, i) => {
+    Array.from({ length: dc }).forEach((_, j) => {
+      let r   = room.r1 + i
+      let c   = room.c1 + j
+      let rng = cell_hash(seed, r, c)
+      if gget(g, r, c) == "Floor" {
+        if rng < cp                                       { gset(g, r, c, "Chest") }
+        if rng >= cp && rng < cp + wp                     { gset(g, r, c, "Water") }
+        if rng >= cp + wp && rng < cp + wp + tp           { gset(g, r, c, "Torch") }
+        if rng >= cp + wp + tp && rng < cp + wp + tp + dp { gset(g, r, c, "Door") }
+      }
+    })
+  })
+}
+
+// ── Main generate ─────────────────────────────────────────────────────────────
+
+export fn generate(rows: int, cols: int, level: int, seed: int) -> DungeonMap {
+  let g     = make_grid(rows, cols)
+  let rooms = []
+  let n     = 4 + (lcg(seed) % 4)
+
+  // Step 1: carve rooms
+  Array.from({ length: n }).forEach((_, i) => {
+    let room = pick_room(rows, cols, lcg(seed + i * 997 + level * 113))
+    rooms.push(room)
+    carve_room(g, room)
+  })
+
+  // Step 2: connect consecutive rooms with L-corridors
+  Array.from({ length: n - 1 }).forEach((_, i) => {
+    carve_corridor(g,
+      room_cr(rooms[i]),   room_cc(rooms[i]),
+      room_cr(rooms[i+1]), room_cc(rooms[i+1])
+    )
+  })
+
+  // Step 3: scatter specials (Stairs last)
+  Array.from({ length: n }).forEach((_, i) => {
+    scatter_room(g, rooms[i], level, lcg(seed + i * 1009), i == n - 1)
+  })
+
+  // Step 4: convert flat grid to row-of-objects
+  let grid = []
   Array.from({ length: rows }).forEach((_, r) => {
     let row = []
     Array.from({ length: cols }).forEach((_, c) => {
-      let tag      = pick_tag(r, c, rows, cols, level, seed)
+      let tag      = gget(g, r, c)
       let passable = tag != "Wall" && tag != "Chest" && tag != "Water"
       row.push({ tag: tag, passable: passable })
     })
