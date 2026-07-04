@@ -190,24 +190,24 @@ axon --test shapes.axn
 
 | Demo | Description |
 |---|---|
-| [RPG Adventure](https://axon-lang.dev/demo/rpg.standalone.html) | 50-battle dungeon crawl — 1576 lines of pure Axon game logic |
-| [Combat Engine](https://axon-lang.dev/demo/combat.html) | Turn-based combat system |
-| [Music Library](https://axon-lang.dev/demo/music.html) | Synthwave track browser |
-| [Web Controls](https://axon-lang.dev/demo/index.html) | Interactive UI components |
+| [RPG Adventure](https://axon-pl.github.io/axon/rpg.standalone.html) | 50-battle dungeon crawl — 1576 lines of pure Axon game logic |
+| [Combat Engine](https://axon-pl.github.io/axon/combat.html) | Turn-based combat system |
+| [Music Library](https://axon-pl.github.io/axon/music.html) | Synthwave track browser |
+| [Web Controls](https://axon-pl.github.io/axon/landing.html) | Interactive landing page |
 
 ---
 
 ## Documentation
 
-Full language reference at **[axon-lang.dev/docs](https://axon-lang.dev/docs)**
+Full language reference at **[axon-pl.github.io/axon/docs.html](https://axon-pl.github.io/axon/docs.html)**
 
-- [Functions](https://axon-lang.dev/docs#functions)
-- [Types & Constraints](https://axon-lang.dev/docs#types)
-- [Tagged Unions](https://axon-lang.dev/docs#tagged-unions)
-- [Pattern Matching](https://axon-lang.dev/docs#pattern-matching)
-- [Annotations](https://axon-lang.dev/docs#ann-pure)
-- [Version History](https://axon-lang.dev/docs#version-history)
-- [Roadmap](https://axon-lang.dev/docs#roadmap)
+- [Functions](https://axon-pl.github.io/axon/docs.html#functions)
+- [Types & Constraints](https://axon-pl.github.io/axon/docs.html#types)
+- [Tagged Unions](https://axon-pl.github.io/axon/docs.html#tagged-unions)
+- [Pattern Matching](https://axon-pl.github.io/axon/docs.html#pattern-matching)
+- [Annotations](https://axon-pl.github.io/axon/docs.html#ann-pure)
+- [Version History](https://axon-pl.github.io/axon/docs.html#version-history)
+- [Roadmap](https://axon-pl.github.io/axon/docs.html#roadmap)
 
 ---
 
