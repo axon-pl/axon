@@ -224,7 +224,8 @@ axon --test shapes.axn
 
 | Demo | Description |
 |---|---|
-| [Dungeon Map Toolkit](https://axon-pl.github.io/axon/dungeon.html) | **v0.5** — 4-file module demo, `axon --bundle`, procedural map generation |
+| [The Bazaar](https://axon-pl.github.io/axon/bazaar.html) | **v0.7** — RPG item shop; generics, `interface`, `let infer`, immutable state |
+| [Dungeon Map Toolkit](https://axon-pl.github.io/axon/dungeon.html) | **v0.5–v0.6** — 4-file module demo with `Result` config parser |
 | [RPG Adventure](https://axon-pl.github.io/axon/rpg.standalone.html) | 50-battle dungeon crawl — 1576 lines of pure Axon game logic |
 | [Combat Engine](https://axon-pl.github.io/axon/combat.html) | Turn-based combat system |
 | [Music Library](https://axon-pl.github.io/axon/music.html) | Synthwave track browser |
@@ -252,9 +253,9 @@ Full language reference at **[axon-pl.github.io/axon/docs.html](https://axon-pl.
 |---|---|---|
 | v0.4 ✓ | Guards & Unions | `when` guards, tagged unions, `@test`, `?.` / `??`, destructuring, heredocs |
 | v0.5 ✓ | Modules | `import` / `export`, `axon --bundle` — multi-file projects |
-| **v0.5.2** ✓ | Ergonomics | `for` loops (range + forEach), `break`/`continue`, `let mut` |
-| v0.6 | Safety | `Result<T>`, `?` propagation, error contracts, `refine x: "claim"` semantic narrowing |
-| v0.7 | Type System | Generics, `interface`, typed stdlib, `let infer x` model-resolved types |
+| v0.5.2 ✓ | Ergonomics | `for` loops (range + forEach), `break`/`continue`, `let mut` |
+| v0.6 ✓ | Safety | `Result<T>`, `?` propagation, error contracts, `refine x: "claim"` semantic narrowing |
+| **v0.7** ✓ | Type System | Generics `<T,U>`, `interface`, `fn(T)->U` type expr, `let infer` model-resolved types |
 | v0.8 | Async & Reactive | `async fn`, `await`, `store` reactive state, enforced `@effects`, `@intent` auto-validation |
 | v0.9 | Tooling | LSP, source maps, `axon fmt`, rich errors, `explain { }` semantic context blocks |
 | v1.0 | Stability | Frozen spec, semver promise, `axon spec` extracts `@intent`/`refine`/`explain` as JSON |
