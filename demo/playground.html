@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Axon Playground — v0.9.0</title>
+  <style>
+    /* ── Synthwave palette ─────────────────────────────────────────────────── */
+    :root {
+      --bg:          #0d0221;
+      --bg-panel:    #120330;
+      --bg-editor:   #0a0118;
+      --bg-output:   #0c0228;
+      --text:        #e2d5ff;
+      --text-dim:    #8060b0;
+      --text-muted:  #5a3d80;
+      --pink:        #ff2d78;
+      --cyan:        #00d4ff;
+      --purple:      #b060ff;
+      --amber:       #ffb020;
+      --green:       #00e5a0;
+      --red:         #ff5566;
+      --border:      rgba(176,96,255,0.2);
+      --glow-pink:   0 0 20px rgba(255,45,120,0.35);
+      --glow-cyan:   0 0 20px rgba(0,212,255,0.35);
+      --radius:      8px;
+      --header-h:    56px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────────────── */
+    .page-header {
+      height: var(--header-h);
+      flex-shrink: 0;
+      background: linear-gradient(180deg, rgba(176,96,255,0.1) 0%, var(--bg-panel) 100%);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+    }
+    .header-logo { font-size: 22px; line-height: 1; filter: drop-shadow(0 0 8px rgba(176,96,255,0.6)); }
+    .header-title {
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--purple) 0%, var(--cyan) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .header-badge {
+      background: rgba(176,96,255,0.12);
+      border: 1px solid rgba(176,96,255,0.3);
+      color: var(--purple);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.05em;
+    }
+    .header-sep { flex: 1; }
+    .header-example-label { font-size: 12px; color: var(--text-muted); }
+    .header-examples {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      outline: none;
+      max-width: 200px;
+    }
+    .header-examples:focus { border-color: var(--purple); }
+    .header-examples option { background: #1a0440; }
+    .header-nav {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .header-nav:hover { color: var(--text); border-color: var(--purple); }
+
+    /* ── Toolbar ─────────────────────────────────────────────────────────────── */
+    .toolbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.12s, box-shadow 0.12s;
+      letter-spacing: 0.3px;
+    }
+    .btn-run {
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
+    }
+    .btn-run:hover { opacity: 0.88; box-shadow: var(--glow-pink); }
+    .btn-fmt {
+      background: var(--bg-editor);
+      border: 1px solid var(--border);
+      color: var(--cyan);
+    }
+    .btn-fmt:hover { border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+    .btn-clear {
+      background: var(--bg-editor);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .btn-clear:hover { border-color: var(--border); color: var(--text); }
+    .toolbar-sep { width: 1px; height: 22px; background: var(--border); margin: 0 4px; }
+    .auto-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .auto-label input[type=checkbox] { accent-color: var(--purple); }
+    .status-pill {
+      margin-left: auto;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid;
+      transition: all 0.2s;
+    }
+    .status-ok    { color: var(--green);  border-color: rgba(0,229,160,0.35); background: rgba(0,229,160,0.08); }
+    .status-error { color: var(--red);    border-color: rgba(255,85,102,0.35); background: rgba(255,85,102,0.08); }
+    .status-warn  { color: var(--amber);  border-color: rgba(255,176,32,0.35); background: rgba(255,176,32,0.08); }
+    .status-idle  { color: var(--text-muted); border-color: var(--border); background: transparent; }
+
+    /* ── Split pane ──────────────────────────────────────────────────────────── */
+    .split-pane {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 0;
+    }
+
+    /* ── Editor pane ─────────────────────────────────────────────────────────── */
+    .editor-pane {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      min-height: 0;
+    }
+    .pane-label {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 14px;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      background: rgba(176,96,255,0.04);
+    }
+    .pane-label span { color: var(--purple); }
+    .editor-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .line-nums {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 44px;
+      padding: 14px 8px 14px 0;
+      text-align: right;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-muted);
+      background: var(--bg-editor);
+      border-right: 1px solid var(--border);
+      user-select: none;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #editor {
+      position: absolute;
+      top: 0; left: 44px; right: 0; bottom: 0;
+      padding: 14px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg-editor);
+      border: none;
+      outline: none;
+      resize: none;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow: auto;
+      tab-size: 2;
+      caret-color: var(--pink);
+    }
+    #editor::selection { background: rgba(176,96,255,0.35); }
+
+    /* ── Error underline overlay ─────────────────────────────────────────────── */
+    .error-bar {
+      flex-shrink: 0;
+      min-height: 0;
+      max-height: 80px;
+      overflow-y: auto;
+      border-top: 1px solid rgba(255,85,102,0.3);
+      background: rgba(255,85,102,0.06);
+    }
+    .error-bar:empty { display: none; }
+    .error-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--red);
+      border-bottom: 1px solid rgba(255,85,102,0.1);
+    }
+    .error-item:last-child { border-bottom: none; }
+    .error-loc { color: rgba(255,85,102,0.6); flex-shrink: 0; }
+    .warn-item { color: var(--amber); }
+    .warn-item .error-loc { color: rgba(255,176,32,0.6); }
+
+    /* ── Output pane ─────────────────────────────────────────────────────────── */
+    .output-pane {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .output-tabs {
+      flex-shrink: 0;
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,212,255,0.03);
+    }
+    .output-tab {
+      padding: 6px 18px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-bottom: 2px solid transparent;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .output-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+    .output-tab:hover:not(.active) { color: var(--text); }
+    .output-content {
+      flex: 1;
+      overflow: auto;
+      min-height: 0;
+    }
+    .output-content.hidden { display: none; }
+    pre.output-code {
+      padding: 14px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12.5px;
+      line-height: 1.65;
+      color: var(--text);
+      white-space: pre;
+      background: var(--bg-output);
+      min-height: 100%;
+    }
+    pre.output-code .kw  { color: #ff79c6; }
+    pre.output-code .cn  { color: #50fa7b; }
+    pre.output-code .str { color: #f1fa8c; }
+    pre.output-code .cmt { color: #6272a4; font-style: italic; }
+    pre.output-code .num { color: #bd93f9; }
+    pre.output-code .punc { color: #ff79c6; opacity: 0.7; }
+
+    .result-pane {
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      background: var(--bg-output);
+      min-height: 100%;
+    }
+    .result-line {
+      display: flex;
+      gap: 10px;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(176,96,255,0.06);
+    }
+    .result-line:last-child { border-bottom: none; }
+    .result-prompt { color: var(--purple); flex-shrink: 0; }
+    .result-value  { color: var(--green); word-break: break-all; }
+    .result-error  { color: var(--red); }
+    .result-log    { color: var(--text-dim); }
+    .result-empty  { color: var(--text-muted); font-style: italic; padding: 8px 0; }
+
+    /* ── Responsive ──────────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .split-pane { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+      .editor-pane { border-right: none; border-bottom: 1px solid var(--border); }
+      .header-example-label { display: none; }
+      .header-examples { max-width: 140px; }
+    }
+    @media (max-width: 480px) {
+      .page-header { padding: 0 12px; gap: 8px; }
+      .header-title { font-size: 15px; }
+      .header-badge { display: none; }
+      .toolbar { padding: 6px 12px; gap: 6px; }
+      .btn { padding: 5px 12px; }
+      .auto-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="header-logo">⬡</div>
+  <div class="header-title">Axon Playground</div>
+  <div class="header-badge">v0.9.0</div>
+  <div class="header-sep"></div>
+  <label class="header-example-label" for="example-select">Examples:</label>
+  <select class="header-examples" id="example-select" onchange="loadExample(this.value)">
+    <option value="">— choose an example —</option>
+    <option value="hello">Hello World</option>
+    <option value="fib">Fibonacci (@memo)</option>
+    <option value="types">Constrained Types</option>
+    <option value="match">Pattern Matching</option>
+    <option value="generics">Generics + Interfaces</option>
+    <option value="pipeline">Pipeline Operator</option>
+    <option value="store">Reactive Store (v0.8)</option>
+    <option value="async">Async / Await (v0.8)</option>
+    <option value="errors">Error Handling (v0.6)</option>
+    <option value="loops">For Loops (v0.5.2)</option>
+  </select>
+  <a class="header-nav" href="landing.html">← Axon</a>
+</header>
+
+<div class="toolbar">
+  <button class="btn btn-run" onclick="runCode()" title="Run (Ctrl+Enter)">▶ Run</button>
+  <button class="btn btn-fmt" onclick="fmtCode()" title="Format source">⌥ Format</button>
+  <button class="btn btn-clear" onclick="clearOutput()">✕ Clear</button>
+  <div class="toolbar-sep"></div>
+  <label class="auto-label" title="Compile as you type">
+    <input type="checkbox" id="auto-run" checked /> Auto-compile
+  </label>
+  <div class="status-pill status-idle" id="status-pill">idle</div>
+</div>
+
+<div class="split-pane">
+  <!-- ── Editor ────────────────────────────────────────────────────────────── -->
+  <div class="editor-pane">
+    <div class="pane-label">
+      <span>Axon source</span>
+      <span id="line-col">line 1, col 1</span>
+    </div>
+    <div class="editor-wrap">
+      <div class="line-nums" id="line-nums">1</div>
+      <textarea id="editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+    </div>
+    <div class="error-bar" id="error-bar"></div>
+  </div>
+
+  <!-- ── Output ────────────────────────────────────────────────────────────── -->
+  <div class="output-pane">
+    <div class="output-tabs">
+      <button class="output-tab active" onclick="switchTab('js')"   id="tab-js">Transpiled JS</button>
+      <button class="output-tab"        onclick="switchTab('result')" id="tab-result">Live Result</button>
+    </div>
+    <div class="output-content" id="pane-js">
+      <pre class="output-code" id="js-output"><span style="color:var(--text-muted);font-style:italic">// transpiled JavaScript will appear here</span></pre>
+    </div>
+    <div class="output-content hidden" id="pane-result">
+      <div class="result-pane" id="result-output">
+        <div class="result-empty">Run your code to see the result.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Compiler bundle ───────────────────────────────────────────────────────── -->
+<script src="axon.compiler.js"></script>
+
+<script>
+// ── Example snippets ─────────────────────────────────────────────────────────
+const EXAMPLES = {
+  hello: `// Hello World — Axon basics
+fn greet(name: string) = "Hello, {name}!"
+
+let msg = greet("world")
+console.log(msg)`,
+
+  fib: `// Fibonacci with @memo caching
+fn fib :: (n: int) -> int {
+  @pure @total @memo
+  match n {
+    | 0 => 0
+    | 1 => 1
+    | _ => fib(n - 1) + fib(n - 2)
+  }
+}
+
+for i in 0..10 {
+  console.log("fib(" + i + ") = " + fib(i))
+}`,
+
+  types: `// Constrained types — param validation injection
+type Score = int where value >= 0 and value <= 100
+type NonEmpty = string where length > 0
+
+fn grade(score: Score, name: NonEmpty) -> string {
+  match score {
+    | n when n >= 90 => "{name}: A"
+    | n when n >= 80 => "{name}: B"
+    | n when n >= 70 => "{name}: C"
+    | _              => "{name}: F"
+  }
+}
+
+console.log(grade(95, "Alice"))
+console.log(grade(73, "Bob"))`,
+
+  match: `// Pattern matching — tagged unions + guards
+type Shape =
+  | Circle { r: float }
+  | Rect   { w: float, h: float }
+  | Point
+
+fn area(shape: Shape) -> float {
+  match shape {
+    | Circle { r }  => 3.14159 * r * r
+    | Rect { w, h } => w * h
+    | Point         => 0.0
+  }
+}
+
+fn describe(shape: Shape) -> string {
+  match shape {
+    | Circle { r } when r > 10 => "big circle (r={r})"
+    | Circle { r }             => "small circle (r={r})"
+    | Rect { w, h }            => "rect {w}×{h}"
+    | Point                    => "point"
+  }
+}
+
+let shapes = [Circle(5.0), Rect(4.0, 3.0), Circle(15.0), Point]
+for s in shapes {
+  console.log(describe(s) + " — area: " + area(s))
+}`,
+
+  generics: `// Generics (v0.7) + interfaces
+interface Printable {
+  to_string: fn() -> string
+}
+
+record Pair<A, B> {
+  first:  A
+  second: B
+}
+
+fn swap<A, B>(p: Pair<A, B>) -> Pair<B, A> {
+  Pair(p.second, p.first)
+}
+
+fn map_pair<A, B, C>(p: Pair<A, B>, f: fn(A) -> C) -> Pair<C, B> {
+  Pair(f(p.first), p.second)
+}
+
+let p = Pair(42, "hello")
+let q = swap(p)
+let r = map_pair(p, n => n * 2)
+
+console.log("original: " + p.first + ", " + p.second)
+console.log("swapped:  " + q.first + ", " + q.second)
+console.log("mapped:   " + r.first + ", " + r.second)`,
+
+  pipeline: `// Pipeline operator |> with .field shorthands
+record User {
+  name:   string
+  score:  int
+  active: bool
+}
+
+let users = [
+  User("Alice",   95, true),
+  User("Bob",     62, false),
+  User("Charlie", 88, true),
+  User("Diana",   74, true),
+  User("Eve",     91, false)
+]
+
+let result =
+  users
+    |> filter(.active)
+    |> filter(u => u.score >= 75)
+    |> map(.name)
+
+for name in result {
+  console.log("Top active user: " + name)
+}
+
+let total_score =
+  users
+    |> filter(.active)
+    |> map(.score)
+    |> sum
+
+console.log("Active users total score: " + total_score)`,
+
+  store: `// Reactive store + on...change (v0.8)
+store Counter {
+  value:   int    = 0
+  label:   string = "clicks"
+  history: list   = []
+}
+
+on Counter.change {
+  console.log("Counter → " + Counter.value + " " + Counter.label)
+}
+
+fn increment() {
+  Counter.set({
+    value:   Counter.value + 1,
+    history: Counter.history.concat([Counter.value + 1])
+  })
+}
+
+fn reset() {
+  Counter.set({ value: 0, history: [] })
+}
+
+increment()
+increment()
+increment()
+reset()
+increment()
+
+console.log("History: " + Counter.history.join(", "))`,
+
+  async: `// Async / await (v0.8) — simulated with resolved promises
+@effects ["log"]
+async fn fetch_user(id: int) -> string {
+  // In real code: await fetch("/api/users/" + id)
+  await Promise.resolve(null)
+  let names = ["Alice", "Bob", "Charlie"]
+  names[id] ?? "Unknown"
+}
+
+@effects ["log"]
+async fn main() {
+  let name = await fetch_user(1)
+  console.log("Fetched user: " + name)
+
+  for i in 0..3 {
+    let user = await fetch_user(i)
+    console.log("User " + i + ": " + user)
+  }
+}
+
+main().catch(e => console.error("Error: " + e))`,
+
+  errors: `// Result type + ? propagation (v0.6)
+@throws
+fn parse_int(s: string) -> any {
+  let n = parseInt(s, 10)
+  if isNaN(n) { err("Not a number: " + s) }
+  else { ok(n) }
+}
+
+@throws
+fn parse_positive(s: string) -> any {
+  let n = parse_int(s)?
+  if n <= 0 { err("Must be positive, got: " + n) }
+  else { ok(n) }
+}
+
+fn safe_parse(s: string) -> string {
+  match parse_positive(s) {
+    | Ok { value }   => "Parsed: " + value
+    | Err { message } => "Error: " + message
+  }
+}
+
+for s in ["42", "-5", "hello", "100"] {
+  console.log(safe_parse(s))
+}`,
+
+  loops: `// For loops + let mut (v0.5.2)
+let mut total = 0
+let mut count = 0
+
+for i in 1..=10 {
+  total = total + i
+  count = count + 1
+}
+
+console.log("Sum 1..10 = " + total + " (count: " + count + ")")
+
+// Nested loops — multiplication table
+for row in 1..4 {
+  let mut line = ""
+  for col in 1..4 {
+    let product = row * col
+    let pad = product < 10 ? " " : ""
+    line = line + pad + product + " "
+  }
+  console.log(line.trim())
+}
+
+// for...in over array
+let words = ["axon", "is", "fun"]
+let mut upper_words = []
+for w in words {
+  upper_words = upper_words.concat([w.toUpperCase()])
+}
+console.log(upper_words.join(" "))`
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+let compileTimer  = null
+let lastJs        = null
+let activeTab     = 'js'
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+const editor    = document.getElementById('editor')
+const lineNums  = document.getElementById('line-nums')
+const errorBar  = document.getElementById('error-bar')
+const jsOutput  = document.getElementById('js-output')
+const resultOut = document.getElementById('result-output')
+const statusPill = document.getElementById('status-pill')
+const lineCol   = document.getElementById('line-col')
+
+// Load hello world on start
+editor.value = EXAMPLES.hello
+updateLineNums()
+scheduleCompile(0)
+
+// ── Editor events ─────────────────────────────────────────────────────────────
+editor.addEventListener('input', () => {
+  updateLineNums()
+  if (document.getElementById('auto-run').checked) scheduleCompile(600)
+})
+editor.addEventListener('scroll', syncScroll)
+editor.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault()
+    const start = editor.selectionStart
+    const end   = editor.selectionEnd
+    editor.value = editor.value.slice(0, start) + '  ' + editor.value.slice(end)
+    editor.selectionStart = editor.selectionEnd = start + 2
+    updateLineNums()
+    if (document.getElementById('auto-run').checked) scheduleCompile(600)
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault()
+    runCode()
+  }
+})
+editor.addEventListener('click', updateCursor)
+editor.addEventListener('keyup', updateCursor)
+
+// ── Line numbers ─────────────────────────────────────────────────────────────
+function updateLineNums() {
+  const lines = editor.value.split('\n')
+  lineNums.textContent = lines.map((_, i) => i + 1).join('\n')
+}
+
+function syncScroll() {
+  lineNums.scrollTop = editor.scrollTop
+}
+
+function updateCursor() {
+  const val = editor.value
+  const pos = editor.selectionStart
+  const before = val.slice(0, pos)
+  const line = (before.match(/\n/g) || []).length + 1
+  const col  = pos - before.lastIndexOf('\n')
+  lineCol.textContent = `line ${line}, col ${col}`
+}
+
+// ── Compile ───────────────────────────────────────────────────────────────────
+function scheduleCompile(delay) {
+  clearTimeout(compileTimer)
+  compileTimer = setTimeout(compile, delay)
+}
+
+function compile() {
+  const src = editor.value
+  if (!src.trim()) {
+    setStatus('idle', 'idle')
+    errorBar.innerHTML = ''
+    jsOutput.innerHTML = '<span style="color:var(--text-muted);font-style:italic">// transpiled JavaScript will appear here</span>'
+    lastJs = null
+    return
+  }
+
+  const { js, errors, warnings } = AxonCompiler.compile(src)
+  lastJs = js
+
+  // Render errors / warnings
+  errorBar.innerHTML = ''
+  if (errors.length > 0) {
+    errors.forEach(e => {
+      const div = document.createElement('div')
+      div.className = 'error-item'
+      div.innerHTML = `<span class="error-loc">[${e.line}:${e.col}]</span><span>${escHtml(e.message)}</span>`
+      errorBar.appendChild(div)
+    })
+    setStatus('error', `${errors.length} error${errors.length > 1 ? 's' : ''}`)
+    jsOutput.innerHTML = '<span style="color:var(--red);font-style:italic">// compile error — see details below</span>'
+    return
+  }
+  if (warnings.length > 0) {
+    warnings.forEach(w => {
+      const div = document.createElement('div')
+      div.className = 'error-item warn-item'
+      div.innerHTML = `<span class="error-loc">[${w.line}:${w.col}]</span><span>${escHtml(w.message)}</span>`
+      errorBar.appendChild(div)
+    })
+    setStatus('warn', `${warnings.length} warning${warnings.length > 1 ? 's' : ''}`)
+  } else {
+    setStatus('ok', 'ok')
+  }
+
+  // Render transpiled JS with basic highlighting
+  jsOutput.innerHTML = highlightJs(js)
+}
+
+// ── Run ───────────────────────────────────────────────────────────────────────
+function runCode() {
+  if (!document.getElementById('auto-run').checked) compile()
+  if (!lastJs) return
+
+  switchTab('result')
+  resultOut.innerHTML = ''
+
+  const logs = []
+  const fakeConsole = {
+    log:   (...args) => logs.push({ type: 'log',   text: args.map(String).join(' ') }),
+    warn:  (...args) => logs.push({ type: 'warn',  text: args.map(String).join(' ') }),
+    error: (...args) => logs.push({ type: 'error', text: args.map(String).join(' ') }),
+  }
+
+  try {
+    const fn = new Function('console', 'Math', 'JSON', 'Array', 'Object', 'Map', 'Set',
+      'String', 'Number', 'Boolean', 'Promise', 'parseInt', 'parseFloat', 'isNaN',
+      lastJs
+    )
+    const returnVal = fn(fakeConsole, Math, JSON, Array, Object, Map, Set,
+      String, Number, Boolean, Promise, parseInt, parseFloat, isNaN
+    )
+
+    if (logs.length === 0 && returnVal !== undefined) {
+      logs.push({ type: 'return', text: formatValue(returnVal) })
+    }
+  } catch (e) {
+    logs.push({ type: 'error', text: String(e) })
+  }
+
+  if (logs.length === 0) {
+    resultOut.innerHTML = '<div class="result-empty">Ran successfully — no output produced.</div>'
+    return
+  }
+
+  logs.forEach(({ type, text }) => {
+    const div = document.createElement('div')
+    div.className = 'result-line'
+    const prompt = type === 'error' ? '✗' : type === 'warn' ? '⚠' : type === 'return' ? '→' : '›'
+    const cls    = type === 'error' ? 'result-error' : type === 'warn' ? 'result-error' : type === 'return' ? 'result-value' : 'result-log'
+    div.innerHTML = `<span class="result-prompt">${prompt}</span><span class="${cls}">${escHtml(text)}</span>`
+    resultOut.appendChild(div)
+  })
+}
+
+// ── Format ────────────────────────────────────────────────────────────────────
+function fmtCode() {
+  const src = editor.value
+  // Use the formatter from the browser bundle
+  if (!window.AxonCompiler || !AxonCompiler.compile) return
+  // Re-use: compile to check it's valid, then format using our inline formatter
+  const { errors } = AxonCompiler.compile(src)
+  if (errors.length > 0) return  // don't format broken code
+
+  const formatted = formatAxon(src)
+  if (formatted !== src) {
+    const scrollTop = editor.scrollTop
+    editor.value = formatted
+    editor.scrollTop = scrollTop
+    updateLineNums()
+    scheduleCompile(0)
+  }
+}
+
+// Simple inline formatter for the playground (normalizes whitespace)
+function formatAxon(src) {
+  return src
+    .replace(/\r\n/g, '\n')
+    .replace(/[ \t]+$/gm, '')   // trailing whitespace
+    .replace(/\n{3,}/g, '\n\n') // max 1 blank line
+    .trimEnd() + '\n'
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(id) {
+  activeTab = id
+  document.getElementById('pane-js').classList.toggle('hidden', id !== 'js')
+  document.getElementById('pane-result').classList.toggle('hidden', id !== 'result')
+  document.getElementById('tab-js').classList.toggle('active', id === 'js')
+  document.getElementById('tab-result').classList.toggle('active', id === 'result')
+}
+
+function clearOutput() {
+  resultOut.innerHTML = '<div class="result-empty">Run your code to see the result.</div>'
+  switchTab('result')
+}
+
+// ── Examples ──────────────────────────────────────────────────────────────────
+function loadExample(key) {
+  if (!key || !EXAMPLES[key]) return
+  editor.value = EXAMPLES[key]
+  updateLineNums()
+  scheduleCompile(0)
+  document.getElementById('example-select').value = ''
+}
+
+// ── Status pill ───────────────────────────────────────────────────────────────
+function setStatus(type, text) {
+  statusPill.className = `status-pill status-${type}`
+  statusPill.textContent = text
+}
+
+// ── JS highlighter (very basic) ───────────────────────────────────────────────
+function highlightJs(code) {
+  const escaped = escHtml(code)
+  return escaped
+    .replace(/\/\/.*/g, m => `<span class="cmt">${m}</span>`)
+    .replace(/("(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`|'(?:[^'\\]|\\.)*')/g, m => `<span class="str">${m}</span>`)
+    .replace(/\b(const|let|var|function|return|if|else|for|while|of|in|async|await|new|class|import|export)\b/g, m => `<span class="kw">${m}</span>`)
+    .replace(/\b(\d+\.?\d*)\b/g, m => `<span class="num">${m}</span>`)
+}
+
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function formatValue(v) {
+  if (typeof v === 'string')   return JSON.stringify(v)
+  if (typeof v === 'function') return '[Function]'
+  if (Array.isArray(v))        return '[' + v.map(formatValue).join(', ') + ']'
+  if (v && typeof v === 'object') return JSON.stringify(v)
+  return String(v)
+}
+</script>
+
+</body>
+</html>

@@ -1,5 +1,56 @@
 # Axon Changelog
 
+## v0.9.0 — The Developer Experience Update
+
+### New tooling
+
+- **`axon --check <file>`** — static analysis only; no JS emitted. Reports checker warnings and parse errors without writing any output file.
+  ```
+  axon --check src/main.axn
+  ✓  main.axn — no issues
+  ```
+
+- **`axon --fmt <file> [--write]`** — canonical formatter. Normalizes indentation (2 spaces), spacing around operators, brace padding, and trailing whitespace. `--write` rewrites the file in-place; without it, the formatted source is written to stdout.
+  ```
+  axon --fmt src/main.axn --write
+  ✓  main.axn — formatted
+  ```
+  **Known limitation (v0.9.0):** `<` and `>` are left without spaces to preserve generic type parameters such as `List<T>`. Comparison operators like `x > 0` are unaffected but not space-normalized.
+
+- **`axon --watch <file> [output.js]`** — file watcher. Recompiles automatically whenever the source file changes. Ctrl+C to stop.
+  ```
+  axon --watch src/main.axn dist/main.js
+  [12:34:01]  ✓  main.axn → main.js
+  Watching main.axn for changes… (Ctrl+C to stop)
+  ```
+
+### New compiler API
+
+- **Structured error objects** — `compile()` in the browser bundle returns `{ js, errors, warnings }` instead of throwing. Errors carry `{ message, line, col, kind }`.
+
+- **`axon.compiler.js`** — browser-compatible IIFE bundle (`demo/axon.compiler.js`). Load it in any web page to get the full Axon compiler running client-side:
+  ```html
+  <script src="axon.compiler.js"></script>
+  <script>
+    const { js, errors, warnings } = AxonCompiler.compile(source);
+    // errors[] → [{ message, line, col, kind }]
+    // warnings[] → [{ severity, message, line, col }]
+  </script>
+  ```
+
+### New demo
+
+- **Axon Playground** (`playground.html`) — live in-browser IDE featuring:
+  - Split-pane editor with line numbers and cursor position tracking
+  - Real-time transpilation (auto-compile as you type)
+  - Transpiled JS tab with basic syntax highlighting
+  - Live Result tab — runs the transpiled code in a sandboxed `new Function()` context and captures all `console.log` output
+  - Format button (normalizes source)
+  - 10 preloaded example programs covering all language features
+  - Full keyboard support: Tab for 2-space indents, Ctrl+Enter to run
+
+---
+
 ## v0.8.0 — The Async & Reactive Update
 
 ### New language features
