@@ -60,42 +60,45 @@ const SPACE_AFTER = new Set<TokenType>([
 ])
 
 function needsSpace(prev: Token, cur: Token): boolean {
+  const pt = prev.type as string
+  const ct = cur.type as string
   if (NO_SPACE_BEFORE.has(cur.type))  return false
   if (NO_SPACE_AFTER.has(prev.type))  return false
   if (SPACE_BEFORE.has(cur.type))     return true
   if (SPACE_AFTER.has(prev.type))     return true
   // Binary arithmetic operators: space both sides
-  if (prev.type === 'PLUS')    return true
-  if (cur.type  === 'PLUS')    return true
-  if (prev.type === 'STAR')    return true
-  if (cur.type  === 'STAR')    return true
-  if (prev.type === 'SLASH')   return true
-  if (cur.type  === 'SLASH')   return true
-  if (prev.type === 'PERCENT') return true
-  if (cur.type  === 'PERCENT') return true
-  // LT / GT: space when not used as angle brackets (generics)
-  // Heuristic: if prev is IDENT and cur is LT, treat as less-than (space)
-  // unless it's inside a type expression (hard to detect simply)
-  if (prev.type === 'LT' || cur.type === 'LT') return false
-  if (prev.type === 'GT' || cur.type === 'GT') return false
-  // MINUS: space when binary (not unary). Unary: after op/open/keyword
-  if (cur.type === 'MINUS') {
+  if (pt === 'PLUS'    || ct === 'PLUS')    return true
+  if (pt === 'STAR'    || ct === 'STAR')    return true
+  if (pt === 'SLASH'   || ct === 'SLASH')   return true
+  if (pt === 'PERCENT' || ct === 'PERCENT') return true
+  // LT / GT: no spaces — preserves generic type params like List<T>
+  if (pt === 'LT' || ct === 'LT') return false
+  if (pt === 'GT' || ct === 'GT') return false
+  // MINUS: unary when after op/open/keyword (no space); binary otherwise
+  if (ct === 'MINUS') {
     const afterOp = (
-      prev.type === 'ASSIGN' || prev.type === 'PLUS' || prev.type === 'MINUS' ||
-      prev.type === 'STAR'   || prev.type === 'SLASH' || prev.type === 'PERCENT' ||
-      prev.type === 'COMMA'  || prev.type === 'LPAREN' || prev.type === 'LBRACKET' ||
-      prev.type === 'PIPE_OP' || prev.type === 'FAT_ARROW' || prev.type === 'THIN_ARROW' ||
-      prev.type === 'COLON'
+      pt === 'ASSIGN' || pt === 'PLUS'  || pt === 'MINUS' ||
+      pt === 'STAR'   || pt === 'SLASH' || pt === 'PERCENT' ||
+      pt === 'COMMA'  || pt === 'LPAREN' || pt === 'LBRACKET' ||
+      pt === 'PIPE_OP' || pt === 'FAT_ARROW' || pt === 'THIN_ARROW' ||
+      pt === 'COLON'
     )
     return !afterOp
   }
-  if (prev.type === 'MINUS') return true
-  // PIPE: | used in type union — no space (e.g. A | B in types handled elsewhere)
+  if (pt === 'MINUS') {
+    return !(ct === 'IDENT' || ct === 'NUMBER' || ct === 'LPAREN')
+  }
   // No space between ident and ( (function call)
-  if (cur.type === 'LPAREN') return false
-  if (cur.type === 'LBRACKET' && prev.type === 'IDENT') return false
-  // Default: one space
-  return prev.type !== 'LBRACE' && cur.type !== 'RBRACE'
+  if (ct === 'LPAREN') return false
+  if (ct === 'LBRACKET' && pt === 'IDENT') return false
+  // RBRACE: space before unless empty block {}
+  if (ct === 'RBRACE') return pt !== 'LBRACE'
+  // LBRACE: space after unless empty block {}
+  if (pt === 'LBRACE') return ct !== 'RBRACE'
+  // PIPE |: space both sides (union type | A | B)
+  if (ct === 'PIPE' || pt === 'PIPE') return true
+  // Default: always space
+  return true
 }
 
 // ── Main format function ──────────────────────────────────────────────────────
