@@ -6,26 +6,29 @@
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#07080f" />
+  <meta name="theme-color" content="#0d0221" />
   <title>Axon RPG — 50-Battle Marathon</title>
   <style>
-    /* ── Classic CRPG palette (dark slate + amber + gold) ──────────────────── */
+    /* ── Synthwave palette ───────────────────────────────────────────────── */
     :root {
-      --bg:         #07080f;
-      --bg-panel:   #0c0e1a;
-      --bg-log:     #060710;
-      --bg-shop:    #090b18;
-      --text:       #b0b8d8;
-      --gold:       #d4a020;
-      --gold-dim:   #7a5c12;
-      --accent:     #6090d0;
-      --green:      #50a868;
-      --red:        #c84040;
-      --red-dim:    #601818;
-      --dim:        #3a4060;
-      --border:     rgba(160,170,220,0.12);
-      --border-hi:  rgba(160,170,220,0.28);
-      --radius:     3px;
+      --bg:         #0d0221;
+      --bg-panel:   #120330;
+      --bg-log:     #0a0118;
+      --bg-shop:    #160040;
+      --text:       #e2d5ff;
+      --gold:       #ffb020;
+      --gold-dim:   #7a5510;
+      --accent:     #00d4ff;
+      --green:      #00e5a0;
+      --red:        #ff5566;
+      --red-dim:    #601018;
+      --dim:        #3a2860;
+      --pink:       #ff2d78;
+      --purple:     #b060ff;
+      --cyan:       #00d4ff;
+      --border:     rgba(176,96,255,0.15);
+      --border-hi:  rgba(176,96,255,0.35);
+      --radius:     8px;
       --safe-top:   env(safe-area-inset-top, 0px);
       --safe-bot:   env(safe-area-inset-bottom, 0px);
       --safe-left:  env(safe-area-inset-left, 0px);
@@ -42,7 +45,7 @@
     body {
       font-family: 'Courier New', 'Lucida Console', monospace;
       background: var(--bg);
-      background-image: radial-gradient(ellipse at 50% 0%, rgba(40,50,100,0.3) 0%, transparent 70%);
+      background-image: radial-gradient(ellipse at 50% 0%, rgba(176,96,255,0.25) 0%, transparent 70%);
       color: var(--text);
       min-height: 100vh;
       min-height: 100dvh;
@@ -63,13 +66,16 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      background: rgba(30,35,70,0.5);
+      background: linear-gradient(180deg, rgba(176,96,255,0.1) 0%, rgba(18,3,48,0.8) 100%);
     }
 
     .page-title {
       font-size: 16px;
       font-weight: bold;
-      color: var(--gold);
+      background: linear-gradient(90deg, var(--pink) 0%, var(--purple) 60%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       letter-spacing: 2px;
     }
 
@@ -81,11 +87,12 @@
 
     .page-badge {
       font-size: 12px;
-      background: rgba(212,160,32,0.1);
-      border: 1px solid rgba(212,160,32,0.3);
-      color: var(--gold);
+      background: rgba(176,96,255,0.12);
+      border: 1px solid rgba(176,96,255,0.35);
+      color: var(--purple);
       padding: 2px 8px;
       letter-spacing: 1px;
+      border-radius: 4px;
     }
 
     /* ── Game frame ────────────────────────────────────────────────────────── */
@@ -146,7 +153,7 @@
 
     /* ── Party panel ───────────────────────────────────────────────────────── */
     .party-panel {
-      background: rgba(0,0,0,0.3);
+      background: rgba(13,2,33,0.5);
       border: 1px solid var(--border);
       padding: 12px 14px;
       margin-bottom: 12px;
@@ -154,7 +161,7 @@
 
     .hero-row {
       padding: 6px 0;
-      border-bottom: 1px solid rgba(60,70,100,0.3);
+      border-bottom: 1px solid rgba(176,96,255,0.12);
       font-size: 14px;
       overflow-wrap: anywhere;
       word-break: break-word;
@@ -185,7 +192,7 @@
 
     /* ── Inventory panel ───────────────────────────────────────────────────── */
     .inv-panel {
-      background: rgba(0,0,0,0.2);
+      background: rgba(13,2,33,0.4);
       border: 1px solid var(--border);
       padding: 10px 14px;
       margin-bottom: 12px;
@@ -202,7 +209,7 @@
       flex-wrap: wrap;
       gap: 6px 8px;
       padding: 6px 0;
-      border-bottom: 1px solid rgba(60,70,100,0.2);
+      border-bottom: 1px solid rgba(176,96,255,0.08);
       font-size: 14px;
     }
     .inv-item-row:last-child { border-bottom: none; }
@@ -242,7 +249,7 @@
       align-items: center;
       gap: 10px;
       width: 100%;
-      background: rgba(0,0,0,0.3);
+      background: rgba(13,2,33,0.5);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 10px 12px;
@@ -358,7 +365,7 @@
       color: var(--gold);
       line-height: 1.5;
       margin-bottom: 16px;
-      background: rgba(0,0,0,0.3);
+      background: rgba(13,2,33,0.5);
       padding: 16px;
       border: 1px solid var(--border);
       overflow-x: auto;
@@ -434,7 +441,7 @@
     }
 
     .shop-section {
-      background: rgba(0,0,0,0.2);
+      background: rgba(13,2,33,0.4);
       border: 1px solid var(--border);
       padding: 12px 14px;
       margin-bottom: 10px;
@@ -458,7 +465,7 @@
       column-gap: 12px;
       row-gap: 4px;
       padding: 6px 0;
-      border-bottom: 1px solid rgba(60,70,100,0.2);
+      border-bottom: 1px solid rgba(176,96,255,0.08);
       font-size: 14px;
     }
 
@@ -726,7 +733,7 @@
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
     }
-    .btn-intro-next:hover { background: rgba(212,160,32,0.15); }
+    .btn-intro-next:hover { background: rgba(176,96,255,0.15); }
 
     .btn-intro-skip {
       background: transparent;
@@ -769,7 +776,7 @@
     .equip-slot {
       margin-top: 10px;
       text-align: left;
-      border-top: 1px solid rgba(60,70,120,0.35);
+      border-top: 1px solid rgba(176,96,255,0.2);
       padding-top: 8px;
     }
 
@@ -894,7 +901,7 @@
       align-items: center;
       gap: 8px;
       width: 100%;
-      background: rgba(0,0,0,0.3);
+      background: rgba(13,2,33,0.5);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 10px 12px;
@@ -920,7 +927,7 @@
 
     /* ── Stash panel ────────────────────────────────────────────────────────── */
     .stash-panel {
-      background: rgba(0,0,0,0.2);
+      background: rgba(13,2,33,0.4);
       border: 1px solid var(--border);
       padding: 12px 14px;
       margin-bottom: 12px;
@@ -931,7 +938,7 @@
       align-items: center;
       gap: 8px;
       padding: 5px 2px;
-      border-bottom: 1px solid rgba(60,70,100,0.2);
+      border-bottom: 1px solid rgba(176,96,255,0.08);
       font-size: 14px;
     }
     .stash-item:last-child { border-bottom: none; }
@@ -990,7 +997,7 @@
       text-transform: none;
     }
 
-    .source-tab.active { background: rgba(160,170,220,0.06); border-color: var(--border-hi); color: var(--text); }
+    .source-tab.active { background: rgba(0,212,255,0.08); border-color: var(--border-hi); color: var(--text); }
     .source-tab:hover:not(.active) { color: var(--text); }
 
     .source-content { display: none; }

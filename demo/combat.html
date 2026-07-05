@@ -7,24 +7,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Axon v0.4.0 — Combat Engine</title>
   <style>
-    /* ── Terminal / dungeon palette ─────────────────────────────────────── */
+    /* ── Synthwave palette ───────────────────────────────────────────────── */
     :root {
-      --bg:        #080c08;
-      --bg-panel:  #0d140d;
-      --bg-log:    #070b07;
-      --bg-input:  #0a110a;
-      --green:     #78c878;
-      --green-dim: #3a6a3a;
-      --green-hi:  #a0f0a0;
-      --amber:     #d4a020;
-      --amber-dim: #7a5a10;
-      --red:       #d04040;
-      --red-dim:   #602020;
-      --cyan:      #40c0c0;
-      --white:     #c0d0c0;
-      --dim:       #304030;
-      --border:    rgba(120,200,120,0.18);
-      --radius:    4px;
+      --bg:        #0d0221;
+      --bg-panel:  #120330;
+      --bg-log:    #0a0118;
+      --bg-input:  #1a0440;
+      --text:      #e2d5ff;
+      --green:     #00e5a0;
+      --green-dim: #1a5040;
+      --green-hi:  #40ffb8;
+      --amber:     #ffb020;
+      --amber-dim: #7a5510;
+      --red:       #ff5566;
+      --red-dim:   #601018;
+      --cyan:      #00d4ff;
+      --white:     #e2d5ff;
+      --dim:       #3a2860;
+      --pink:      #ff2d78;
+      --purple:    #b060ff;
+      --border:    rgba(176,96,255,0.2);
+      --radius:    8px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,7 +35,7 @@
     body {
       font-family: 'Courier New', 'Lucida Console', monospace;
       background: var(--bg);
-      color: var(--green);
+      color: var(--text);
       min-height: 100vh;
       font-size: 13px;
       line-height: 1.5;
@@ -42,20 +45,23 @@
     .page-header {
       border-bottom: 1px solid var(--border);
       padding: 16px 24px;
-      background: rgba(120,200,120,0.04);
+      background: linear-gradient(180deg, rgba(176,96,255,0.07) 0%, transparent 100%);
     }
 
     .page-title {
       font-size: 16px;
       font-weight: bold;
-      color: var(--amber);
+      background: linear-gradient(90deg, var(--pink) 0%, var(--purple) 60%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       letter-spacing: 2px;
       text-transform: uppercase;
     }
 
     .page-subtitle {
       font-size: 11px;
-      color: var(--green-dim);
+      color: var(--dim);
       margin-top: 4px;
       letter-spacing: 0.5px;
     }
@@ -63,11 +69,11 @@
     .badge {
       display: inline-block;
       font-size: 10px;
-      background: rgba(212,160,32,0.12);
-      border: 1px solid rgba(212,160,32,0.3);
-      color: var(--amber);
+      background: rgba(176,96,255,0.12);
+      border: 1px solid rgba(176,96,255,0.35);
+      color: var(--purple);
       padding: 1px 6px;
-      border-radius: 2px;
+      border-radius: 4px;
       margin-left: 8px;
       letter-spacing: 1px;
     }
@@ -171,9 +177,9 @@
     }
 
     .btn-attack {
-      background: rgba(120,200,120,0.1);
-      border: 1px solid var(--green);
-      color: var(--green-hi);
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      border: none;
+      color: #fff;
       padding: 10px 28px;
       font-family: inherit;
       font-size: 13px;
@@ -181,12 +187,13 @@
       letter-spacing: 2px;
       text-transform: uppercase;
       cursor: pointer;
-      transition: background 0.12s, box-shadow 0.12s;
+      border-radius: var(--radius);
+      transition: opacity 0.12s, box-shadow 0.12s;
     }
 
     .btn-attack:hover:not(:disabled) {
-      background: rgba(120,200,120,0.2);
-      box-shadow: 0 0 12px rgba(120,200,120,0.3);
+      opacity: 0.88;
+      box-shadow: 0 0 16px rgba(255,45,120,0.45);
     }
 
     .btn-attack:disabled {
@@ -195,19 +202,20 @@
     }
 
     .btn-reset {
-      background: transparent;
-      border: 1px solid var(--amber-dim);
-      color: var(--amber-dim);
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--dim);
       padding: 10px 20px;
       font-family: inherit;
       font-size: 12px;
       letter-spacing: 1px;
       text-transform: uppercase;
       cursor: pointer;
+      border-radius: var(--radius);
       transition: border-color 0.12s, color 0.12s;
     }
 
-    .btn-reset:hover { border-color: var(--amber); color: var(--amber); }
+    .btn-reset:hover { border-color: var(--purple); color: var(--purple); }
 
     /* ── Feature legend ──────────────────────────────────────────────────── */
     .feature-legend {
@@ -219,24 +227,25 @@
 
     .feature-item {
       background: var(--bg-panel);
-      border: 1px solid var(--dim);
+      border: 1px solid var(--border);
       padding: 8px 12px;
       font-size: 11px;
+      border-radius: var(--radius);
     }
 
     .feature-tag {
-      color: var(--amber);
+      color: var(--cyan);
       font-weight: bold;
       margin-right: 6px;
     }
 
-    .feature-desc { color: var(--green-dim); }
+    .feature-desc { color: var(--dim); }
 
     /* ── Source panel ────────────────────────────────────────────────────── */
     .source-panel {
       border-top: 1px solid var(--border);
       padding: 20px 24px;
-      background: rgba(120,200,120,0.02);
+      background: rgba(176,96,255,0.02);
     }
 
     .source-inner { max-width: 900px; margin: 0 auto; }
@@ -260,7 +269,7 @@
       background: transparent;
       border: 1px solid var(--dim);
       border-bottom: none;
-      color: var(--green-dim);
+      color: var(--dim);
       padding: 7px 14px;
       font-family: inherit;
       font-size: 11px;
@@ -270,12 +279,12 @@
     }
 
     .source-tab.active {
-      background: rgba(120,200,120,0.08);
+      background: rgba(0,212,255,0.08);
       border-color: var(--border);
-      color: var(--green);
+      color: var(--cyan);
     }
 
-    .source-tab:hover:not(.active) { color: var(--white); }
+    .source-tab:hover:not(.active) { color: var(--text); }
 
     .source-content { display: none; }
     .source-content.active { display: block; }
@@ -298,7 +307,7 @@
       padding: 14px;
       font-size: 11px;
       color: var(--dim);
-      border-top: 1px solid var(--dim);
+      border-top: 1px solid var(--border);
       letter-spacing: 1px;
     }
 
