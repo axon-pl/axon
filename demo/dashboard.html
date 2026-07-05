@@ -27,11 +27,13 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { overflow-x: hidden; } /* clamp page width to viewport */
     body {
       background: var(--bg);
       color: var(--text);
       font-family: var(--font-sans);
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     /* ── Header ────────────────────────────────────────────────────────────── */
@@ -185,9 +187,28 @@
     .filter-btn.active { background: rgba(176,96,255,0.2); color: var(--accent); border-color: rgba(176,96,255,0.5); }
 
     @media (max-width: 768px) {
-      .container { grid-template-columns: 1fr; }
+      header { padding: 10px 16px; gap: 8px; flex-wrap: wrap; }
+      .logo-sub { display: none; }
+
+      .container {
+        grid-template-columns: 1fr;
+        padding: 12px 16px;
+        gap: 12px;
+      }
+      /* grid cells can expand past viewport if their content has a min-width;
+         min-width: 0 lets them shrink to fit */
+      .container > * { min-width: 0; }
+
       .stats-row { grid-template-columns: repeat(2, 1fr); grid-column: 1; }
-      .src-panel { grid-column: 1; }
+      .stat-value { font-size: 22px; }
+      .stat-card  { padding: 12px 14px; }
+
+      .task-list  { max-height: 260px; }
+      .chart-area { height: 160px; }
+      .feed       { max-height: 160px; }
+
+      .src-panel  { grid-column: 1; }
+      pre.src-code { font-size: 11px; max-height: 260px; }
     }
   </style>
 </head>
