@@ -752,6 +752,8 @@
         <div class="nav-group-label">Runtime</div>
         <a class="nav-link" href="#stdlib">Standard Library</a>
         <a class="nav-link" href="#cli">CLI</a>
+        <a class="nav-link" href="#cli-v09" style="color:var(--pink)"><code>--check</code> / <code>--fmt</code> / <code>--watch</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.9</span></a>
+        <a class="nav-link" href="#browser-api" style="color:var(--pink)">Browser Compiler API <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.9</span></a>
       </div>
       <div class="nav-group">
         <div class="nav-group-label">Meta</div>
@@ -1354,11 +1356,105 @@
         <div class="doc-table-wrap"><table class="doc-table">
           <thead><tr><th>Command</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td>node dist/cli.js input.axn output.js</td><td>Transpile Axon source to JavaScript</td></tr>
-            <tr><td>node dist/cli.js --test input.axn</td><td>Run all <code>@test</code> declarations and print pass/fail summary. Exits with code 1 on failure.</td></tr>
-            <tr><td>node dist/cli.js --bundle entry.axn out.js</td><td><strong>v0.5</strong> Bundle a multi-file project starting from an entry file. Resolves all imports recursively.</td></tr>
+            <tr><td><code>axon input.axn output.js</code></td><td>Transpile a single Axon source file to JavaScript</td></tr>
+            <tr><td><code>axon --test input.axn</code></td><td>Run all <code>@test</code> declarations and print pass/fail summary. Exits with code 1 on failure.</td></tr>
+            <tr><td><code>axon --bundle entry.axn out.js</code></td><td><strong>v0.5</strong> Bundle a multi-file project. Resolves all imports recursively, topo-sorts modules, emits one JS file.</td></tr>
+            <tr><td><code>axon --check input.axn</code></td><td><strong>v0.9</strong> Static analysis only — no JS emitted. Reports checker warnings and parse errors.</td></tr>
+            <tr><td><code>axon --fmt input.axn [--write]</code></td><td><strong>v0.9</strong> Format source. Without <code>--write</code>, formatted source goes to stdout. With <code>--write</code>, rewrites file in-place.</td></tr>
+            <tr><td><code>axon --watch input.axn [out.js]</code></td><td><strong>v0.9</strong> Watch file and recompile on every save. Ctrl+C to stop.</td></tr>
           </tbody>
         </table></div>
+      </section>
+
+      <!-- ── CLI v0.9 ─────────────────────────────────────────────────────────── -->
+      <section class="doc-section" id="cli-v09">
+        <div class="section-eyebrow">Runtime · v0.9</div>
+        <h2 class="section-title">New CLI Commands</h2>
+        <div class="section-rule"></div>
+
+        <p class="section-lead">Three new commands ship with v0.9.0, covering static analysis, formatting, and live recompilation.</p>
+
+        <h3 class="subsection-title"><code>axon --check</code></h3>
+        <p>Runs the static checker without emitting any output file. Useful in CI or as a pre-commit hook.</p>
+        <div class="code-block">
+          <div class="code-label"><span class="dot dot-js"></span>shell</div>
+          <pre>$ axon --check src/main.axn
+✓  main.axn — no issues
+
+$ axon --check src/main.axn
+  WARNING [line 14]: @pure function 'render' accesses effectful global 'console'</pre>
+        </div>
+
+        <h3 class="subsection-title"><code>axon --fmt</code></h3>
+        <p>Canonical formatter. Normalises 2-space indentation, spacing around operators (<code>=</code>, <code>-&gt;</code>, <code>=&gt;</code>, <code>::</code>, <code>|&gt;</code>, binary arithmetic), brace padding, and trailing whitespace. Does not modify <code>&lt;</code>/<code>&gt;</code> spacing to preserve generic type parameters.</p>
+        <div class="code-block">
+          <div class="code-label"><span class="dot dot-js"></span>shell</div>
+          <pre>$ axon --fmt src/main.axn           # formatted source → stdout
+$ axon --fmt src/main.axn --write   # rewrite in-place
+✓  main.axn — formatted
+✓  main.axn — already canonical     # if no changes needed</pre>
+        </div>
+
+        <h3 class="subsection-title"><code>axon --watch</code></h3>
+        <p>Watches a source file with <code>fs.watch</code> and recompiles on every save. Timestamped output for each recompile. Ctrl+C to stop.</p>
+        <div class="code-block">
+          <div class="code-label"><span class="dot dot-js"></span>shell</div>
+          <pre>$ axon --watch src/main.axn dist/main.js
+[14:02:11]  ✓  main.axn → main.js
+Watching main.axn for changes… (Ctrl+C to stop)
+[14:02:45]  ✓  main.axn → main.js
+[14:03:12]  ✗  [line 8:3] Expected } but got EOF</pre>
+        </div>
+      </section>
+
+      <!-- ── Browser Compiler API ──────────────────────────────────────────────── -->
+      <section class="doc-section" id="browser-api">
+        <div class="section-eyebrow">Runtime · v0.9</div>
+        <h2 class="section-title">Browser Compiler API</h2>
+        <div class="section-rule"></div>
+
+        <p class="section-lead"><code>axon.compiler.js</code> is a self-contained IIFE bundle that runs the full Axon compiler client-side. Load it in any web page — no server, no build step, no dependencies.</p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot dot-axn"></span>HTML</div>
+          <pre>&lt;script src="axon.compiler.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const { js, errors, warnings } = AxonCompiler.compile(source);
+&lt;/script&gt;</pre>
+        </div>
+
+        <h3 class="subsection-title"><code>AxonCompiler.compile(source)</code></h3>
+        <p>Transpiles an Axon source string to JavaScript. Always returns an object — never throws.</p>
+        <div class="doc-table-wrap"><table class="doc-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>js</code></td><td><code>string | null</code></td><td>Transpiled JavaScript, or <code>null</code> if there were parse errors</td></tr>
+            <tr><td><code>errors</code></td><td><code>Error[]</code></td><td>Parse or compiler errors (see below). Empty array on success.</td></tr>
+            <tr><td><code>warnings</code></td><td><code>Warning[]</code></td><td>Checker warnings (<code>@pure</code>, <code>@exhaustive</code>, <code>@effects</code>). May be non-empty even when <code>js</code> is set.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 class="subsection-title">Error object shape</h3>
+        <div class="doc-table-wrap"><table class="doc-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>message</code></td><td><code>string</code></td><td>Human-readable error message including line and column</td></tr>
+            <tr><td><code>line</code></td><td><code>number</code></td><td>1-based source line number</td></tr>
+            <tr><td><code>col</code></td><td><code>number</code></td><td>1-based column number</td></tr>
+            <tr><td><code>kind</code></td><td><code>"parse" | "error"</code></td><td>Error category</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 class="subsection-title"><code>AxonCompiler.check(source)</code></h3>
+        <p>Runs only the static checker. Returns <code>{ warnings }</code>. Useful for lightweight lint-on-type without full codegen.</p>
+
+        <h3 class="subsection-title"><code>AxonCompiler.version</code></h3>
+        <p>String — the compiler version, e.g. <code>"0.9.0"</code>.</p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot dot-axn"></span>example</div>
+          <pre id="browser-api-code"></pre>
+        </div>
       </section>
 
       <!-- ── Modules ──────────────────────────────────────────────────────────── -->
@@ -2488,12 +2584,12 @@ fn opposite :: (d: Direction) -> Direction =
 
     setCode('cli-code', `
 # Single-file transpile
-node dist/cli.js examples/rpg.axn demo/rpg.axon.js
+axon examples/rpg.axn demo/rpg.axon.js
 #   ✓ Transpiled rpg.axn → rpg.axon.js
 #     1576 lines Axon → 2436 lines JS
 
 # Run @test declarations  (auto-bundles if file has imports)
-node dist/cli.js --test examples/rpg.axn
+axon --test examples/rpg.axn
 #   Axon tests — rpg.axn
 #   ────────────────────────────────────────
 #   ✓ level_title: mage lv10 = Archmage
@@ -2501,14 +2597,22 @@ node dist/cli.js --test examples/rpg.axn
 #   15 passed, 0 failed, 15 total
 
 # Bundle a multi-file project  (v0.5)
-node dist/cli.js --bundle examples/dungeon/main.axn demo/dungeon.sources.js
+axon --bundle examples/dungeon/main.axn demo/dungeon.sources.js
 #   ✓ Bundled tiles.axn + generator.axn + renderer.axn + main.axn → dungeon.sources.js
 #     4 modules → 407 lines JS
 
-# npm scripts
-npm run build          # tsc — compile compiler sources
-npm run build-rpg      # transpile rpg.axn → demo/
-npm test               # run @test on rpg.axn + v04_features.axn
+# Static analysis only — no JS emitted  (v0.9)
+axon --check src/main.axn
+#   ✓  main.axn — no issues
+
+# Format source  (v0.9)
+axon --fmt src/main.axn --write
+#   ✓  main.axn — formatted
+
+# Watch and recompile on save  (v0.9)
+axon --watch src/main.axn dist/main.js
+#   [14:02:11]  ✓  main.axn → main.js
+#   Watching main.axn for changes… (Ctrl+C to stop)
 `);
 
   // ── v0.6 — Result type ───────────────────────────────────────────────────
@@ -2828,6 +2932,36 @@ on Game.change { check_game_over() }
 // Compiled output (desugar):
 // Game.subscribe(() => { render_hud() })
 // Game.subscribe(() => { check_game_over() })
+`);
+
+  setCode('browser-api-code', `
+// Load the bundle in your HTML:
+// &lt;script src="axon.compiler.js"&gt;&lt;/script&gt;
+
+// Compile Axon source to JavaScript
+let source = \`
+fn greet(name: string) = "Hello, {name}!"
+let msg = greet("world")
+console.log(msg)
+\`
+
+let result = AxonCompiler.compile(source)
+
+if result.errors.length > 0 {
+  // Each error: { message, line, col, kind }
+  let e = result.errors[0]
+  console.error("[" + e.line + ":" + e.col + "] " + e.message)
+} else {
+  // result.js is ready to eval
+  console.log(result.js)
+  // result.warnings — @pure / @exhaustive / @effects violations
+}
+
+// Static check only (no codegen)
+let { warnings } = AxonCompiler.check(source)
+
+// Version string
+console.log(AxonCompiler.version)   // "0.9.0"
 `);
 
   </script>
