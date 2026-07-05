@@ -57,10 +57,17 @@ export class Codegen {
     this.emitLine('')
     if (emitStdlib) this.out.push(AXON_STDLIB)
 
+    // Wrap user code in a block so user let/const names shadow stdlib names
+    // without causing "already declared" errors (e.g. user `let count = 0`
+    // vs stdlib `const count = ...`).
+    this.emitLine('{')
+    this.indent++
     for (const decl of program.body) {
       this.emitTopLevel(decl)
       this.emitLine('')
     }
+    this.indent--
+    this.emitLine('}')
 
     return this.out.join('')
   }
