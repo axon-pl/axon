@@ -391,7 +391,41 @@
     .cmt { color: #4b5563; font-style: italic; }
     .fn-name { color: var(--accent); }
     .intf { color: #f0abfc; }
-  </style>
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .site-header { padding: 0.75rem 1rem; gap: 0.5rem; }
+      .bazaar-logo { font-size: 1.5rem; }
+      .header-title h1 { font-size: 1.2rem; }
+      .header-title p { display: none; }
+      /* hide feature badges on small screens */
+      .version-badge:not(:first-child) { display: none; }
+
+      .page-body { padding: 1rem; gap: 1rem; }
+
+      /* filters bar stacks */
+      .filters-bar { gap: 0.5rem; padding: 0.75rem 1rem; }
+      .filter-group { width: 100%; }
+      .filter-group label { min-width: 80px; }
+      select, .search-input { flex: 1; width: 100%; min-width: 0; }
+      .result-count { margin-left: 0; width: 100%; text-align: right; }
+
+      /* item grid: single column */
+      .item-grid { grid-template-columns: 1fr; }
+
+      /* module list stacks */
+      .module-list { grid-template-columns: 1fr; }
+
+      /* source info code font size */
+      .source-body pre { font-size: 0.72rem; }
+    }
+
+    @media (max-width: 420px) {
+      .page-body { padding: 0.75rem; }
+      .filters-bar { padding: 0.6rem 0.75rem; }
+      .filter-group { flex-direction: column; align-items: flex-start; }
+      .filter-group label { margin-bottom: 2px; }
+    }
 </head>
 <body>
 

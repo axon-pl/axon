@@ -58,7 +58,7 @@
       align-items: center;
       padding: 0 28px;
       gap: 16px;
-      z-index: 100;
+      z-index: 200;
     }
 
     .top-header-glyph {
@@ -551,11 +551,73 @@
       border-top: 1px solid var(--border);
     }
 
+    /* ── Mobile sidebar drawer ───────────────────────────────────────────── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 99;
+      backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.open { display: block; }
+
+    .mobile-nav-btn {
+      display: none;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      gap: 6px;
+      align-items: center;
+      transition: border-color 0.15s;
+    }
+    .mobile-nav-btn:hover { border-color: var(--purple); color: var(--text); }
+
     /* ── Responsive ──────────────────────────────────────────────────────── */
     @media (max-width: 768px) {
-      .sidebar { display: none; }
+      .mobile-nav-btn { display: flex; }
+
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        z-index: 100;
+      }
+      .sidebar.open { transform: translateX(0); }
+
       .main, .page-footer { margin-left: 0; }
-      .main { padding: 32px 20px 60px; }
+      .main { padding: 28px 16px 60px; }
+
+      .top-header { padding: 0 12px; gap: 8px; }
+      .top-header-sub { display: none; }
+      .top-header-glyph { font-size: 18px; }
+      .top-header-title { font-size: 16px; }
+      .header-badges { margin-left: auto; }
+
+      /* Code blocks & tables scroll horizontally */
+      .main pre, .main table { overflow-x: auto; display: block; }
+      .main table { white-space: nowrap; }
+
+      /* Roadmap grid stacks on mobile */
+      .roadmap-grid { grid-template-columns: 1fr !important; }
+
+      /* Version history cards */
+      .version-card { padding: 16px; }
+
+      /* Callouts */
+      .callout { padding: 14px 16px; }
+
+      /* Section padding */
+      .doc-section { margin-bottom: 44px; }
+    }
+
+    @media (max-width: 420px) {
+      .main { padding: 20px 12px 48px; }
+      .hbadge { display: none; }
+      .top-header-title { font-size: 15px; }
     }
   </style>
 </head>
@@ -563,6 +625,9 @@
 
   <!-- ── Top header ───────────────────────────────────────────────────────── -->
   <header class="top-header">
+    <button class="mobile-nav-btn" onclick="toggleSidebar()" aria-label="Open navigation">
+      ☰ Sections
+    </button>
     <span class="top-header-glyph">⬡</span>
     <span class="top-header-title">Axon</span>
     <span class="top-header-sub">Language Reference</span>
@@ -571,6 +636,7 @@
       <span class="hbadge hbadge-ai">AI-native</span>
     </div>
   </header>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
   <div class="layout">
 
@@ -2011,6 +2077,23 @@ npm run build-rpg      # transpile rpg.axn → demo/
 npm test               # run @test on rpg.axn + v04_features.axn
 `);
 
+  </script>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+      document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+    }
+    // Close sidebar when a nav link is tapped on mobile
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar.classList.contains('open')) toggleSidebar();
+      });
+    });
   </script>
 </body>
 </html>

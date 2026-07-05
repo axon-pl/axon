@@ -531,12 +531,78 @@
     .bool { color: #ff8040; }
 
     /* ── Responsive ──────────────────────────────────────────────────────── */
-    @media (max-width: 600px) {
-      nav { padding: 0 16px; gap: 12px; }
+    @media (max-width: 768px) {
+      /* Nav */
+      nav { padding: 0 16px; gap: 10px; }
       .nav-links .nav-link:not(.nav-cta) { display: none; }
-      .hero { padding: 100px 20px 60px; }
-      .pillars, .demos, .showcase { padding-left: 20px; padding-right: 20px; }
-      .stats-bar { gap: 28px; }
+      .nav-cta { padding: 7px 14px; font-size: 12px; }
+
+      /* Hero */
+      .hero { padding: 90px 20px 48px; }
+      .hero-eyebrow { font-size: 10px; }
+      .hero-ctas { margin-bottom: 36px; }
+      .btn-primary, .btn-secondary { padding: 11px 20px; font-size: 14px; }
+      .hero-install {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+        max-width: 360px;
+      }
+      .hero-install code { font-size: 13px; flex: 1; min-width: 0; }
+      .install-copy { flex-shrink: 0; }
+
+      /* Showcase */
+      .showcase { padding: 0 16px 48px; overflow-x: hidden; }
+      .showcase-tabs { flex-wrap: wrap; gap: 4px; border-bottom: none; margin-bottom: 4px; }
+      .showcase-tab {
+        padding: 6px 10px;
+        font-size: 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+      }
+      .showcase-tab.active { border-color: var(--purple); }
+      .showcase-pane {
+        border-radius: var(--radius);
+        border-top: 1px solid var(--border);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .showcase-pane pre {
+        font-size: 12px;
+        padding: 16px;
+        line-height: 1.6;
+        overflow-x: visible;
+        min-width: max-content;
+      }
+
+      /* Stats */
+      .stats-bar { gap: 24px; padding: 0 16px; margin-bottom: 56px; }
+      .stat-num { font-size: 28px; }
+
+      /* Pillars */
+      .pillars { padding: 0 16px 48px; }
+      .pillar-grid { grid-template-columns: 1fr; }
+      .section-title { margin-bottom: 28px; }
+
+      /* Demos */
+      .demos { padding: 0 16px 48px; }
+      .demo-grid { grid-template-columns: 1fr; }
+
+      /* Roadmap strip — keep horizontal with scroll */
+      .roadmap-strip { padding: 28px 0; margin-bottom: 56px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .roadmap-track { min-width: 580px; padding: 0 16px; }
+
+      /* Footer */
+      footer { padding: 24px 16px; flex-direction: column; align-items: center; text-align: center; }
+      .footer-links { justify-content: center; flex-wrap: wrap; }
+    }
+
+    @media (max-width: 420px) {
+      .hero-title { letter-spacing: -0.5px; }
+      .showcase-tab { padding: 5px 8px; font-size: 9px; }
+      .stat-num { font-size: 24px; }
     }
   </style>
 </head>
