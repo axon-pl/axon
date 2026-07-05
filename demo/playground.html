@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon Playground — v0.9.5</title>
+  <title>Axon Playground — v0.9.6</title>
   <style>
     /* ── Synthwave palette ─────────────────────────────────────────────────── */
     :root {
@@ -255,13 +255,16 @@
       outline: none;
       white-space: pre;
       overflow-wrap: normal;
-      overflow: hidden;
+      overflow: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       tab-size: 2;
       pointer-events: none;
       z-index: 0;
       word-spacing: normal;
       letter-spacing: normal;
     }
+    #editor-hl::-webkit-scrollbar { display: none; }
     #editor {
       position: absolute;
       top: 0; left: 44px; right: 0; bottom: 0;
@@ -425,7 +428,7 @@
 <header class="page-header">
   <div class="header-logo">⬡</div>
   <div class="header-title">Axon Playground</div>
-  <div class="header-badge">v0.9.5</div>
+  <div class="header-badge">v0.9.6</div>
   <div class="header-sep"></div>
   <label class="header-example-label" for="example-select">Examples:</label>
   <select class="header-examples" id="example-select" onchange="loadExample(this.value)">
