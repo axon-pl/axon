@@ -634,12 +634,11 @@
       .doc-section h3 { font-size: 15px; }
       .doc-section { margin-bottom: 44px; }
 
-      /* Code blocks: block becomes scroll container so pre can expand
-         naturally inside without pushing the page wider */
-      .code-block { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      /* Code blocks: pre scrolls, label stays put */
+      .code-block { overflow: clip; }
       .code-block pre {
-        overflow-x: visible;
-        min-width: max-content;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
         font-size: 11.5px;
         padding: 14px 16px;
         line-height: 1.6;
