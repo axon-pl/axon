@@ -210,6 +210,15 @@
       margin: 12px 0 24px;
     }
 
+    .subsection-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin: 28px 0 10px;
+    }
+
     .section-lead {
       font-size: 15px;
       color: var(--text-muted);
@@ -719,6 +728,10 @@
         <a class="nav-link" href="#optional">Optional Chaining</a>
         <a class="nav-link" href="#control-flow">Control Flow</a>
         <a class="nav-link" href="#modules">Modules <span style="color:var(--pink);font-size:0.65rem;vertical-align:top">v0.5</span></a>
+        <a class="nav-link" href="#generics" style="color:var(--green)">Generics <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
+        <a class="nav-link" href="#interfaces" style="color:var(--green)">Interfaces <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
+        <a class="nav-link" href="#fn-types" style="color:var(--green)"><code>fn(T)-&gt;U</code> Types <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
+        <a class="nav-link" href="#let-infer" style="color:var(--green)"><code>let infer</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
       </div>
       <div class="nav-group">
         <div class="nav-group-label">Annotations</div>
@@ -1319,6 +1332,125 @@ main()</pre>
         <p style="margin-top:14px;color:var(--text-dim);font-size:0.9rem">The <strong style="color:var(--text)">bundler</strong> resolves imports depth-first, topo-sorts modules so dependencies come before dependents, and emits a single JS file with the stdlib included once at the top. All bundled code shares a single flat scope — no runtime module system overhead.</p>
       </section>
 
+      <!-- ── Generics ─────────────────────────────────────────────────────── -->
+      <section class="doc-section" id="generics">
+        <div class="section-eyebrow">Type System · v0.7</div>
+        <h2 class="section-title">Generic Type Parameters</h2>
+        <div class="section-rule"></div>
+        <p class="section-lead">
+          Add type parameters to <code>record</code>, <code>fn</code>, and <code>type</code> declarations
+          using angle-bracket syntax. Type parameters are erased at compile time — no runtime overhead.
+        </p>
+
+        <h3 class="subsection-title">Generic records</h3>
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="generics-record-code"></pre>
+        </div>
+
+        <h3 class="subsection-title">Generic functions</h3>
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="generics-fn-code"></pre>
+        </div>
+
+        <h3 class="subsection-title">Generic type aliases</h3>
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="generics-type-code"></pre>
+        </div>
+
+        <div class="callout callout-note">
+          <div class="callout-head">Erasure</div>
+          Generic type parameters exist only in the Axon source. The compiler emits plain JavaScript —
+          no wrappers, no runtime type objects. <code>Pair&lt;int, string&gt;</code> compiles to an ordinary JS object.
+        </div>
+      </section>
+
+      <!-- ── Interfaces ────────────────────────────────────────────────────── -->
+      <section class="doc-section" id="interfaces">
+        <div class="section-eyebrow">Type System · v0.7</div>
+        <h2 class="section-title">Interfaces</h2>
+        <div class="section-rule"></div>
+        <p class="section-lead">
+          Declare structural type contracts with <code>interface</code>. Any record that carries the
+          required fields and methods satisfies the interface — no explicit <code>implements</code>
+          keyword needed. Interfaces are emitted as JSDoc <code>@interface</code> comments.
+        </p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="interface-code"></pre>
+        </div>
+
+        <div class="doc-table-wrap"><table class="doc-table">
+          <thead><tr><th>Syntax</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>interface Name { field: Type }</code></td><td>Declares a structural contract. Any record with matching fields satisfies it.</td></tr>
+            <tr><td><code>interface Name&lt;T&gt; { ... }</code></td><td>Generic interface — type param available in field and method types.</td></tr>
+            <tr><td><code>method: fn() -&gt; T</code></td><td>Method signature using a function type expression. See <a href="#fn-types">fn(T)-&gt;U Types</a>.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="callout callout-note">
+          <div class="callout-head">Structural, not nominal</div>
+          Axon interfaces use structural typing. There is no <code>implements</code> declaration —
+          a record satisfies an interface if its shape matches. This is intentional: it keeps AI-generated
+          code composable without requiring explicit trait registration.
+        </div>
+      </section>
+
+      <!-- ── fn(T)->U Types ────────────────────────────────────────────────── -->
+      <section class="doc-section" id="fn-types">
+        <div class="section-eyebrow">Type System · v0.7</div>
+        <h2 class="section-title"><code>fn(T) -&gt; U</code> Function Types</h2>
+        <div class="section-rule"></div>
+        <p class="section-lead">
+          Function types are first-class in Axon. Use <code>fn(A, B) -&gt; C</code> syntax anywhere
+          a type is expected — in record fields, interface definitions, and generic function signatures.
+        </p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="fn-types-code"></pre>
+        </div>
+
+        <div class="doc-table-wrap"><table class="doc-table">
+          <thead><tr><th>Syntax</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>fn() -&gt; T</code></td><td>Zero-argument function returning T</td></tr>
+            <tr><td><code>fn(A) -&gt; B</code></td><td>Single-argument function from A to B</td></tr>
+            <tr><td><code>fn(A, B) -&gt; C</code></td><td>Two-argument function</td></tr>
+            <tr><td><code>fn(T) -&gt; void</code></td><td>Side-effecting callback</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- ── let infer ─────────────────────────────────────────────────────── -->
+      <section class="doc-section" id="let-infer">
+        <div class="section-eyebrow">AI-native · v0.7</div>
+        <h2 class="section-title"><code>let infer</code></h2>
+        <div class="section-rule"></div>
+        <p class="section-lead">
+          <code>let infer x = expr</code> is an AI-native annotation that signals the type of a binding
+          should be resolved from context by the model — not written explicitly by the programmer.
+          It compiles to an ordinary <code>let</code> with no runtime difference.
+        </p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="let-infer-code"></pre>
+        </div>
+
+        <div class="callout callout-ai">
+          <div class="callout-head">AI-native intent</div>
+          <code>let infer</code> is a signal to language model tooling: "I know this value has a type —
+          resolve it from the surrounding context rather than asking me to spell it out." In long pipelines
+          or generic chains, the type is often obvious from usage. <code>infer</code> makes that intent explicit
+          and queryable via <code>axon spec</code> (v1.0).
+        </div>
+      </section>
+
       <!-- ── Version History ───────────────────────────────────────────────── -->
       <section class="doc-section" id="version-history">
         <div class="section-eyebrow">Meta</div>
@@ -1588,7 +1720,7 @@ main()</pre>
     }
 
     function highlight(src) {
-      const KW   = ['fn','let','type','record','match','if','else','where','return','import','export','async','await','as','for','in','break','continue','mut','refine','infer','explain','likely'];
+      const KW   = ['fn','let','type','record','interface','match','if','else','where','return','import','export','async','await','as','for','in','break','continue','mut','refine','infer','explain','likely'];
       const KW2  = ['when','true','false','null','undefined','void'];
       const TY   = ['int','float','string','bool','list','void','Result','Ok','Err','Maybe','Some','None'];
 
@@ -2133,6 +2265,153 @@ node dist/cli.js --bundle examples/dungeon/main.axn demo/dungeon.sources.js
 npm run build          # tsc — compile compiler sources
 npm run build-rpg      # transpile rpg.axn → demo/
 npm test               # run @test on rpg.axn + v04_features.axn
+`);
+
+  // ── v0.7 — Generics ──────────────────────────────────────────────────────
+  setCode('generics-record-code', `
+record Pair<A, B> {
+  first:  A
+  second: B
+}
+
+record Box<T> {
+  value: T
+  label: string
+}
+
+// Construct generic records like any other record
+let p = { first: 42, second: "hello" }
+let b = { value: true, label: "flag" }
+
+@test "pair fields" { p.first == 42 }
+@test "box label"   { b.label == "flag" }
+`);
+
+  setCode('generics-fn-code', `
+fn identity<T>(x: T) -> T = x
+
+fn swap<A, B>(p: Pair<A, B>) -> Pair<B, A> =
+  { first: p.second, second: p.first }
+
+fn wrap<T>(value: T, label: string) -> Box<T> =
+  { value, label }
+
+@test "identity"   { identity(99) == 99 }
+@test "swap pair"  {
+  let p = { first: 1, second: "hi" }
+  swap(p).first == "hi"
+}
+`);
+
+  setCode('generics-type-code', `
+// Generic tagged union
+type Maybe<T> = | Some { value: T } | None
+
+// Generic result alias (built-in Result is also generic)
+type Outcome<T> = | Ok { value: T } | Err { message: string }
+
+// Nest generics freely
+type Tree<T> = | Leaf { value: T } | Branch { left: Tree<T>, right: Tree<T> }
+
+fn unwrap_maybe<T>(m: Maybe<T>, fallback: T) -> T =
+  match m {
+    | Some { value } => value
+    | None           => fallback
+  }
+
+@test "unwrap some" { unwrap_maybe(Some(10), 0) == 10 }
+@test "unwrap none" { unwrap_maybe(None, 0) == 0 }
+`);
+
+  // ── v0.7 — Interfaces ────────────────────────────────────────────────────
+  setCode('interface-code', `
+// Declare a structural contract
+interface Describable {
+  name:     string
+  describe: fn() -> string
+}
+
+interface Priceable {
+  price:    int
+  currency: string
+}
+
+// Any record with the right shape satisfies an interface —
+// no "implements" keyword required
+record Item {
+  name:     string
+  price:    int
+  currency: string
+  rarity:   string
+}
+
+// Accepts any Describable-shaped value
+fn show_name(d: Describable) -> string = d.name
+
+// Accepts any Priceable-shaped value
+fn format_price(p: Priceable) -> string =
+  p.currency + " " + p.price
+
+@test "show item name" {
+  let sword = { name: "Iron Sword", price: 50, currency: "gold", rarity: "common" }
+  show_name(sword) == "Iron Sword"
+}
+`);
+
+  // ── v0.7 — fn(T)->U types ─────────────────────────────────────────────────
+  setCode('fn-types-code', `
+// Function types in record fields
+record Pipeline<A, B> {
+  transform: fn(A) -> B
+  validate:  fn(B) -> bool
+}
+
+// Function type in an interface method
+interface Mapper<T, U> {
+  map: fn(T) -> U
+}
+
+// Function type as a parameter type
+fn apply<T, U>(items: list<T>, f: fn(T) -> U) -> list<U> =
+  items.map(f)
+
+fn compose<A, B, C>(f: fn(A) -> B, g: fn(B) -> C) -> fn(A) -> C =
+  x => g(f(x))
+
+// Pass lambdas where function types are expected
+let doubled = apply([1, 2, 3], x => x * 2)
+let shout   = apply(["hi", "yo"], s => s + "!")
+
+@test "apply doubles"  { doubled[1] == 4 }
+@test "compose works"  {
+  let add1_then_double = compose(x => x + 1, x => x * 2)
+  add1_then_double(3) == 8
+}
+`);
+
+  // ── v0.7 — let infer ─────────────────────────────────────────────────────
+  setCode('let-infer-code', `
+record Item { name: string; price: int; rarity: string }
+
+fn filter_by_rarity(items: list<Item>, rarity: string) -> list<Item> =
+  items.filter(i => i.rarity == rarity)
+
+fn sort_by_price(items: list<Item>) -> list<Item> =
+  items.sort_by(i => i.price)
+
+fn get_affordable(items: list<Item>, budget: int) -> list<Item> {
+  // let infer — AI tooling resolves "list<Item>" from context;
+  // compiles identically to a plain let binding
+  let infer rare     = filter_by_rarity(items, "rare")
+  let infer sorted   = sort_by_price(rare)
+  let infer result   = sorted.filter(i => i.price <= budget)
+  result
+}
+
+// Equivalent without infer (explicit annotations):
+// let rare:   list<Item> = filter_by_rarity(items, "rare")
+// let sorted: list<Item> = sort_by_price(rare)
+// let result: list<Item> = sorted.filter(i => i.price <= budget)
 `);
 
   </script>
