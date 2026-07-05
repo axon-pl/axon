@@ -1146,6 +1146,13 @@ export class Parser {
     }
 
     if (tok.type === 'KW_MATCH') return this.parseMatch()
+    // if used as a value expression: if cond { a } else { b }
+    // stmtMode=false → tail-position ExprStmts inside each branch become ReturnStmts,
+    // then the BlockExpr wrapper is emitted as an IIFE: (() => { if (...) { return a } else { return b } })()
+    if (tok.type === 'KW_IF') {
+      const ifStmt = this.parseIfStmt(false)
+      return { kind: 'BlockExpr', stmts: [ifStmt] }
+    }
     if (tok.type === 'LBRACE')   return this.parseObjectLit()
     if (tok.type === 'LBRACKET') return this.parseArrayLit()
     if (tok.type === 'LPAREN')   return this.parseParenOrLambda()
