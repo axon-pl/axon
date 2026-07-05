@@ -259,7 +259,8 @@
       border: 1px solid var(--border-card);
       border-radius: var(--radius);
       margin: 16px 0 24px;
-      overflow: hidden;
+      /* clip instead of hidden — clips visually but lets position:sticky work */
+      overflow: clip;
     }
 
     .code-label {
@@ -267,13 +268,18 @@
       align-items: center;
       gap: 8px;
       padding: 8px 16px;
-      background: rgba(176,96,255,0.06);
+      background: var(--bg-nav);
       border-bottom: 1px solid var(--border-card);
       font-size: 11px;
       font-weight: 600;
       color: var(--text-dim);
       letter-spacing: 0.5px;
       text-transform: uppercase;
+      /* Stick below the fixed top header as page scrolls */
+      position: sticky;
+      top: var(--header-h);
+      z-index: 10;
+      width: 100%;
     }
 
     .code-label .dot {
