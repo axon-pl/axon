@@ -109,6 +109,8 @@ export class Lexer {
       const three = this.src.slice(this.pos, this.pos + 3)
       if (three === '===') { this.emit('STRICT_EQ',  '===', 3); continue }
       if (three === '!==') { this.emit('STRICT_NEQ', '!==', 3); continue }
+      // v0.9.6: compound assignment — check ??= before ??
+      if (three === '??=') { this.emit('NULL_COALESCE_EQ', '??=', 3); continue }
 
       const two = this.src.slice(this.pos, this.pos + 2)
       if (two === '|>') { this.emit('PIPE_OP', '|>', 2); continue }
@@ -124,6 +126,12 @@ export class Lexer {
       // v0.4: nullish coalescing and optional chaining — check BEFORE single ? and .
       if (two === '??') { this.emit('NULL_COALESCE', '??', 2); continue }
       if (two === '?.') { this.emit('OPTIONAL_CHAIN', '?.', 2); continue }
+      // v0.9.6: compound assignment — check before single-char + - * / %
+      if (two === '+=') { this.emit('PLUS_EQ',    '+=', 2); continue }
+      if (two === '-=') { this.emit('MINUS_EQ',   '-=', 2); continue }
+      if (two === '*=') { this.emit('STAR_EQ',    '*=', 2); continue }
+      if (two === '/=') { this.emit('SLASH_EQ',   '/=', 2); continue }
+      if (two === '%=') { this.emit('PERCENT_EQ', '%=', 2); continue }
 
       // Single-char tokens
       const singleMap: Record<string, TokenType> = {

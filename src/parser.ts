@@ -907,6 +907,15 @@ export class Parser {
       const right = this.parseExpr()
       return { kind: 'BinaryExpr', op: '=', left, right }
     }
+    // v0.9.6: compound assignment operators
+    const compoundToks = ['PLUS_EQ', 'MINUS_EQ', 'STAR_EQ', 'SLASH_EQ', 'PERCENT_EQ', 'NULL_COALESCE_EQ'] as const
+    for (const tt of compoundToks) {
+      if (this.check(tt) && this.isAssignable(left)) {
+        const op = this.advance().value  // '+=', '-=', etc.
+        const right = this.parseExpr()
+        return { kind: 'BinaryExpr', op, left, right }
+      }
+    }
     return left
   }
 

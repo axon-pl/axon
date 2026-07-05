@@ -47,6 +47,13 @@ export type TokenType =
   | 'DOTDOTEQ'          // ..=  v0.5.2: inclusive range
   | 'OPTIONAL_CHAIN'    // ?.  v0.4 — optional member/index/call
   | 'NULL_COALESCE'     // ??  v0.4 — nullish coalescing
+  // Compound assignment operators — v0.9.6
+  | 'PLUS_EQ'           // +=
+  | 'MINUS_EQ'          // -=
+  | 'STAR_EQ'           // *=
+  | 'SLASH_EQ'          // /=
+  | 'PERCENT_EQ'        // %=
+  | 'NULL_COALESCE_EQ'  // ??=
   // Single-char operators
   | 'ASSIGN'            // =
   | 'PLUS' | 'MINUS' | 'STAR' | 'SLASH' | 'PERCENT'

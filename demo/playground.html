@@ -410,6 +410,7 @@
     <option value="loops">For Loops (v0.5.2)</option>
     <option value="enums">Enums (v0.9.5)</option>
     <option value="numbers">Numeric Literals (v0.9.5)</option>
+    <option value="compound">Compound Assignment (v0.9.6)</option>
     <option value="multilambda">Multi-line Lambdas (v0.9.5)</option>
   </select>
   <a class="header-nav" href="landing.html">← Axon</a>
@@ -763,6 +764,38 @@ console.log("Red channel: #" + red.toString(16))
 console.log("Perms: " + FULL_PERMS.toString(2))
 console.log("Golden ratio: " + golden.toFixed(6))
 console.log("Light speed: " + light_speed.toLocaleString() + " m/s")`,
+
+  compound: `// Compound assignment operators (v0.9.6)
+let mut score = 0
+score += 10    // += add
+score += 25
+score -= 5     // -= subtract
+score *= 2     // *= multiply
+console.log("Score: " + score)   // 60
+
+// Works with strings
+let mut msg = "Hello"
+msg += ", Axon!"
+console.log(msg)
+
+// Works in loops
+let mut total = 0
+let mut product = 1
+for n in [1, 2, 3, 4, 5] {
+  total += n
+  product *= n
+}
+console.log("Sum: " + total)       // 15
+console.log("Product: " + product) // 120
+
+// Nullish assignment — only assigns if value is null/undefined
+let mut config = null
+config ??= "default"
+console.log(config)  // "default"
+
+let mut existing = "keep me"
+existing ??= "ignored"
+console.log(existing)  // "keep me"`,
 
   multilambda: `// Multi-line lambdas (v0.9.5) — block bodies in arrow functions
 record User {
