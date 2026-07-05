@@ -1012,14 +1012,18 @@ function setStatus(type, text) {
   statusPill.textContent = text
 }
 
-// ── JS highlighter (very basic) ───────────────────────────────────────────────
+// ── JS highlighter — single-pass so span class names are never re-matched ────
 function highlightJs(code) {
-  const escaped = escHtml(code)
-  return escaped
-    .replace(/\/\/.*/g, m => `<span class="cmt">${m}</span>`)
-    .replace(/("(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`|'(?:[^'\\]|\\.)*')/g, m => `<span class="str">${m}</span>`)
-    .replace(/\b(const|let|var|function|return|if|else|for|while|of|in|async|await|new|class|import|export)\b/g, m => `<span class="kw">${m}</span>`)
-    .replace(/\b(\d+\.?\d*)\b/g, m => `<span class="num">${m}</span>`)
+  return escHtml(code).replace(
+    /(\/\/[^\n]*)|(`(?:[^`\\]|\\.)*`|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(0x[\da-fA-F]+|\d+\.?\d*)|(\b(?:const|let|var|function|return|if|else|for|while|of|in|async|await|new|class|import|export|typeof|void|null|undefined|true|false)\b)/g,
+    (_, cmt, str, num, kw) => {
+      if (cmt) return `<span class="cmt">${cmt}</span>`
+      if (str) return `<span class="str">${str}</span>`
+      if (num) return `<span class="num">${num}</span>`
+      if (kw)  return `<span class="kw">${kw}</span>`
+      return _
+    }
+  )
 }
 
 function escHtml(s) {
