@@ -2278,6 +2278,10 @@ class Codegen {
         lines.push(` * }} ${decl.name}`);
         lines.push(` */`);
         lines.forEach(l => this.emitLine(l));
+        // Emit a positional constructor factory: const Pair = (first, second) => ({ first, second })
+        const params = decl.fields.map(f => f.name).join(', ');
+        const body = decl.fields.map(f => f.name).join(', ');
+        this.emitLine(`const ${decl.name} = (${params}) => ({ ${body} });`);
     }
     // v0.8: emit a reactive store as a self-contained IIFE with get/set/subscribe API.
     // store Counter { count: int = 0 } →
