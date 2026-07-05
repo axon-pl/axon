@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon Language Reference — v0.6.0</title>
+  <title>Axon Language Reference — v0.7.0</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -567,7 +567,7 @@
     <span class="top-header-title">Axon</span>
     <span class="top-header-sub">Language Reference</span>
     <div class="header-badges">
-      <span class="hbadge hbadge-ver">v0.6.0</span>
+      <span class="hbadge hbadge-ver">v0.7.0</span>
       <span class="hbadge hbadge-ai">AI-native</span>
     </div>
   </header>
@@ -971,10 +971,11 @@
         </div>
 
         <div class="callout callout-note">
-          <div class="callout-head">No loops</div>
-          Axon has no <code>for</code> or <code>while</code> loops in v0.5. Iteration is handled
-          through the standard library: <code>map</code>, <code>filter</code>, <code>reduce</code>,
-          <code>forEach</code>, and recursion. Dedicated loop syntax is on the roadmap for v0.6+.
+          <div class="callout-head">For loops (v0.5.2+)</div>
+          Axon supports <code>for i in lo..hi</code> (exclusive range), <code>for i in lo..=hi</code> (inclusive range),
+          and <code>for x in array</code> (forEach). Use <code>break</code> / <code>continue</code> for
+          loop control. The standard library also provides <code>map</code>, <code>filter</code>, and <code>fold</code>
+          for functional iteration. <code>while</code> loops are not supported — use recursion or <code>for</code>.
         </div>
       </section>
 
@@ -1145,7 +1146,7 @@
 
       <!-- ── Modules ──────────────────────────────────────────────────────────── -->
       <section class="doc-section" id="modules">
-        <div class="section-eyebrow">Language · v0.6.0</div>
+        <div class="section-eyebrow">Language · v0.5+</div>
         <h2 class="section-title">Modules</h2>
         <div class="section-rule"></div>
 
@@ -1202,9 +1203,25 @@ main()</pre>
 
         <div class="version-card vc-current">
           <div class="version-header">
+            <span class="version-tag">v0.7.0</span>
+            <span class="version-name">The Type System Update</span>
+            <span class="version-status vs-current">Current</span>
+          </div>
+          <ul class="version-features">
+            <li><strong>Generic type parameters</strong> — <code>record Pair&lt;A, B&gt;</code>, <code>fn map&lt;T, U&gt;</code>, <code>type Maybe&lt;T&gt;</code>; erased at runtime (JS-transparent)</li>
+            <li><strong><code>interface</code> declarations</strong> — structural type contracts; emitted as JSDoc <code>@interface</code> comments</li>
+            <li><strong><code>fn(T) -&gt; U</code> type expressions</strong> — first-class function types usable in record fields, interfaces, and signatures</li>
+            <li><strong><code>let infer x = expr</code></strong> — signals to AI tooling that the type should be resolved from context, not explicitly annotated</li>
+            <li><strong>Demo: The Bazaar</strong> — RPG item shop with 20 typed items, generic filter/sort/map, <code>interface Tradeable</code>, and an immutable <code>AppState</code> record</li>
+            <li><strong>113 passing tests</strong> — 28 new tests covering all v0.7 features</li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
             <span class="version-tag">v0.6.0</span>
             <span class="version-name">The Safety Update</span>
-            <span class="version-status vs-current">Current</span>
+            <span class="version-status vs-stable">Stable</span>
           </div>
           <ul class="version-features">
             <li><strong>Built-in <code>Result</code> type</strong> — <code>ok(value)</code> / <code>err(message)</code> constructors; <code>is_ok</code>, <code>is_err</code>, <code>unwrap</code>, <code>unwrap_or</code> in stdlib</li>
@@ -1334,7 +1351,7 @@ main()</pre>
 
         <div class="roadmap-grid">
           <div class="roadmap-card" style="border-color:#39ff6a44;background:linear-gradient(135deg,#001a0d,#0d1a10)">
-            <div class="roadmap-ver" style="color:#39ff6a">v0.6.0 ✓</div>
+            <div class="roadmap-ver" style="color:#39ff6a">v0.5 ✓</div>
             <div class="roadmap-title">The Module Update</div>
             <div class="roadmap-desc">Shipped. Multi-file projects with recursive import resolution and a bundler.</div>
             <ul class="roadmap-features">
@@ -1346,31 +1363,29 @@ main()</pre>
             </ul>
           </div>
 
-          <div class="roadmap-card">
-            <div class="roadmap-ver">v0.6</div>
+          <div class="roadmap-card" style="border-color:#39ff6a44;background:linear-gradient(135deg,#001a0d,#0d1a10)">
+            <div class="roadmap-ver" style="color:#39ff6a">v0.6 ✓</div>
             <div class="roadmap-title">The Safety Update</div>
-            <div class="roadmap-desc">First-class error handling without exceptions. Built on the tagged union system.</div>
+            <div class="roadmap-desc">Shipped. First-class error handling without exceptions, built on tagged unions.</div>
             <ul class="roadmap-features">
-              <li>Built-in <code>Result&lt;T&gt; = Ok { value } | Err { message }</code></li>
-              <li><code>?</code> propagation operator — early-return on <code>Err</code></li>
-              <li><code>@throws</code> annotation for explicit failure contracts</li>
-              <li>Pattern matching on <code>Result</code></li>
-              <li><code>refine x: "prose claim"</code> — semantic value narrowing; the model verifies the claim against surrounding code</li>
-              <li>Demo: CLI tool with real I/O error handling</li>
+              <li>✓ Built-in <code>Result&lt;T&gt; = Ok { value } | Err { message }</code></li>
+              <li>✓ <code>?</code> propagation operator — early-return on <code>Err</code></li>
+              <li>✓ <code>@throws</code> annotation for explicit failure contracts</li>
+              <li>✓ <code>refine x: "prose claim"</code> — semantic value narrowing</li>
+              <li>✓ Demo: Dungeon Configurator with <code>config.axn</code></li>
             </ul>
           </div>
 
-          <div class="roadmap-card">
-            <div class="roadmap-ver">v0.7</div>
+          <div class="roadmap-card" style="border-color:#a78bfa44;background:linear-gradient(135deg,#0d0a1a,#12102a)">
+            <div class="roadmap-ver" style="color:#a78bfa">v0.7 ✓</div>
             <div class="roadmap-title">The Type System Update</div>
-            <div class="roadmap-desc">Parameterised types and structural interfaces. Makes the stdlib fully typed.</div>
+            <div class="roadmap-desc">Shipped. Parameterised types, structural interfaces, and model-resolved type annotations.</div>
             <ul class="roadmap-features">
-              <li>Generic type params: <code>type List&lt;T&gt;</code>, <code>fn map&lt;T,U&gt;</code></li>
-              <li><code>interface</code> declarations — structural, not nominal</li>
-              <li>Type inference improvements in checker</li>
-              <li><code>let infer x = expr</code> — model-resolved type; the AI derives the type from context rather than requiring an annotation</li>
-              <li>Typed stdlib rewrite</li>
-              <li>Demo: typed data pipeline</li>
+              <li>✓ Generic type params: <code>record Pair&lt;A,B&gt;</code>, <code>fn map&lt;T,U&gt;</code></li>
+              <li>✓ <code>interface</code> declarations — structural, not nominal</li>
+              <li>✓ <code>fn(T) -&gt; U</code> first-class function type expressions</li>
+              <li>✓ <code>let infer x = expr</code> — model-resolved type annotation</li>
+              <li>✓ Demo: The Bazaar — typed RPG item shop</li>
             </ul>
           </div>
 
@@ -1437,7 +1452,7 @@ main()</pre>
   </div>
 
   <footer class="page-footer">
-    Axon v0.6.0 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
+    Axon v0.7.0 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
   </footer>
 
   <script>
