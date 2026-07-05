@@ -358,6 +358,26 @@ fn tick(tasks: Task[]) -> Task[] {
 }`
 };
 
+// ── State ─────────────────────────────────────────────────────────────────────
+let tasks = [];
+let velocityHistory = [];
+let tickCount = 0;
+let activeFilter = 'All';
+let autoTickInterval = null;
+let sim = null;  // module-level sim reference, set after compile
+
+// ── Logging — looks up feed lazily so it's safe to call at any time ───────────
+function logEvent(type, msg) {
+  const feed = document.getElementById('event-feed');
+  if (!feed) return;
+  const el = document.createElement('div');
+  el.className = `feed-entry fe-${type}`;
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  el.textContent = `[${time}] ${msg}`;
+  feed.prepend(el);
+  while (feed.children.length > 40) feed.removeChild(feed.lastChild);
+}
+
 // ── Compile Axon source at load time ─────────────────────────────────────────
 function compileAll() {
   const full = Object.values(SOURCES).join('\n\n');
@@ -373,205 +393,172 @@ function compileAll() {
 }
 
 const compiledJS = compileAll();
-let tasks = [];
-let velocityHistory = [];
-let tickCount = 0;
-let activeFilter = 'All';
-let autoTickInterval = null;
 
-if (compiledJS) {
-  const ctx = {};
-  // Bootstrap the compiled simulation
-  const fn = new Function(...Object.keys(ctx), compiledJS);
-  fn(...Object.values(ctx));
-
-  // Re-eval each tick via function to get fresh scope
-  function evalSim(code) {
-    try {
-      return (new Function('Math', 'console', code + '; return { filter_tasks, active_tasks, completion_rate, critical_count, velocity, tick, TaskStatus, Priority };'))(Math, console);
-    } catch(e) {
-      logEvent('error', 'Sim error: ' + e.message);
-      return null;
-    }
-  }
-
-  const sim = evalSim(compiledJS);
-  if (sim) {
-    initTasks(sim);
-    render(sim);
-    logEvent('success', 'Dashboard ready — Axon v0.9.5 compiled successfully');
-    logEvent('info', `Compiler version: ${AxonCompiler.version} · ${sim.TaskStatus.Active} = "${sim.TaskStatus.Active}"`);
-  }
-
-  function initTasks(sim) {
-    const T = sim.TaskStatus;
-    const P = sim.Priority;
-    tasks = [
-      { id: 1,  title: 'Design component API',     status: T.Done,      priority: P.High,     points: 5  },
-      { id: 2,  title: 'Write unit tests',          status: T.Done,      priority: P.Critical, points: 8  },
-      { id: 3,  title: 'Implement auth flow',        status: T.Active,    priority: P.Critical, points: 13 },
-      { id: 4,  title: 'Build dashboard layout',    status: T.Active,    priority: P.High,     points: 8  },
-      { id: 5,  title: 'Fix navigation bug',        status: T.Review,    priority: P.Medium,   points: 3  },
-      { id: 6,  title: 'Add dark mode toggle',      status: T.Backlog,   priority: P.Low,      points: 5  },
-      { id: 7,  title: 'Optimize bundle size',      status: T.Backlog,   priority: P.Medium,   points: 8  },
-      { id: 8,  title: 'Deploy to staging',         status: T.Backlog,   priority: P.High,     points: 5  },
-      { id: 9,  title: 'Security audit',            status: T.Backlog,   priority: P.Critical, points: 21 },
-      { id: 10, title: 'Performance profiling',     status: T.Backlog,   priority: P.Medium,   points: 13 },
-    ];
-  }
-
-  function tick(sim) {
-    const before = tasks.filter(t => t.status === sim.TaskStatus.Done).length;
-    tasks = sim.tick(tasks);
-    tickCount++;
-    const after = tasks.filter(t => t.status === sim.TaskStatus.Done).length;
-    const newlyDone = after - before;
-    const pts = newlyDone > 0 ? tasks.filter(t => t.status === sim.TaskStatus.Done).slice(-newlyDone).reduce((s,t) => s + t.points, 0) : 0;
-    velocityHistory.push(pts);
-    if (newlyDone > 0) {
-      const doneTasks = tasks.filter(t => t.status === sim.TaskStatus.Done);
-      const newest = doneTasks[doneTasks.length - 1];
-      logEvent('success', `Tick ${tickCount}: "${newest.title}" completed (+${newest.points}pts)`);
-    } else {
-      const active = tasks.filter(t => t.status === sim.TaskStatus.Active || t.status === sim.TaskStatus.Review);
-      if (active.length > 0) {
-        logEvent('info', `Tick ${tickCount}: "${active[0].title}" → ${active[0].status}`);
-      }
-    }
-    render(sim);
-  }
-
-  window.manualTick = () => tick(sim);
-
-  window.toggleAutoTick = () => {
-    const btn = document.getElementById('auto-tick-btn');
-    if (autoTickInterval) {
-      clearInterval(autoTickInterval);
-      autoTickInterval = null;
-      btn.textContent = '▶ Auto-tick';
-      btn.classList.remove('running');
-    } else {
-      autoTickInterval = setInterval(() => tick(sim), 900);
-      btn.textContent = '⏸ Pause';
-      btn.classList.add('running');
-    }
-  };
-
-  function render(sim) {
-    renderStats(sim);
-    renderTasks(sim);
-    renderChart();
-  }
-
-  function renderStats(sim) {
-    const done   = tasks.filter(t => t.status === sim.TaskStatus.Done);
-    const active = tasks.filter(t => t.status === sim.TaskStatus.Active || t.status === sim.TaskStatus.Review);
-    const total  = tasks.reduce((s, t) => s + t.points, 0);
-    const vel    = velocityHistory.length > 0
-      ? (velocityHistory.slice(-8).reduce((a,b)=>a+b,0) / Math.min(8, velocityHistory.length)).toFixed(1)
-      : '0';
-
-    document.getElementById('stat-total').textContent = total.toLocaleString();
-    document.getElementById('stat-done').textContent  = done.length;
-    document.getElementById('stat-done-sub').textContent = `${done.reduce((s,t)=>s+t.points,0)} pts done`;
-    document.getElementById('stat-active').textContent = active.length;
-    document.getElementById('stat-velocity').textContent = vel;
-    document.getElementById('stat-tick').textContent  = tickCount;
-    document.getElementById('stat-tick-sub').textContent = `${(sim.completion_rate(tasks)).toFixed(0)}% complete`;
-  }
-
-  function renderTasks(sim) {
-    const list = document.getElementById('task-list');
-    const filtered = activeFilter === 'All' ? tasks : tasks.filter(t => t.status === sim.TaskStatus[activeFilter]);
-    list.innerHTML = filtered.map(t => {
-      const statusClass = {
-        'Backlog':   'tb-backlog',
-        'Active':    'tb-active',
-        'Review':    'tb-review',
-        'Done':      'tb-done',
-        'Cancelled': 'tb-cancelled',
-      }[t.status] || 'tb-backlog';
-      const priClass = {
-        'Critical': 'pd-critical',
-        'High':     'pd-high',
-        'Medium':   'pd-medium',
-        'Low':      'pd-low',
-      }[t.priority] || 'pd-low';
-      const doneClass = t.status === sim.TaskStatus.Done ? ' done' : '';
-      return `<div class="task-row">
-        <div class="pri-dot ${priClass}"></div>
-        <span class="task-badge ${statusClass}">${t.status}</span>
-        <span class="task-title${doneClass}">${t.title}</span>
-        <span class="task-points">${t.points}pt</span>
-      </div>`;
-    }).join('');
-  }
-
-  function renderChart() {
-    const svg = document.getElementById('velocity-chart');
-    const hist = velocityHistory.slice(-20);
-    if (hist.length < 2) {
-      svg.innerHTML = '<text x="50%" y="50%" fill="#5a3890" text-anchor="middle" font-size="12" font-family="Courier New">Run some ticks to see velocity data</text>';
-      return;
-    }
-    const W = 480, H = 200, pad = 30;
-    const maxV = Math.max(...hist, 1);
-    const step = (W - pad * 2) / (hist.length - 1);
-
-    const pts = hist.map((v, i) => {
-      const x = pad + i * step;
-      const y = H - pad - (v / maxV) * (H - pad * 2);
-      return `${x},${y}`;
-    });
-
-    const area = `M ${pad},${H - pad} L ${pts.join(' L ')} L ${pad + (hist.length - 1) * step},${H - pad} Z`;
-    const line = `M ${pts.join(' L ')}`;
-
-    svg.innerHTML = `
-      <defs>
-        <linearGradient id="vg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#b060ff" stop-opacity="0.35"/>
-          <stop offset="100%" stop-color="#b060ff" stop-opacity="0.02"/>
-        </linearGradient>
-      </defs>
-      <path d="${area}" fill="url(#vg)"/>
-      <path d="${line}" fill="none" stroke="#b060ff" stroke-width="2" stroke-linejoin="round"/>
-      ${pts.map((p, i) => {
-        const [x, y] = p.split(',');
-        const isLast = i === pts.length - 1;
-        return `<circle cx="${x}" cy="${y}" r="${isLast ? 4 : 2.5}" fill="${isLast ? '#ff2d78' : '#b060ff'}"/>`;
-      }).join('')}
-      <text x="${pad}" y="${H - 8}" fill="#5a3890" font-size="10" font-family="Courier New">0</text>
-      <text x="${pad}" y="${pad - 4}" fill="#5a3890" font-size="10" font-family="Courier New">${maxV}</text>
-    `;
+function evalSim(code) {
+  try {
+    return (new Function('Math', 'console',
+      code + '; return { filter_tasks, active_tasks, completion_rate, critical_count, velocity, tick, TaskStatus, Priority };'
+    ))(Math, console);
+  } catch(e) {
+    logEvent('error', 'Sim error: ' + e.message);
+    return null;
   }
 }
 
-// ── UI helpers ────────────────────────────────────────────────────────────────
+// ── Render functions (use module-level sim / tasks) ───────────────────────────
+function render() {
+  if (!sim) return;
+  renderStats();
+  renderTasks();
+  renderChart();
+}
 
+function renderStats() {
+  const done   = tasks.filter(t => t.status === sim.TaskStatus.Done);
+  const active = tasks.filter(t => t.status === sim.TaskStatus.Active || t.status === sim.TaskStatus.Review);
+  const total  = tasks.reduce((s, t) => s + t.points, 0);
+  const vel    = velocityHistory.length > 0
+    ? (velocityHistory.slice(-8).reduce((a,b)=>a+b,0) / Math.min(8, velocityHistory.length)).toFixed(1)
+    : '0';
+
+  document.getElementById('stat-total').textContent = total.toLocaleString();
+  document.getElementById('stat-done').textContent  = done.length;
+  document.getElementById('stat-done-sub').textContent = `${done.reduce((s,t)=>s+t.points,0)} pts done`;
+  document.getElementById('stat-active').textContent = active.length;
+  document.getElementById('stat-velocity').textContent = vel;
+  document.getElementById('stat-tick').textContent  = tickCount;
+  document.getElementById('stat-tick-sub').textContent = `${sim.completion_rate(tasks).toFixed(0)}% complete`;
+}
+
+function renderTasks() {
+  const list = document.getElementById('task-list');
+  const filtered = activeFilter === 'All' ? tasks : tasks.filter(t => t.status === sim.TaskStatus[activeFilter]);
+  list.innerHTML = filtered.map(t => {
+    const statusClass = {
+      'Backlog':   'tb-backlog',
+      'Active':    'tb-active',
+      'Review':    'tb-review',
+      'Done':      'tb-done',
+      'Cancelled': 'tb-cancelled',
+    }[t.status] || 'tb-backlog';
+    const priClass = {
+      'Critical': 'pd-critical',
+      'High':     'pd-high',
+      'Medium':   'pd-medium',
+      'Low':      'pd-low',
+    }[t.priority] || 'pd-low';
+    const doneClass = t.status === sim.TaskStatus.Done ? ' done' : '';
+    return `<div class="task-row">
+      <div class="pri-dot ${priClass}"></div>
+      <span class="task-badge ${statusClass}">${t.status}</span>
+      <span class="task-title${doneClass}">${t.title}</span>
+      <span class="task-points">${t.points}pt</span>
+    </div>`;
+  }).join('');
+}
+
+function renderChart() {
+  const svg = document.getElementById('velocity-chart');
+  const hist = velocityHistory.slice(-20);
+  if (hist.length < 2) {
+    svg.innerHTML = '<text x="50%" y="50%" fill="#5a3890" text-anchor="middle" font-size="12" font-family="Courier New">Run some ticks to see velocity data</text>';
+    return;
+  }
+  const W = 480, H = 200, pad = 30;
+  const maxV = Math.max(...hist, 1);
+  const step = (W - pad * 2) / (hist.length - 1);
+  const pts = hist.map((v, i) => {
+    const x = pad + i * step;
+    const y = H - pad - (v / maxV) * (H - pad * 2);
+    return `${x},${y}`;
+  });
+  const area = `M ${pad},${H - pad} L ${pts.join(' L ')} L ${pad + (hist.length - 1) * step},${H - pad} Z`;
+  const line = `M ${pts.join(' L ')}`;
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="vg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#b060ff" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#b060ff" stop-opacity="0.02"/>
+      </linearGradient>
+    </defs>
+    <path d="${area}" fill="url(#vg)"/>
+    <path d="${line}" fill="none" stroke="#b060ff" stroke-width="2" stroke-linejoin="round"/>
+    ${pts.map((p, i) => {
+      const [x, y] = p.split(',');
+      const isLast = i === pts.length - 1;
+      return `<circle cx="${x}" cy="${y}" r="${isLast ? 4 : 2.5}" fill="${isLast ? '#ff2d78' : '#b060ff'}"/>`;
+    }).join('')}
+    <text x="${pad}" y="${H - 8}" fill="#5a3890" font-size="10" font-family="Courier New">0</text>
+    <text x="${pad}" y="${pad - 4}" fill="#5a3890" font-size="10" font-family="Courier New">${maxV}</text>
+  `;
+}
+
+// ── Tick ──────────────────────────────────────────────────────────────────────
+function doTick() {
+  if (!sim) return;
+  const before = tasks.filter(t => t.status === sim.TaskStatus.Done).length;
+  tasks = sim.tick(tasks);
+  tickCount++;
+  const after = tasks.filter(t => t.status === sim.TaskStatus.Done).length;
+  const newlyDone = after - before;
+  velocityHistory.push(newlyDone > 0
+    ? tasks.filter(t => t.status === sim.TaskStatus.Done).slice(-newlyDone).reduce((s,t) => s + t.points, 0)
+    : 0);
+  if (newlyDone > 0) {
+    const done = tasks.filter(t => t.status === sim.TaskStatus.Done);
+    const newest = done[done.length - 1];
+    logEvent('success', `Tick ${tickCount}: "${newest.title}" completed (+${newest.points}pts)`);
+  } else {
+    const active = tasks.filter(t => t.status === sim.TaskStatus.Active || t.status === sim.TaskStatus.Review);
+    if (active.length > 0) logEvent('info', `Tick ${tickCount}: "${active[0].title}" → ${active[0].status}`);
+  }
+  render();
+}
+
+// ── Public API (always assigned, never gated behind compiledJS check) ─────────
+window.manualTick    = () => doTick();
+window.toggleAutoTick = () => {
+  const btn = document.getElementById('auto-tick-btn');
+  if (autoTickInterval) {
+    clearInterval(autoTickInterval);
+    autoTickInterval = null;
+    btn.textContent = '▶ Auto-tick';
+    btn.classList.remove('running');
+  } else {
+    autoTickInterval = setInterval(doTick, 900);
+    btn.textContent = '⏸ Pause';
+    btn.classList.add('running');
+  }
+};
 window.setFilter = (f) => {
   activeFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent === f);
+    b.classList.toggle('active', b.textContent.trim() === f);
   });
-  const sim = getSim();
-  if (sim) renderTasks(sim);
+  renderTasks();
 };
 
-function getSim() {
-  try {
-    return (new Function('Math', 'console', compiledJS + '; return { filter_tasks, active_tasks, completion_rate, critical_count, velocity, tick, TaskStatus, Priority };'))(Math, console);
-  } catch(e) { return null; }
-}
-
-const feed = document.getElementById('event-feed');
-function logEvent(type, msg) {
-  const el = document.createElement('div');
-  el.className = `feed-entry fe-${type}`;
-  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-  el.textContent = `[${time}] ${msg}`;
-  feed.prepend(el);
-  while (feed.children.length > 40) feed.removeChild(feed.lastChild);
+// ── Init ──────────────────────────────────────────────────────────────────────
+if (compiledJS) {
+  sim = evalSim(compiledJS);
+  if (sim) {
+    const T = sim.TaskStatus, P = sim.Priority;
+    tasks = [
+      { id: 1,  title: 'Design component API',   status: T.Done,    priority: P.High,     points: 5  },
+      { id: 2,  title: 'Write unit tests',        status: T.Done,    priority: P.Critical, points: 8  },
+      { id: 3,  title: 'Implement auth flow',     status: T.Active,  priority: P.Critical, points: 13 },
+      { id: 4,  title: 'Build dashboard layout',  status: T.Active,  priority: P.High,     points: 8  },
+      { id: 5,  title: 'Fix navigation bug',      status: T.Review,  priority: P.Medium,   points: 3  },
+      { id: 6,  title: 'Add dark mode toggle',    status: T.Backlog, priority: P.Low,      points: 5  },
+      { id: 7,  title: 'Optimize bundle size',    status: T.Backlog, priority: P.Medium,   points: 8  },
+      { id: 8,  title: 'Deploy to staging',       status: T.Backlog, priority: P.High,     points: 5  },
+      { id: 9,  title: 'Security audit',          status: T.Backlog, priority: P.Critical, points: 21 },
+      { id: 10, title: 'Performance profiling',   status: T.Backlog, priority: P.Medium,   points: 13 },
+    ];
+    render();
+    logEvent('success', 'Dashboard ready — Axon v0.9.5 compiled successfully');
+    logEvent('info', `Compiler: ${AxonCompiler.version} · TaskStatus.Active = "${sim.TaskStatus.Active}"`);
+  }
 }
 
 // ── Source display ────────────────────────────────────────────────────────────
