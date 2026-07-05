@@ -647,7 +647,7 @@
 
   <!-- ── Hero ────────────────────────────────────────────────────────────── -->
   <section class="hero">
-    <div class="hero-eyebrow">✦ AI-native · v0.7.0</div>
+    <div class="hero-eyebrow">✦ AI-native · v0.8.0</div>
     <h1 class="hero-title">
       <span class="grad">A programming language<br>built for AI.</span>
     </h1>
@@ -678,6 +678,7 @@
       <button class="showcase-tab" onclick="showPane('modules')" style="color:var(--pink)">Modules <span style="font-size:0.65rem;opacity:0.8">v0.5</span></button>
       <button class="showcase-tab" onclick="showPane('safety')" style="color:var(--cyan)">Safety <span style="font-size:0.65rem;opacity:0.8">v0.6</span></button>
       <button class="showcase-tab" onclick="showPane('typesys')" style="color:var(--green)">Generics <span style="font-size:0.65rem;opacity:0.8">v0.7</span></button>
+      <button class="showcase-tab" onclick="showPane('async')" style="color:var(--gold)">Async <span style="font-size:0.65rem;opacity:0.8">v0.8</span></button>
     </div>
     <div class="showcase-pane active" id="pane-types"><pre id="code-types"></pre></div>
     <div class="showcase-pane" id="pane-match"><pre id="code-match"></pre></div>
@@ -686,6 +687,7 @@
     <div class="showcase-pane" id="pane-modules"><pre id="code-modules"></pre></div>
     <div class="showcase-pane" id="pane-safety"><pre id="code-safety"></pre></div>
     <div class="showcase-pane" id="pane-typesys"><pre id="code-typesys"></pre></div>
+    <div class="showcase-pane" id="pane-async"><pre id="code-async"></pre></div>
   </section>
 
   <!-- ── Stats ─────────────────────────────────────────────────────────────── -->
@@ -744,9 +746,15 @@
     <div class="section-label">Demos</div>
     <h2 class="section-title">See it in action.</h2>
     <div class="demo-grid">
-      <a class="demo-card" href="bazaar.html" style="border-color:var(--accent)">
+      <a class="demo-card" href="chronicle.html" style="border-color:var(--cyan)">
+        <div class="demo-card-icon">📜</div>
+        <div class="demo-card-title">Chronicle <span style="font-size:0.7rem;opacity:0.6;font-weight:400">New</span></div>
+        <div class="demo-card-desc">Reactive fantasy kingdom log. <code>store</code> holds state, <code>async fn</code> advances the simulation, <code>on...change</code> re-renders reactively.</div>
+        <div class="demo-card-meta"><span>v0.8</span> store · async fn · await · on...change</div>
+      </a>
+      <a class="demo-card" href="bazaar.html">
         <div class="demo-card-icon">🏪</div>
-        <div class="demo-card-title">The Bazaar <span style="font-size:0.7rem;opacity:0.6;font-weight:400">New</span></div>
+        <div class="demo-card-title">The Bazaar</div>
         <div class="demo-card-desc">RPG item shop with generics, interfaces, and <code>let infer</code>. Filter, sort, and cart — all typed.</div>
         <div class="demo-card-meta"><span>v0.7</span> generics · interfaces · let infer</div>
       </a>
@@ -810,23 +818,28 @@
         <div class="roadmap-ver">v0.6</div>
         <div class="roadmap-theme">Safety</div>
       </div>
-      <div class="roadmap-stop rs-now">
-        <div class="roadmap-dot rd-now">★</div>
-        <div class="roadmap-ver" style="color:var(--accent)">v0.7</div>
+      <div class="roadmap-stop">
+        <div class="roadmap-dot rd-done">✓</div>
+        <div class="roadmap-ver">v0.7</div>
         <div class="roadmap-theme">Type System</div>
       </div>
-      <div class="roadmap-stop">
-        <div class="roadmap-dot rd-next">8</div>
-        <div class="roadmap-ver">v0.8</div>
+      <div class="roadmap-stop rs-now">
+        <div class="roadmap-dot rd-now">★</div>
+        <div class="roadmap-ver" style="color:var(--accent)">v0.8</div>
         <div class="roadmap-theme">Async &amp; Reactive</div>
       </div>
       <div class="roadmap-stop">
-        <div class="roadmap-dot rd-later">9</div>
+        <div class="roadmap-dot rd-next">9</div>
         <div class="roadmap-ver">v0.9</div>
         <div class="roadmap-theme">Tooling</div>
       </div>
       <div class="roadmap-stop">
         <div class="roadmap-dot rd-later">1</div>
+        <div class="roadmap-ver">v0.9</div>
+        <div class="roadmap-theme">Tooling</div>
+      </div>
+      <div class="roadmap-stop">
+        <div class="roadmap-dot rd-later">0</div>
         <div class="roadmap-ver">v1.0</div>
         <div class="roadmap-theme">Stability</div>
       </div>
@@ -1077,6 +1090,38 @@ fn apply_filters(state: AppState) -> Item[] {
 //   ✓ order_by sorts ascending
 //   ✓ cart_total sums item prices
 //   14 passed, 0 failed, 14 total
+`);
+
+    setCode('code-async', `
+// ── store — reactive mutable state (v0.8) ────────────────────────────────────
+store Kingdom {
+  day:     int    = 1
+  season:  string = "spring"
+  weather: string = "clear"
+  events:  list<string> = []
+  running: bool   = false
+  speed:   int    = 900
+}
+// Kingdom.day, Kingdom.season, etc. are live getters.
+// Kingdom.set({ field: value }) updates state and notifies all subscribers.
+
+// ── async fn + await (v0.8) ───────────────────────────────────────────────────
+@effects ["timer"]
+async fn tick() {
+  if !Kingdom.running { return }
+  let next_day    = Kingdom.day + 1
+  let next_season = season_for(next_day)
+  let event       = event_for(next_day, next_season)
+  let next_events = [event, ...Kingdom.events].slice(0, 10)
+  Kingdom.set({ day: next_day, season: next_season, events: next_events })
+  await delay(Kingdom.speed)    // non-blocking pause — stdlib delay()
+  tick()                        // schedule next tick (fire-and-forget)
+}
+
+// ── on...change — reactive subscription (v0.8) ───────────────────────────────
+on Kingdom.change { render() }
+// Desugars to: Kingdom.subscribe(() => { render() })
+// render() is called immediately on subscribe, then after every Kingdom.set()
 `);
   </script>
 </body>

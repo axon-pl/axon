@@ -1,5 +1,59 @@
 # Axon Changelog
 
+## v0.8.0 — The Async & Reactive Update
+
+### New language features
+
+- **`async fn`** — asynchronous function declarations that transpile to `async` arrow functions
+  ```axon
+  @effects ["timer"]
+  async fn fetch_data(url: string) -> Result<string> {
+    let r = await delay(0)
+    ok("data")
+  }
+  ```
+
+- **`await expr`** — resolves a Promise inside an `async fn`; valid at statement or expression level
+  ```axon
+  async fn tick() {
+    await delay(500)          // stdlib helper: delay(ms) returns Promise<void>
+    await fetch_quests()      // any Promise expression
+  }
+  ```
+
+- **`store Name { field: Type = default }`** — reactive mutable state as an explicit effects boundary. Compiles to a self-contained IIFE with getters, `set(patch)`, and `subscribe(fn)`.
+  ```axon
+  store Kingdom {
+    day:    int    = 1
+    season: string = "spring"
+    events: list<string> = []
+  }
+  // Access: Kingdom.day, Kingdom.season
+  // Mutate: Kingdom.set({ day: 2, season: "summer" })
+  ```
+
+- **`on StoreName.change { body }`** — reactive subscription sugar. Desugars to `StoreName.subscribe(() => { body })`. The callback fires once immediately on subscribe, then after every `.set()` call.
+  ```axon
+  on Kingdom.change { render() }
+  // equivalent to: Kingdom.subscribe(() => { render() })
+  ```
+
+- **`@effects ["timer"]` enforcement** — the static checker now warns when an `async fn` is declared without an `@effects` annotation, keeping async side-effects visible in the type signatures.
+
+### Stdlib additions
+
+- `delay(ms)` — returns `Promise<void>` that resolves after `ms` milliseconds. Use with `await` inside `async fn`.
+
+### Parser improvements
+
+- Bare `return` (no value) is now valid inside function bodies and if-blocks; emits `return undefined`.
+
+### Demo
+
+- **Chronicle** — a reactive fantasy kingdom event log. Uses `store`, `async fn tick()`, `await delay()`, and `on Kingdom.change { render() }` to drive a live-updating UI entirely from Axon source.
+
+---
+
 ## v0.7.0 — The Type System Update
 
 ### New language features

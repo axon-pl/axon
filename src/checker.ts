@@ -66,6 +66,19 @@ export class Checker {
     if (decl.kind === 'ExportDecl')       this.checkTopLevel(decl.decl)
     // v0.5: import declarations are validated by the CLI bundler, no checks here
     // v0.7: interface declarations are type-level only; no runtime checks needed
+    // v0.8: store — warn if async fn missing @effects; store itself needs no check
+    if (decl.kind === 'FnDecl' && decl.isAsync) this.checkAsyncEffects(decl)
+  }
+
+  // v0.8: warn if an async fn doesn't declare @effects
+  private checkAsyncEffects(fn: FnDecl): void {
+    const hasEffects = fn.annotations.some(a => a.name === 'effects')
+    if (!hasEffects) {
+      this.warn(
+        `async fn '${fn.name}' should declare @effects to document its async operations (e.g. @effects ["network"] or @effects ["timer"])`,
+        fn.line
+      )
+    }
   }
 
   private checkFn(fn: FnDecl): void {
@@ -221,6 +234,7 @@ export class Checker {
         break
       case 'BlockExpr':             this.walkBlock(expr, visit); break
       case 'ResultPropagateExpr':   this.walkExpr(expr.value, visit); break  // v0.6
+      case 'AwaitExpr':             this.walkExpr(expr.value, visit); break  // v0.8
       default: break
     }
   }

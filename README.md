@@ -224,6 +224,7 @@ axon --test shapes.axn
 
 | Demo | Description |
 |---|---|
+| [Chronicle](https://axon-pl.github.io/axon/chronicle.html) | **v0.8** — Reactive fantasy kingdom log; `store`, `async fn`, `await`, `on...change` |
 | [The Bazaar](https://axon-pl.github.io/axon/bazaar.html) | **v0.7** — RPG item shop; generics, `interface`, `let infer`, immutable state |
 | [Dungeon Map Toolkit](https://axon-pl.github.io/axon/dungeon.html) | **v0.5–v0.6** — 4-file module demo with `Result` config parser |
 | [RPG Adventure](https://axon-pl.github.io/axon/rpg.standalone.html) | 50-battle dungeon crawl — 1576 lines of pure Axon game logic |
@@ -255,8 +256,8 @@ Full language reference at **[axon-pl.github.io/axon/docs.html](https://axon-pl.
 | v0.5 ✓ | Modules | `import` / `export`, `axon --bundle` — multi-file projects |
 | v0.5.2 ✓ | Ergonomics | `for` loops (range + forEach), `break`/`continue`, `let mut` |
 | v0.6 ✓ | Safety | `Result<T>`, `?` propagation, error contracts, `refine x: "claim"` semantic narrowing |
-| **v0.7** ✓ | Type System | Generics `<T,U>`, `interface`, `fn(T)->U` type expr, `let infer` model-resolved types |
-| v0.8 | Async & Reactive | `async fn`, `await`, `store` reactive state, enforced `@effects`, `@intent` auto-validation |
+| v0.7 ✓ | Type System | Generics `<T,U>`, `interface`, `fn(T)->U` type expr, `let infer` model-resolved types |
+| **v0.8** ✓ | Async & Reactive | `async fn`, `await`, `store` reactive state, `on...change` subscriptions, enforced `@effects` |
 | v0.9 | Tooling | LSP, source maps, `axon fmt`, rich errors, `explain { }` semantic context blocks |
 | v1.0 | Stability | Frozen spec, semver promise, `axon spec` extracts `@intent`/`refine`/`explain` as JSON |
 | v1.1 | AI-Native | `likely` arms — probabilistic pattern matching by semantic similarity |

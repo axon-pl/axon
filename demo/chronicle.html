@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronicle — Axon v0.8 Demo</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    :root {
+      --bg:      #0b0d0a;
+      --panel:   #111410;
+      --border:  #2a3020;
+      --gold:    #c9a84c;
+      --gold-dim:#7a6330;
+      --green:   #4caf50;
+      --green-dim:#2a5c2e;
+      --red:     #c0392b;
+      --text:    #d6cebc;
+      --text-dim:#7a7060;
+      --parchment:#1a1a0e;
+      --pink:    #ff2d78;
+      --purple:  #b060ff;
+      --header-h:52px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      height: var(--header-h);
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .header-glyph {
+      font-size: 22px;
+      line-height: 1;
+    }
+    .header-title {
+      font-size: 17px;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+      color: var(--gold);
+    }
+    .header-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'Courier New', monospace;
+    }
+    .header-badge {
+      margin-left: auto;
+      background: rgba(201,168,76,0.15);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold);
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      padding: 3px 9px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Main layout ── */
+    .page-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      grid-template-rows: auto 1fr;
+      gap: 0;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 24px 0;
+    }
+
+    /* ── Kingdom display ── */
+    .kingdom-panel {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-right: 20px;
+    }
+
+    .kingdom-header {
+      background: var(--parchment);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+    .kingdom-name {
+      font-size: 28px;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .kingdom-day {
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -1px;
+      font-family: 'Courier New', monospace;
+    }
+    .kingdom-meta {
+      font-size: 16px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .chr-status {
+      display: inline-block;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.1em;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin-top: 10px;
+      border: 1px solid;
+    }
+    .chr-status.running  { color: var(--green); border-color: var(--green-dim); background: rgba(76,175,80,0.08); }
+    .chr-status.paused   { color: var(--text-dim); border-color: var(--border); background: transparent; }
+
+    /* ── Event log ── */
+    .log-panel {
+      background: var(--parchment);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .log-title {
+      padding: 12px 20px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.1em;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      background: rgba(201,168,76,0.04);
+    }
+    #chr-log {
+      padding: 12px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .chr-entry {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(42,48,32,0.6);
+    }
+    .chr-entry:first-child {
+      color: var(--gold);
+      font-size: 15px;
+    }
+    .chr-entry:last-child {
+      border-bottom: none;
+    }
+
+    /* ── Controls panel ── */
+    .controls-panel {
+      grid-column: 2;
+      grid-row: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-self: start;
+    }
+    .ctrl-label {
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .ctrl-btn-row {
+      display: flex;
+      gap: 8px;
+    }
+    .ctrl-btn {
+      flex: 1;
+      padding: 10px 0;
+      border-radius: 6px;
+      border: 1px solid;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .ctrl-btn:hover { opacity: 0.8; }
+    .btn-start {
+      background: rgba(76,175,80,0.15);
+      border-color: var(--green-dim);
+      color: var(--green);
+    }
+    .btn-pause {
+      background: rgba(201,168,76,0.1);
+      border-color: var(--gold-dim);
+      color: var(--gold);
+    }
+    .speed-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .speed-btn-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .speed-btn {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-dim);
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .speed-btn:hover, .speed-btn.active {
+      background: rgba(201,168,76,0.12);
+      border-color: var(--gold-dim);
+      color: var(--gold);
+    }
+
+    /* ── Source code panel ── */
+    .source-panel {
+      grid-column: 1 / 3;
+      grid-row: 3;
+      margin-top: 20px;
+      border-top: 1px solid var(--border);
+      padding: 20px 0 0;
+    }
+    .module-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .source-info {
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: var(--text-dim);
+    }
+    .source-block {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .source-label {
+      padding: 7px 14px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      letter-spacing: 0.04em;
+    }
+    .source-block pre {
+      padding: 16px;
+      font-size: 12.5px;
+      line-height: 1.6;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      white-space: pre;
+      color: var(--text);
+    }
+
+    /* syntax highlight */
+    .kw   { color: #ff79c6; }
+    .str  { color: #f1fa8c; }
+    .cmt  { color: #6272a4; font-style: italic; }
+    .num  { color: #bd93f9; }
+    .fn   { color: #50fa7b; }
+    .ty   { color: #8be9fd; }
+    .ann  { color: #ffb86c; }
+    .op   { color: #ff79c6; opacity: 0.8; }
+    .bool { color: #bd93f9; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      margin-top: 24px;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .page-body {
+        grid-template-columns: 1fr;
+        padding: 12px 12px 0;
+        gap: 12px;
+      }
+      .kingdom-panel {
+        grid-column: 1;
+        grid-row: 1;
+        padding-right: 0;
+      }
+      .controls-panel {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      .source-panel {
+        grid-column: 1;
+        grid-row: 4;
+      }
+      .kingdom-day { font-size: 28px; }
+      .kingdom-name { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <div class="header-glyph">📜</div>
+    <div>
+      <div class="header-title">Chronicle</div>
+      <div class="header-sub">Reactive kingdom log · Axon v0.8</div>
+    </div>
+    <div class="header-badge">v0.8 · store · async · await</div>
+  </header>
+
+  <div class="page-body">
+
+    <!-- Kingdom display -->
+    <div class="kingdom-panel">
+      <div class="kingdom-header">
+        <div class="kingdom-name">Kingdom of Eryndal</div>
+        <div id="chr-day" class="kingdom-day">Day 1</div>
+        <div id="chr-header" class="kingdom-meta">🌸 spring &nbsp;·&nbsp; ☀️ clear</div>
+        <div id="chr-status" class="chr-status paused">○ PAUSED</div>
+      </div>
+
+      <div class="log-panel">
+        <div class="log-title">📖 Chronicle Log</div>
+        <div id="chr-log">
+          <div class="chr-entry" style="color:var(--text-dim);font-style:italic">
+            The scribes await the kingdom to stir…
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-panel">
+      <div>
+        <div class="ctrl-label">Simulation</div>
+        <div class="ctrl-btn-row">
+          <button class="ctrl-btn btn-start" onclick="start()">▶ Start</button>
+          <button class="ctrl-btn btn-pause" onclick="pause()">⏸ Pause</button>
+        </div>
+      </div>
+      <div class="speed-row">
+        <div class="ctrl-label">Tick Speed</div>
+        <div class="speed-btn-row">
+          <button class="speed-btn" onclick="setSpeed(1600, this)">Slow</button>
+          <button class="speed-btn active" onclick="setSpeed(900, this)">Normal</button>
+          <button class="speed-btn" onclick="setSpeed(400, this)">Fast</button>
+          <button class="speed-btn" onclick="setSpeed(100, this)">Rapid</button>
+        </div>
+      </div>
+      <div>
+        <div class="ctrl-label" style="margin-bottom:4px">Axon Features</div>
+        <div style="font-size:12px;line-height:1.8;color:var(--text-dim);font-family:'Courier New',monospace">
+          <div><span style="color:var(--gold)">store</span> Kingdom { … }</div>
+          <div><span style="color:var(--gold)">async fn</span> tick()</div>
+          <div><span style="color:var(--gold)">await</span> delay(ms)</div>
+          <div><span style="color:var(--gold)">on</span> Kingdom.change { … }</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Source code -->
+    <div class="source-panel">
+      <div class="module-strip">
+        <span class="source-info">Source: examples/chronicle/main.axn &nbsp;·&nbsp; 132 lines Axon → 361 lines JS</span>
+      </div>
+
+      <div class="source-block">
+        <div class="source-label">● main.axn — reactive store</div>
+        <pre id="src-store"></pre>
+      </div>
+
+      <div class="source-block">
+        <div class="source-label">● main.axn — async tick & on...change</div>
+        <pre id="src-async"></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    Chronicle · Axon v0.8.0 · <code>store</code> · <code>async fn</code> · <code>await</code> · <code>on...change</code>
+  </footer>
+
+  <script src="chronicle.sources.js"></script>
+
+  <script>
+    // Speed button active state
+    function setSpeed(ms, btn) {
+      set_speed(ms);
+      document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+
+    // ── Syntax highlighter ──────────────────────────────────────────────────
+    function highlight(src) {
+      const KW  = ['fn','let','type','record','store','interface','match','if','else','where','return',
+                   'import','export','as','for','in','break','continue','mut','refine','infer','async','await','on'];
+      const ANN = ['pure','total','intent','effects','memo','exhaustive','test','throws'];
+      const TY  = ['int','float','string','bool','list','void','Result','Ok','Err','Maybe','Some','None'];
+      const sp  = (cls, t) => `<span class='${cls}'>${t}</span>`;
+      return src
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/("""[\s\S]*?""")/g, m => sp('str', m))
+        .replace(/("(?:[^"\\]|\\.)*")/g, m => sp('str', m))
+        .replace(/(\/\/[^\n]*)/g, m => sp('cmt', m))
+        .replace(new RegExp(`(@(?:${ANN.join('|')})\\b)`, 'g'), m => sp('ann', m))
+        .replace(/(\|&gt;|=&gt;|-&gt;|\?\?|\?\.|::|[|](?![|]))/g, m => sp('op', m))
+        .replace(new RegExp(`(<[^>]+>)|(\\b(?:${KW.join('|')})\\b)`, 'g'),
+          (m, tag, kw) => tag ? tag : sp('kw', kw))
+        .replace(new RegExp(`(<[^>]+>)|(\\b(?:true|false|null|undefined|void)\\b)`, 'g'),
+          (m, tag, kw) => tag ? tag : sp('bool', kw))
+        .replace(new RegExp(`(<[^>]+>)|(\\b(?:${TY.join('|')})\\b)`, 'g'),
+          (m, tag, ty) => tag ? tag : sp('ty', ty))
+        .replace(/(<[^>]+>)|(\b\d+\.?\d*\b)/g,
+          (m, tag, n) => tag ? tag : sp('num', n))
+        .replace(/(<span class='kw'>fn<\/span>\s+)([a-zA-Z_]\w*)/g,
+          (_, kw, name) => kw + sp('fn', name));
+    }
+
+    function setCode(id, src) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = highlight(src.trim());
+    }
+
+    setCode('src-store', `
+// ── Reactive store — explicit mutable state boundary ─────────────────────────
+store Kingdom {
+  day:     int    = 1
+  season:  string = "spring"
+  weather: string = "clear"
+  events:  list<string> = []
+  running: bool   = false
+  speed:   int    = 900
+}
+
+// Access fields as plain properties — Kingdom.day, Kingdom.season, etc.
+// Update state with Kingdom.set({ field: newValue, ... })
+// All subscribers are notified after every .set() call.
+`);
+
+    setCode('src-async', `
+// ── Async simulation tick ─────────────────────────────────────────────────────
+@effects ["timer"]
+async fn tick() {
+  if !Kingdom.running { return }
+  let next_day     = Kingdom.day + 1
+  let next_season  = season_for(next_day)
+  let next_weather = weather_for(next_day, next_season)
+  let event        = event_for(next_day, next_weather)
+  let prev         = Kingdom.events
+  let next_events  = [event, ...prev].slice(0, 10)
+  Kingdom.set({ day: next_day, season: next_season,
+                weather: next_weather, events: next_events })
+  await delay(Kingdom.speed)   // non-blocking pause
+  tick()                       // schedule next tick (fire-and-forget)
+}
+
+// ── Reactive binding — re-render on every Kingdom state change ────────────────
+on Kingdom.change { render() }
+`);
+  </script>
+
+</body>
+</html>

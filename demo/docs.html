@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon Language Reference — v0.7.0</title>
+  <title>Axon Language Reference — v0.8.0</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -698,7 +698,7 @@
     <span class="top-header-title">Axon</span>
     <span class="top-header-sub">Language Reference</span>
     <div class="header-badges">
-      <span class="hbadge hbadge-ver">v0.7.0</span>
+      <span class="hbadge hbadge-ver">v0.8.0</span>
       <span class="hbadge hbadge-ai">AI-native</span>
     </div>
   </header>
@@ -734,6 +734,9 @@
         <a class="nav-link" href="#interfaces" style="color:var(--green)">Interfaces <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
         <a class="nav-link" href="#fn-types" style="color:var(--green)"><code>fn(T)-&gt;U</code> Types <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
         <a class="nav-link" href="#let-infer" style="color:var(--green)"><code>let infer</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
+        <a class="nav-link" href="#store" style="color:var(--accent)"><code>store</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.8</span></a>
+        <a class="nav-link" href="#async-fn" style="color:var(--accent)"><code>async fn</code> / <code>await</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.8</span></a>
+        <a class="nav-link" href="#on-change" style="color:var(--accent)"><code>on…change</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.8</span></a>
       </div>
       <div class="nav-group">
         <div class="nav-group-label">Annotations</div>
@@ -1563,6 +1566,102 @@ main()</pre>
         </div>
       </section>
 
+      <!-- ── store ─────────────────────────────────────────────────────────── -->
+      <section class="doc-section" id="store">
+        <div class="section-eyebrow">Async &amp; Reactive · v0.8</div>
+        <h2 class="section-title"><code>store</code></h2>
+        <div class="section-rule"></div>
+        <p class="section-lead">
+          <code>store Name { field: Type = default }</code> declares a reactive mutable state container —
+          an explicit effects boundary that separates pure logic from observable state. Getters expose each
+          field; <code>.set(patch)</code> updates state and notifies all subscribers atomically.
+        </p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="store-code"></pre>
+        </div>
+
+        <table class="doc-table">
+          <thead><tr><th>Syntax</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>store Name { f: T = v }</code></td><td>Declare a reactive store with field <code>f</code> defaulting to <code>v</code></td></tr>
+            <tr><td><code>Name.field</code></td><td>Read current field value (getter)</td></tr>
+            <tr><td><code>Name.set({ field: val })</code></td><td>Patch state and notify all subscribers</td></tr>
+            <tr><td><code>Name.subscribe(fn)</code></td><td>Register a callback, fired with new state on every change (and once immediately)</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <div class="callout-head">Compiled output</div>
+          A <code>store</code> compiles to a self-contained IIFE that encapsulates a private <code>_state</code>
+          object, a subscriber list, ES5-style <code>get</code> accessors for each field, and a <code>set(patch)</code>
+          method that applies a shallow merge and calls all subscribers. Zero runtime dependency — pure JS.
+        </div>
+      </section>
+
+      <!-- ── async fn / await ──────────────────────────────────────────────── -->
+      <section class="doc-section" id="async-fn">
+        <div class="section-eyebrow">Async &amp; Reactive · v0.8</div>
+        <h2 class="section-title"><code>async fn</code> &amp; <code>await</code></h2>
+        <div class="section-rule"></div>
+        <p class="section-lead">
+          Prefix any function declaration with <code>async</code> to make it asynchronous. Inside an
+          <code>async fn</code>, use <code>await expr</code> to resolve a Promise without blocking.
+          The stdlib provides <code>delay(ms)</code> for timer-based pauses.
+        </p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="async-fn-code"></pre>
+        </div>
+
+        <table class="doc-table">
+          <thead><tr><th>Syntax</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>async fn name(…) { … }</code></td><td>Async function — returns <code>Promise&lt;T&gt;</code></td></tr>
+            <tr><td><code>await expr</code></td><td>Await a Promise inside an async function</td></tr>
+            <tr><td><code>await delay(ms)</code></td><td>Non-blocking pause for <code>ms</code> milliseconds (stdlib)</td></tr>
+            <tr><td><code>@effects ["timer"]</code></td><td>Declare async effects — enforced by the checker</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <div class="callout-head">@effects enforcement</div>
+          The static checker warns when an <code>async fn</code> is declared without <code>@effects</code>.
+          Use <code>@effects ["timer"]</code> for <code>delay()</code>-based loops,
+          <code>@effects ["network"]</code> for <code>fetch</code>/<code>XMLHttpRequest</code>,
+          or <code>@effects ["io"]</code> for generic I/O. This keeps side-effect surfaces visible at the
+          declaration site — readable by both humans and AI tools.
+        </div>
+      </section>
+
+      <!-- ── on...change ───────────────────────────────────────────────────── -->
+      <section class="doc-section" id="on-change">
+        <div class="section-eyebrow">Async &amp; Reactive · v0.8</div>
+        <h2 class="section-title"><code>on StoreName.change { … }</code></h2>
+        <div class="section-rule"></div>
+        <p class="section-lead">
+          <code>on StoreName.change { body }</code> is syntactic sugar for registering a reactive
+          subscription. The body runs once immediately when the subscription is registered, then
+          again after every <code>StoreName.set(…)</code> call. Multiple subscriptions can target
+          the same store.
+        </p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="on-change-code"></pre>
+        </div>
+
+        <div class="callout">
+          <div class="callout-head">Desugar</div>
+          <code>on Kingdom.change { render() }</code> compiles to
+          <code>Kingdom.subscribe(() =&gt; { render() })</code> — a plain JS function call.
+          There is no virtual DOM, diffing, or framework magic. The subscriber list is maintained
+          inside the store's IIFE closure.
+        </div>
+      </section>
+
       <!-- ── Version History ───────────────────────────────────────────────── -->
       <section class="doc-section" id="version-history">
         <div class="section-eyebrow">Meta</div>
@@ -1571,9 +1670,27 @@ main()</pre>
 
         <div class="version-card vc-current">
           <div class="version-header">
-            <span class="version-tag">v0.7.0</span>
-            <span class="version-name">The Type System Update</span>
+            <span class="version-tag">v0.8.0</span>
+            <span class="version-name">The Async &amp; Reactive Update</span>
             <span class="version-status vs-current">Current</span>
+          </div>
+          <ul class="version-features">
+            <li><strong><code>async fn</code></strong> — asynchronous function declarations that transpile to async arrow functions</li>
+            <li><strong><code>await expr</code></strong> — resolve a Promise inside an async function; valid at statement or expression level</li>
+            <li><strong><code>store Name { field: Type = default }</code></strong> — reactive state with <code>.set(patch)</code>, getters, and <code>.subscribe(fn)</code>; compiles to a self-contained IIFE</li>
+            <li><strong><code>on StoreName.change { … }</code></strong> — reactive subscription sugar; desugars to <code>StoreName.subscribe(() =&gt; { … })</code></li>
+            <li><strong><code>@effects</code> enforcement</strong> — checker warns if an async fn lacks an <code>@effects</code> declaration</li>
+            <li><strong><code>delay(ms)</code> stdlib</strong> — Promise-based async sleep helper for use with <code>await</code></li>
+            <li><strong>Bare <code>return</code></strong> — <code>return</code> without a value now valid in all function bodies</li>
+            <li><strong>Demo: Chronicle</strong> — reactive fantasy kingdom log; reactive <code>store</code>, <code>async fn tick()</code>, <code>await delay()</code>, and <code>on Kingdom.change { render() }</code></li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
+            <span class="version-tag">v0.8.0</span>
+            <span class="version-name">The Type System Update</span>
+            <span class="version-status vs-stable">Stable</span>
           </div>
           <ul class="version-features">
             <li><strong>Generic type parameters</strong> — <code>record Pair&lt;A, B&gt;</code>, <code>fn map&lt;T, U&gt;</code>, <code>type Maybe&lt;T&gt;</code>; erased at runtime (JS-transparent)</li>
@@ -1581,7 +1698,6 @@ main()</pre>
             <li><strong><code>fn(T) -&gt; U</code> type expressions</strong> — first-class function types usable in record fields, interfaces, and signatures</li>
             <li><strong><code>let infer x = expr</code></strong> — signals to AI tooling that the type should be resolved from context, not explicitly annotated</li>
             <li><strong>Demo: The Bazaar</strong> — RPG item shop with 20 typed items, generic filter/sort/map, <code>interface Tradeable</code>, and an immutable <code>AppState</code> record</li>
-            <li><strong>113 passing tests</strong> — 28 new tests covering all v0.7 features</li>
           </ul>
         </div>
 
@@ -1757,19 +1873,19 @@ main()</pre>
             </ul>
           </div>
 
-          <div class="roadmap-card">
-            <div class="roadmap-ver">v0.8</div>
+          <div class="roadmap-card" style="border-color:var(--accent);background:linear-gradient(135deg,#0a0d0a,#0d1510)">
+            <div class="roadmap-ver" style="color:var(--accent)">v0.8 ✓  <span style="font-size:11px;opacity:0.7">current</span></div>
             <div class="roadmap-title">The Async &amp; Reactive Update</div>
-            <div class="roadmap-desc"><code>@effects</code> becomes a real contract. Reactive state and async I/O without breaking purity guarantees.</div>
+            <div class="roadmap-desc">Shipped. <code>@effects</code> is now a real contract. Reactive state and async I/O — pure functions stay pure.</div>
             <ul class="roadmap-features">
-              <li><code>async fn</code> declarations</li>
-              <li><code>await expr</code> inside async functions</li>
-              <li><code>@effects ["network"]</code> enforced at compile time</li>
-              <li><code>store Name { field: Type = default }</code> — reactive mutable state as an explicit effects boundary</li>
-              <li><code>on store.change { ... }</code> — reactive subscriptions</li>
-              <li>Promise/async/await transpilation</li>
-              <li><code>@intent</code> auto-validation — prose intent generates runtime shadow assertions, verified against actual behavior at the effects boundary</li>
-              <li>Demo: reactive UI with <code>store</code> (replaces closure re-render pattern)</li>
+              <li>✓ <code>async fn</code> declarations — transpile to async arrow functions</li>
+              <li>✓ <code>await expr</code> inside async functions</li>
+              <li>✓ <code>@effects</code> enforced — checker warns when async fn lacks declaration</li>
+              <li>✓ <code>store Name { field: Type = default }</code> — reactive state with <code>.set()</code> and <code>.subscribe()</code></li>
+              <li>✓ <code>on StoreName.change { ... }</code> — reactive subscription sugar</li>
+              <li>✓ <code>delay(ms)</code> stdlib helper — <code>await delay(500)</code></li>
+              <li>✓ Bare <code>return</code> — valid in all function bodies</li>
+              <li>✓ Demo: Chronicle — reactive fantasy kingdom log</li>
             </ul>
           </div>
 
@@ -1820,7 +1936,7 @@ main()</pre>
   </div>
 
   <footer class="page-footer">
-    Axon v0.7.0 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
+    Axon v0.8.0 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
   </footer>
 
   <script>
@@ -1832,7 +1948,7 @@ main()</pre>
     }
 
     function highlight(src) {
-      const KW   = ['fn','let','type','record','interface','match','if','else','where','return','import','export','async','await','as','for','in','break','continue','mut','refine','infer','explain','likely'];
+      const KW   = ['fn','let','type','record','store','interface','match','if','else','where','return','import','export','async','await','on','as','for','in','break','continue','mut','refine','infer','explain','likely'];
       const KW2  = ['when','true','false','null','undefined','void'];
       const TY   = ['int','float','string','bool','list','void','Result','Ok','Err','Maybe','Some','None'];
 
@@ -2630,6 +2746,72 @@ fn get_affordable(items: list<Item>, budget: int) -> list<Item> {
 // let rare:   list<Item> = filter_by_rarity(items, "rare")
 // let sorted: list<Item> = sort_by_price(rare)
 // let result: list<Item> = sorted.filter(i => i.price <= budget)
+`);
+
+  setCode('store-code', `
+// Declare a reactive store — explicit mutable state boundary
+store Counter {
+  count: int    = 0
+  step:  int    = 1
+  label: string = "counter"
+}
+
+// Read fields as plain property accesses (getters)
+fn display_counter() = Counter.label + ": " + Counter.count
+
+// Update state with .set() — partial patch, subscribers notified
+fn increment()  { Counter.set({ count: Counter.count + Counter.step }) }
+fn reset()      { Counter.set({ count: 0 }) }
+fn set_step(n)  { Counter.set({ step: n }) }
+
+// Multiple subscriptions — all fire on every .set() call
+on Counter.change { renderCount() }
+on Counter.change { updateTitle() }
+`);
+
+  setCode('async-fn-code', `
+// async fn — transpiles to async () => { ... }
+@effects ["timer"]
+async fn slow_fetch(url: string) -> Result<string> {
+  await delay(300)          // non-blocking pause (stdlib)
+  let raw = fetch_data(url) // some Promise
+  let r = await raw
+  if r.ok { ok(r.text) } else { err("HTTP " + r.status) }
+}
+
+// Async tick pattern — fire-and-forget recursive loop
+@effects ["timer"]
+async fn tick() {
+  if !Sim.running { return }  // bare return — exits async fn cleanly
+  let next = compute_next(Sim.state)
+  Sim.set({ state: next, tick: Sim.tick + 1 })
+  await delay(Sim.speed)
+  tick()               // schedule next tick without await (fire-and-forget)
+}
+`);
+
+  setCode('on-change-code', `
+store Game { score: int = 0; level: int = 1; alive: bool = true }
+
+fn render_hud() {
+  let el = document.getElementById("hud")
+  if el {
+    el.innerHTML = "Level " + Game.level + "  Score: " + Game.score
+  }
+}
+
+fn check_game_over() {
+  if !Game.alive { show_game_over_screen() }
+}
+
+// Both callbacks run immediately on subscribe,
+// then again after every Game.set(...)
+on Game.change { render_hud() }
+on Game.change { check_game_over() }
+
+// Compiled output (desugar):
+// Game.subscribe(() => { render_hud() })
+// Game.subscribe(() => { check_game_over() })
 `);
 
   </script>

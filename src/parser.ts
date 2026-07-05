@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.5.0 — Recursive-descent parser
+// Axon v0.8.0 — Recursive-descent parser
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -9,9 +9,11 @@ import {
   RecordDecl, FieldDecl, FnDecl, ModuleDecl,
   ImportDecl, ExportDecl, TopLevelExpr, TopLevelLet,
   InterfaceDecl, InterfaceField,
+  StoreDecl, StoreField,
   Annotation, FnParam, TypeExpr,
   Expr, BlockExpr, BlockStmt, MatchArm, MatchPattern,
   ObjectProperty, LambdaParam,
+  AwaitExpr,
   Constraint, PipeAsStep,
 } from './types.js'
 
@@ -50,6 +52,28 @@ export class Parser {
     if (tok.type === 'KW_FN')        return this.parseFnDecl()
     if (tok.type === 'KW_MODULE')    return this.parseModule()
     if (tok.type === 'KW_INTERFACE') return this.parseInterfaceDecl()  // v0.7
+    // v0.8: async fn declaration — async fn name(params) { body }
+    if (tok.type === 'KW_ASYNC') {
+      const { line } = this.advance() // consume async
+      const decl = this.parseFnDecl()
+      decl.isAsync = true
+      return decl
+    }
+    // v0.8: store Name { field: Type = default }
+    // Contextual — "store" kept as IDENT to avoid breaking identifiers named store.
+    if (tok.type === 'IDENT' && tok.value === 'store' &&
+        this.tokens[this.pos + 1]?.type === 'IDENT' &&
+        this.tokens[this.pos + 2]?.type === 'LBRACE') {
+      return this.parseStoreDecl()
+    }
+    // v0.8: on StoreName.change { body } — reactive subscription sugar
+    if (tok.type === 'IDENT' && tok.value === 'on' &&
+        this.tokens[this.pos + 1]?.type === 'IDENT' &&
+        this.tokens[this.pos + 2]?.type === 'DOT') {
+      const { line } = this.advance() // consume 'on'
+      const expr = this.parseOnChangeExpr()
+      return { kind: 'TopLevelExpr', expr, line } as TopLevelExpr
+    }
     // v0.4: top-level @test "description" { expr }
     if (tok.type === 'AT' && tok.value === '@test') return this.parseTestDecl()
     // v0.5: import { ... } from "..."
@@ -59,12 +83,20 @@ export class Parser {
     // v0.5: top-level let binding (e.g. let state = {...})
     if (tok.type === 'KW_LET') return this.parseTopLevelLet()
     // v0.6: pre-fn annotations — @throws fn foo(...) / @pure fn bar(...)
-    // Collect the annotations, then expect fn/record/type to follow.
+    // Collect the annotations, then expect fn/record/type/async fn to follow.
     if (tok.type === 'AT' && tok.value !== '@test') {
       const preAnns = this.parseAnnotations()
       const next = this.peek()
       if (next.type === 'KW_FN') {
         const decl = this.parseFnDecl()
+        decl.annotations = [...preAnns, ...decl.annotations]
+        return decl
+      }
+      // v0.8: @effects ["timer"] async fn ...
+      if (next.type === 'KW_ASYNC') {
+        this.advance() // consume async
+        const decl = this.parseFnDecl()
+        decl.isAsync = true
         decl.annotations = [...preAnns, ...decl.annotations]
         return decl
       }
@@ -85,6 +117,54 @@ export class Parser {
     }
     this.advance()
     return null
+  }
+
+  // v0.8: store Name { field: Type = default; ... }
+  private parseStoreDecl(): StoreDecl {
+    const { line } = this.advance() // consume 'store' (IDENT)
+    const name = this.expect('IDENT').value
+    this.expect('LBRACE')
+    const fields: StoreField[] = []
+    while (!this.check('RBRACE') && !this.isEOF()) {
+      const fieldName = this.expect('IDENT').value
+      this.expect('COLON')
+      const type = this.parseTypeExpr()
+      this.expect('ASSIGN')
+      const defaultVal = this.parseExpr()
+      fields.push({ name: fieldName, type, default: defaultVal })
+      this.tryConsume('SEMICOLON')
+      this.tryConsume('COMMA')
+    }
+    this.expect('RBRACE')
+    return { kind: 'StoreDecl', name, fields, line }
+  }
+
+  // v0.8: on StoreName.change { body } — desugars at parse time to:
+  //       StoreName.subscribe(() => { body })
+  private parseOnChangeExpr(): Expr {
+    const storeName = this.expect('IDENT').value
+    this.expect('DOT')
+    this.expect('IDENT') // consume 'change'
+    this.expect('LBRACE')
+    const rawBody = this.parseBlockBody(true)
+    this.expect('RBRACE')
+    const body: BlockExpr = rawBody.kind === 'BlockExpr'
+      ? rawBody
+      : { kind: 'BlockExpr', stmts: [{ kind: 'ExprStmt', value: rawBody }] }
+    // Desugar: StoreName.subscribe(() => { body })
+    return {
+      kind: 'CallExpr',
+      callee: {
+        kind: 'MemberExpr',
+        object: { kind: 'Identifier', name: storeName },
+        property: 'subscribe',
+      },
+      args: [{
+        kind: 'LambdaExpr',
+        params: [],
+        body,
+      }],
+    }
   }
 
   private parseTopLevelLet(): TopLevelLet {
@@ -502,9 +582,14 @@ export class Parser {
     const stmts: BlockStmt[] = []
 
     while (!this.check('RBRACE') && !this.isEOF()) {
-      // Return statement
+      // Return statement — bare `return` emits `return undefined`
       if (this.check('KW_RETURN')) {
         this.advance()
+        if (this.check('RBRACE') || this.check('SEMICOLON') || this.isEOF()) {
+          this.tryConsume('SEMICOLON')
+          stmts.push({ kind: 'ReturnStmt', value: { kind: 'Identifier', name: 'undefined' } })
+          continue
+        }
         const value = this.tryPropagation(this.parseExpr())  // v0.6: return expr?
         this.tryConsume('SEMICOLON')
         stmts.push({ kind: 'ReturnStmt', value })
@@ -542,6 +627,17 @@ export class Parser {
         this.advance()
         this.tryConsume('SEMICOLON')
         stmts.push({ kind: 'ContinueStmt' })
+        continue
+      }
+
+      // v0.8: on StoreName.change { body } — reactive subscription in block context
+      if (this.check('IDENT') && this.peek().value === 'on' &&
+          this.tokens[this.pos + 1]?.type === 'IDENT' &&
+          this.tokens[this.pos + 2]?.type === 'DOT') {
+        this.advance() // consume 'on'
+        const onExpr = this.parseOnChangeExpr()
+        this.tryConsume('SEMICOLON')
+        stmts.push({ kind: 'ExprStmt', value: onExpr })
         continue
       }
 
@@ -863,6 +959,12 @@ export class Parser {
     if (this.check('KW_TYPEOF')) {
       this.advance()
       return { kind: 'UnaryExpr', op: 'typeof', operand: this.parseUnary(), prefix: true }
+    }
+    // v0.8: await expr — resolves a Promise; only valid inside async functions
+    if (this.check('KW_AWAIT')) {
+      this.advance()
+      const value = this.parseUnary()
+      return { kind: 'AwaitExpr', value } as AwaitExpr
     }
     return this.parsePostfix()
   }

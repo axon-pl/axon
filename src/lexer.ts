@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.5.2 — Lexer
+// Axon v0.8.0 — Lexer
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Token, TokenType } from './types.js'
@@ -32,7 +32,9 @@ const KEYWORDS: Record<string, TokenType> = {
   mut:        'KW_MUT',      // v0.5.2: let mut — mutable binding
   refine:     'KW_REFINE',     // v0.6:   refine x: "semantic claim"
   interface:  'KW_INTERFACE',  // v0.7:   interface Name { field: Type }
-  infer:      'KW_INFER',      // v0.7:   let infer x = expr
+  infer:      'KW_INFER',      // v0.7:   let infer x = expr — model-resolved type
+  async:      'KW_ASYNC',      // v0.8:   async fn — asynchronous function declaration
+  await:      'KW_AWAIT',      // v0.8:   await expr — inside async functions
 }
 
 export class Lexer {

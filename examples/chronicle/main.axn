@@ -1,0 +1,151 @@
+// ── Chronicle — v0.8 demo: store, async fn, await, on...change ───────────────
+// A reactive fantasy kingdom event log. Each tick advances the day,
+// picks weather, generates a kingdom event, and re-renders — all driven
+// by reactive store subscriptions.
+
+// ── Reactive store ────────────────────────────────────────────────────────────
+
+store Kingdom {
+  day:     int    = 1
+  season:  string = "spring"
+  weather: string = "clear"
+  events:  list<string> = []
+  running: bool   = false
+  speed:   int    = 900
+}
+
+// ── Pure helpers ──────────────────────────────────────────────────────────────
+
+@pure fn season_for(day: int) -> string {
+  let idx = Math.floor(day / 91) % 4
+  if idx == 0 { "spring" }
+  else if idx == 1 { "summer" }
+  else if idx == 2 { "autumn" }
+  else { "winter" }
+}
+
+@pure fn weather_for(day: int, season: string) -> string {
+  let seed = (day * 2654435761 + 7) % 100
+  match season {
+    | "winter" => seed < 45 ? "snow"    : seed < 75 ? "frost"   : "blizzard"
+    | "summer" => seed < 50 ? "clear"   : seed < 80 ? "haze"    : "drought"
+    | "spring" => seed < 40 ? "rain"    : seed < 70 ? "clear"   : "fog"
+    | _        => seed < 50 ? "clear"   : "cloudy"
+  }
+}
+
+@pure fn event_for(day: int, weather: string) -> string {
+  let seed = (day * 1103515245 + 12345) % 14
+  let base = match seed {
+    | 0  => "A merchant caravan arrived bearing exotic spices"
+    | 1  => "The blacksmith forged a blade of legendary steel"
+    | 2  => "Scouts reported strange lights in the northern woods"
+    | 3  => "The harvest exceeded all expectations"
+    | 4  => "A traveling bard performed tales of the old wars"
+    | 5  => "The council passed new trade agreements"
+    | 6  => "A dragon silhouette crossed the mountain pass"
+    | 7  => "The healers guild opened their doors to the poor"
+    | 8  => "A grand feast was held in the keep"
+    | 9  => "The watchtower bell rang — riders approach"
+    | 10 => "A stranger arrived at the inn with an unusual map"
+    | 11 => "The kingdom's coffers grew with a fresh tax levy"
+    | 12 => "A temple ceremony drew pilgrims from distant lands"
+    | _  => "The kingdom rested in an unusual quiet"
+  }
+  match weather {
+    | "snow"    => base + " — braving the heavy snowfall"
+    | "rain"    => base + " — beneath relentless rain"
+    | "drought" => base + " — under the scorching drought"
+    | "blizzard"=> base + " — through a raging blizzard"
+    | _         => base
+  }
+}
+
+@pure fn season_icon(season: string) -> string =
+  match season {
+    | "spring" => "🌸"
+    | "summer" => "☀️"
+    | "autumn" => "🍂"
+    | "winter" => "❄️"
+    | _        => "🌍"
+  }
+
+@pure fn weather_icon(weather: string) -> string =
+  match weather {
+    | "clear"    => "☀️"
+    | "rain"     => "🌧"
+    | "snow"     => "❄️"
+    | "fog"      => "🌫"
+    | "frost"    => "🧊"
+    | "haze"     => "🌫"
+    | "blizzard" => "🌨"
+    | "drought"  => "🌵"
+    | _          => "🌤"
+  }
+
+// ── Async tick ────────────────────────────────────────────────────────────────
+
+@effects ["timer"]
+async fn tick() {
+  if !Kingdom.running { return }
+  let next_day     = Kingdom.day + 1
+  let next_season  = season_for(next_day)
+  let next_weather = weather_for(next_day, next_season)
+  let event        = event_for(next_day, next_weather)
+  let prev         = Kingdom.events
+  let next_events  = [event, ...prev].slice(0, 10)
+  Kingdom.set({
+    day:     next_day,
+    season:  next_season,
+    weather: next_weather,
+    events:  next_events
+  })
+  await delay(Kingdom.speed)
+  tick()
+}
+
+fn start() {
+  Kingdom.set({ running: true, events: [] })
+  tick()
+}
+
+fn pause() {
+  Kingdom.set({ running: false })
+}
+
+fn set_speed(ms: int) {
+  Kingdom.set({ speed: ms })
+}
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
+
+fn render() {
+  let day      = Kingdom.day
+  let season   = Kingdom.season
+  let weather  = Kingdom.weather
+  let events   = Kingdom.events
+  let running  = Kingdom.running
+
+  let header_el = document.getElementById("chr-header")
+  let log_el    = document.getElementById("chr-log")
+  let status_el = document.getElementById("chr-status")
+  let day_el    = document.getElementById("chr-day")
+
+  if header_el {
+    header_el.innerHTML = season_icon(season) + " " + season + " &nbsp;·&nbsp; " + weather_icon(weather) + " " + weather
+  }
+  if day_el {
+    day_el.textContent = "Day " + day
+  }
+  if log_el {
+    log_el.innerHTML = events.map(e => "<div class=\"chr-entry\">" + e + "</div>").join("")
+  }
+  if status_el {
+    status_el.textContent = running ? "● RUNNING" : "○ PAUSED"
+    status_el.className   = "chr-status " + (running ? "running" : "paused")
+  }
+}
+
+// ── Reactive binding — on Kingdom change → render ─────────────────────────────
+
+on Kingdom.change { render() }

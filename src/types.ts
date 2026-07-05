@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.5.2 — Token and AST type definitions
+// Axon v0.8.0 — Token and AST type definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type TokenType =
@@ -22,6 +22,8 @@ export type TokenType =
   | 'KW_REFINE'         // v0.6:   refine x: "semantic claim"
   | 'KW_INTERFACE'      // v0.7:   interface Name { field: Type }
   | 'KW_INFER'          // v0.7:   let infer x = expr — model-resolved type
+  | 'KW_ASYNC'          // v0.8:   async fn / async lambda
+  | 'KW_AWAIT'          // v0.8:   await expr inside async functions
   // Literals
   | 'NUMBER' | 'STRING' | 'REGEX' | 'TEMPLATE'
   // Identifier
@@ -89,6 +91,7 @@ export type TopLevelDecl =
   | TopLevelExpr      // v0.5: bare expression statement at top level (e.g. mount())
   | TopLevelLet       // v0.5: top-level let binding (e.g. let state = {...})
   | InterfaceDecl     // v0.7: interface Name { field: Type; method: fn(T) -> U }
+  | StoreDecl         // v0.8: store Name { field: Type = default }
 
 export interface TypeAlias {
   kind: 'TypeAlias'
@@ -204,7 +207,23 @@ export interface FnDecl {
   annotations: Annotation[]
   body: Expr
   shortForm?: boolean
+  isAsync?: boolean        // v0.8: async fn — emits async arrow function
   line: number
+}
+
+// v0.8: store Name { field: Type = default }
+// Reactive mutable state as an explicit effects boundary.
+export interface StoreDecl {
+  kind: 'StoreDecl'
+  name: string
+  fields: StoreField[]
+  line: number
+}
+
+export interface StoreField {
+  name: string
+  type: TypeExpr
+  default: Expr
 }
 
 // ── Checker diagnostics ────────────────────────────────────────────────────────
@@ -278,6 +297,7 @@ export type Expr =
   | MatchExpr
   | RawJS
   | ResultPropagateExpr  // v0.6: expr? — propagate Err, unwrap Ok
+  | AwaitExpr            // v0.8: await expr — inside async functions
 
 export interface NumberLit  { kind: 'NumberLit';  value: number }
 export interface StringLit  { kind: 'StringLit';  value: string; raw: string }
@@ -400,6 +420,12 @@ export type BlockStmt =
 // v0.6: expr? — if Err, propagate immediately; if Ok, unwrap the value
 export interface ResultPropagateExpr {
   kind: 'ResultPropagateExpr'
+  value: Expr
+}
+
+// v0.8: await expr — resolves a Promise inside an async function
+export interface AwaitExpr {
+  kind: 'AwaitExpr'
   value: Expr
 }
 
