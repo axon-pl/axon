@@ -127,70 +127,6 @@ auto-syncs to the current state and validates on Enter or button click.
 
 ---
 
-## v0.5.0 — The Module Update
-
-### New features
-
-- **`import { ... } from "./path"` — multi-file modules**
-  Split a project across multiple `.axn` files. Named imports resolve relative
-  to the importing file and are bundled by the CLI:
-
-  ```axon
-  import { generate, count_tag } from "./generator"
-  import { render_map, render_legend } from "./renderer"
-  ```
-
-- **`export fn / export type / export record` — public API surface**
-  Mark any top-level declaration as exported. The bundler treats all exported
-  symbols as part of the module's public interface:
-
-  ```axon
-  export type Tile = | Floor | Wall | Door | Stairs | Chest | Water | Torch
-  export fn generate(rows: int, cols: int, level: int, seed: int) -> DungeonMap = ...
-  ```
-
-- **`axon --bundle <entry.axn> [out.js]` — multi-file bundler**
-  Recursively resolves all imports starting from an entry file, topologically
-  sorts modules (dependencies before dependents), and concatenates to a single
-  JS output. The stdlib is emitted once at the top of the bundle.
-
-  ```bash
-  axon --bundle examples/dungeon/main.axn demo/dungeon.sources.js
-  # ✓ Bundled tiles.axn + generator.axn + renderer.axn + main.axn → dungeon.sources.js
-  #   4 modules → 407 lines JS
-  ```
-
-- **`--test` auto-bundle** — when `--test` is run on a file that contains imports,
-  the test runner automatically bundles the dependency graph first, so all
-  imported symbols are available during `@test` execution.
-
-### Parser improvements (also shipped in v0.5.0)
-
-- **Optional parentheses on `if` statements** — both `if (cond) { }` and
-  `if cond { }` are now valid. The RPG and all existing demos are unaffected.
-
-- **Return-type annotation on short-form functions** — `fn f(x) -> T = expr`
-  is now valid alongside the existing `fn f(x) = expr` and the full
-  `fn f :: (params) -> T { body }` forms.
-
-- **Block-body short-form functions** — `fn f(params) -> T { block }` is now
-  parsed as a short-form function with a block body, removing the need to use
-  the `::` sigil for simple named functions that need multiple statements.
-
-- **Nested `fn` declarations in block bodies** — a `fn` statement inside a
-  block is now parsed and emitted as a `let` binding to a lambda, enabling
-  local helper functions inside larger functions.
-
-### Demo
-
-- **Dungeon Map Toolkit** — four-file demo introducing Axon modules:
-  - `tiles.axn` — `export type Tile` tagged union, glyph/label helpers, 5 `@test`s
-  - `generator.axn` — procedural map generator, `@test`s
-  - `renderer.axn` — HTML colour-span renderer, legend and stats bar
-  - `main.axn` — imports from all three, DOM wiring, level names with `when` guards
-
----
-
 ## v0.5.1
 
 Patch release fixing compiler correctness bugs that made entry-point files fail silently,
@@ -241,6 +177,68 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
   store AppState { level: int = 1, seed: int = 7777 }
   on AppState.change { render(AppState) }
   ```
+
+---
+
+## v0.5.0 — The Module Update
+
+### New features
+
+- **`import { ... } from "./path"` — multi-file modules**
+  Split a project across multiple `.axn` files. Named imports resolve relative
+  to the importing file and are bundled by the CLI:
+
+  ```axon
+  import { generate, count_tag } from "./generator"
+  import { render_map, render_legend } from "./renderer"
+  ```
+
+- **`export fn / export type / export record` — public API surface**
+  Mark any top-level declaration as exported. The bundler treats all exported
+  symbols as part of the module's public interface:
+
+  ```axon
+  export type Tile = | Floor | Wall | Door | Stairs | Chest | Water | Torch
+  export fn generate(rows: int, cols: int, level: int, seed: int) -> DungeonMap = ...
+  ```
+
+- **`axon --bundle <entry.axn> [out.js]` — multi-file bundler**
+  Recursively resolves all imports starting from an entry file, topologically
+  sorts modules (dependencies before dependents), and concatenates to a single
+  JS output. The stdlib is emitted once at the top of the bundle.
+
+  ```bash
+  axon --bundle examples/dungeon/main.axn demo/dungeon.sources.js
+  # ✓ Bundled tiles.axn + generator.axn + renderer.axn + main.axn → dungeon.sources.js
+  #   4 modules → 407 lines JS
+  ```
+
+- **`--test` auto-bundle** — when `--test` is run on a file that contains imports,
+  the test runner automatically bundles the dependency graph first, so all
+  imported symbols are available during `@test` execution.
+
+### Parser improvements
+
+- **Optional parentheses on `if` statements** — both `if (cond) { }` and
+  `if cond { }` are now valid.
+
+- **Return-type annotation on short-form functions** — `fn f(x) -> T = expr`
+  is now valid alongside the existing `fn f(x) = expr` and the full
+  `fn f :: (params) -> T { body }` forms.
+
+- **Block-body short-form functions** — `fn f(params) -> T { block }` is now
+  parsed as a short-form function with a block body.
+
+- **Nested `fn` declarations in block bodies** — a `fn` statement inside a
+  block is parsed and emitted as a `let` binding to a lambda.
+
+### Demo
+
+- **Dungeon Map Toolkit** — four-file demo introducing Axon modules:
+  - `tiles.axn` — `export type Tile` tagged union, glyph/label helpers, 5 `@test`s
+  - `generator.axn` — procedural map generator, `@test`s
+  - `renderer.axn` — HTML colour-span renderer, legend and stats bar
+  - `main.axn` — imports from all three, DOM wiring, level names with `when` guards
 
 ---
 
