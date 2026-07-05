@@ -1128,38 +1128,31 @@ on Kingdom.change { render() }
 `);
 
     setCode('code-tooling', `
-// ── axon --check  (v0.9) ──────────────────────────────────────────────────────
-// Static analysis only — no JS emitted, no output file written.
-// Reports @pure violations, @exhaustive gaps, bad @effects declarations.
-//
-//   $ axon --check src/game.axn
-//   ✓  game.axn — no issues
+// axon --check src/game.axn          static analysis, no JS emitted   (v0.9)
+// axon --fmt   src/game.axn --write  reformat in-place                (v0.9)
+// axon --watch src/game.axn out.js   recompile on every save          (v0.9)
 
-// ── axon --fmt  (v0.9) ────────────────────────────────────────────────────────
-// Canonical formatter. Normalises indentation, operator spacing, brace padding.
-// --write rewrites in-place; without it, formatted source goes to stdout.
-//
-//   $ axon --fmt src/game.axn --write
-//   ✓  game.axn — formatted
+// ── Browser compiler bundle — runs the full compiler client-side (v0.9) ──────
+// <script src="axon.compiler.js"></script>
 
-// ── axon --watch  (v0.9) ──────────────────────────────────────────────────────
-// Recompiles on every file save. Ctrl+C to stop.
-//
-//   $ axon --watch src/game.axn dist/game.js
-//   [14:02:11]  ✓  game.axn → game.js
-//   Watching game.axn for changes… (Ctrl+C to stop)
+fn greet(name: string) -> string = "Hello, {name}!"
 
-// ── Browser compiler bundle  (v0.9) ──────────────────────────────────────────
-// Full Axon compiler running client-side — no server, no build step.
-// Load axon.compiler.js in any web page:
+fn run_demo() {
+  let source = "fn add(x: int, y: int) = x + y"
+  let result = AxonCompiler.compile(source)
 
-let source = "fn add(x: int, y: int) = x + y"
-let result = AxonCompiler.compile(source)
-// result.js       → transpiled JavaScript string
-// result.errors   → []   each: { message, line, col, kind }
-// result.warnings → []   each: { severity, message, line, col }
+  match result.errors.length {
+    | 0 => console.log("Compiled: " + result.js)
+    | n => console.error(n + " error(s)")
+  }
 
-// Powers the Axon Playground — try it live at playground.html
+  // result.js         — transpiled JavaScript string
+  // result.errors     — [{ message, line, col, kind }]
+  // result.warnings   — [{ severity, message, line, col }]
+  // AxonCompiler.version   — "0.9.0"
+}
+
+run_demo()
 `);
   </script>
 </body>
