@@ -727,7 +727,9 @@
         <a class="nav-link" href="#strings">Strings</a>
         <a class="nav-link" href="#optional">Optional Chaining</a>
         <a class="nav-link" href="#control-flow">Control Flow</a>
+        <a class="nav-link" href="#result-type" style="color:var(--cyan)">Result &amp; <code>?</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.6</span></a>
         <a class="nav-link" href="#modules">Modules <span style="color:var(--pink);font-size:0.65rem;vertical-align:top">v0.5</span></a>
+        <a class="nav-link" href="#refine" style="color:var(--cyan)"><code>refine</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.6</span></a>
         <a class="nav-link" href="#generics" style="color:var(--green)">Generics <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
         <a class="nav-link" href="#interfaces" style="color:var(--green)">Interfaces <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
         <a class="nav-link" href="#fn-types" style="color:var(--green)"><code>fn(T)-&gt;U</code> Types <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.7</span></a>
@@ -741,6 +743,7 @@
         <a class="nav-link" href="#ann-memo"><code>@memo</code></a>
         <a class="nav-link" href="#ann-exhaustive"><code>@exhaustive</code></a>
         <a class="nav-link" href="#ann-test"><code>@test</code></a>
+        <a class="nav-link" href="#ann-throws" style="color:var(--cyan)"><code>@throws</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.6</span></a>
       </div>
       <div class="nav-group">
         <div class="nav-group-label">Runtime</div>
@@ -1116,6 +1119,50 @@
         </div>
       </section>
 
+      <!-- ── Result type & ? propagation ─────────────────────────────────── -->
+      <section class="doc-section" id="result-type">
+        <div class="section-eyebrow">Error Handling · v0.6</div>
+        <h2 class="section-title">Result Type &amp; <code>?</code> Propagation</h2>
+        <div class="section-rule"></div>
+        <p class="section-lead">
+          Axon has a built-in <code>Result&lt;T&gt;</code> tagged union for explicit error handling.
+          Construct values with <code>ok()</code> / <code>err()</code>, consume them with <code>match</code>
+          or stdlib helpers, and chain fallible calls cleanly with the <code>?</code> propagation operator.
+        </p>
+
+        <h3 class="subsection-title">Constructing and consuming Result</h3>
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="result-basic-code"></pre>
+        </div>
+
+        <h3 class="subsection-title"><code>?</code> — early-return on Err</h3>
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="result-propagate-code"></pre>
+        </div>
+
+        <div class="doc-table-wrap"><table class="doc-table">
+          <thead><tr><th>Helper</th><th>Signature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>ok(v)</code></td><td><code>T → Result&lt;T&gt;</code></td><td>Wrap a success value</td></tr>
+            <tr><td><code>err(msg)</code></td><td><code>string → Result&lt;never&gt;</code></td><td>Wrap an error message</td></tr>
+            <tr><td><code>is_ok(r)</code></td><td><code>Result → bool</code></td><td>True when the result is <code>Ok</code></td></tr>
+            <tr><td><code>is_err(r)</code></td><td><code>Result → bool</code></td><td>True when the result is <code>Err</code></td></tr>
+            <tr><td><code>unwrap(r)</code></td><td><code>Result&lt;T&gt; → T</code></td><td>Extract value; throws if <code>Err</code></td></tr>
+            <tr><td><code>unwrap_or(r, fallback)</code></td><td><code>Result&lt;T&gt; → T → T</code></td><td>Extract value or return fallback</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="callout callout-note">
+          <div class="callout-head">? operator semantics</div>
+          <code>expr?</code> evaluates <code>expr</code>. If the result is <code>Err</code>, it
+          immediately returns that <code>Err</code> from the enclosing function. If it is <code>Ok</code>,
+          it unwraps the value and execution continues. The enclosing function must also return
+          <code>Result</code> — annotate it with <code>@throws</code>.
+        </div>
+      </section>
+
       <!-- ── @pure / @total ────────────────────────────────────────────────── -->
       <section class="doc-section" id="ann-pure">
         <div class="section-eyebrow">Annotations</div>
@@ -1226,6 +1273,29 @@
         </div>
       </section>
 
+      <!-- ── @throws ──────────────────────────────────────────────────────── -->
+      <section class="doc-section" id="ann-throws">
+        <div class="section-eyebrow">Annotations · v0.6</div>
+        <h2 class="section-title"><code>@throws</code></h2>
+        <div class="section-rule"></div>
+        <p>
+          Mark a function as fallible. <code>@throws fn f() -&gt; Result&lt;T&gt;</code> signals
+          to the checker and to callers that this function may return <code>Err</code>. The static
+          checker warns if a <code>@throws</code> result is silently ignored without a <code>match</code>
+          or <code>?</code> operator.
+        </p>
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="ann-throws-code"></pre>
+        </div>
+
+        <div class="callout callout-note">
+          <div class="callout-head">Placement</div>
+          <code>@throws</code> goes immediately before the <code>fn</code> keyword, on the same line.
+          It can be combined with other annotations: <code>@pure @throws fn foo()</code>.
+        </div>
+      </section>
+
       <!-- ── Standard Library ──────────────────────────────────────────────── -->
       <section class="doc-section" id="stdlib">
         <div class="section-eyebrow">Runtime</div>
@@ -1256,6 +1326,13 @@
             <tr><td>mount(el, sel)</td><td>DOM → string → void</td><td>Mount element at CSS selector</td></tr>
             <tr><td>__axon_tests</td><td>list</td><td>Registered @test declarations</td></tr>
             <tr><td>__runAxonTests()</td><td>() → void</td><td>Execute all tests, print summary</td></tr>
+            <tr><td colspan="3" style="padding:6px 12px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--cyan);opacity:0.8;background:rgba(0,255,255,0.04)">Result helpers — v0.6</td></tr>
+            <tr><td>ok(v)</td><td>T → Result&lt;T&gt;</td><td>Wrap a success value in <code>Ok</code></td></tr>
+            <tr><td>err(msg)</td><td>string → Result</td><td>Wrap an error message in <code>Err</code></td></tr>
+            <tr><td>is_ok(r)</td><td>Result → bool</td><td>True if result is <code>Ok</code></td></tr>
+            <tr><td>is_err(r)</td><td>Result → bool</td><td>True if result is <code>Err</code></td></tr>
+            <tr><td>unwrap(r)</td><td>Result&lt;T&gt; → T</td><td>Extract value; throws if <code>Err</code></td></tr>
+            <tr><td>unwrap_or(r, fallback)</td><td>Result&lt;T&gt;, T → T</td><td>Extract value or return fallback</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -1330,6 +1407,41 @@ main()</pre>
         </table></div>
 
         <p style="margin-top:14px;color:var(--text-dim);font-size:0.9rem">The <strong style="color:var(--text)">bundler</strong> resolves imports depth-first, topo-sorts modules so dependencies come before dependents, and emits a single JS file with the stdlib included once at the top. All bundled code shares a single flat scope — no runtime module system overhead.</p>
+      </section>
+
+      <!-- ── refine ───────────────────────────────────────────────────────── -->
+      <section class="doc-section" id="refine">
+        <div class="section-eyebrow">AI-native · v0.6</div>
+        <h2 class="section-title"><code>refine</code></h2>
+        <div class="section-rule"></div>
+        <p class="section-lead">
+          <code>refine x: "prose claim"</code> is an AI-native semantic narrowing statement.
+          It annotates a binding with a human-readable constraint that is too nuanced for a
+          type signature — emitted as structured JSDoc and queryable by AI tooling.
+          It compiles to a no-op comment at runtime; the value is unchanged.
+        </p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>axon</div>
+          <pre id="refine-code"></pre>
+        </div>
+
+        <div class="doc-table-wrap"><table class="doc-table">
+          <thead><tr><th>Syntax</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>refine x: "claim"</code></td><td>Annotates the binding <code>x</code> with a semantic constraint. <code>x</code> must be in scope. Claim is a free-form English string.</td></tr>
+            <tr><td>Multiple <code>refine</code> on one binding</td><td>Each emits a separate JSDoc tag — all constraints are recorded.</td></tr>
+            <tr><td>Works with any type</td><td>Works on <code>int</code>, <code>string</code>, <code>float</code>, records, tagged unions, etc.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="callout callout-ai">
+          <div class="callout-head">AI-native design</div>
+          <code>refine</code> fills the gap between machine-checkable types and human intent.
+          A type system can guarantee <code>price: int</code> — but it cannot guarantee
+          "price must be a positive USD amount before tax." <code>refine</code> captures that
+          intent in a form that language models can read, validate, and reason about.
+        </div>
       </section>
 
       <!-- ── Generics ─────────────────────────────────────────────────────── -->
@@ -1738,9 +1850,9 @@ main()</pre>
         // 4. Comments  (after strings so a "//" inside a string doesn't fire)
         .replace(/(\/\/[^\n]*)/g, m => sp('cmt', m))
         // 5. Annotations — only outside existing tags
-        .replace(/(@(?:pure|total|intent|effects|memo|exhaustive|test)\b)/g, m => sp('ann', m))
+        .replace(/(@(?:pure|total|intent|effects|memo|exhaustive|test|throws)\b)/g, m => sp('ann', m))
         // 6. Operators — only outside existing tags
-        .replace(/(\|&gt;|=&gt;|-&gt;|\?\?|\?\.|::|[|](?![|]))/g, m => sp('op', m))
+        .replace(/(\|&gt;|=&gt;|-&gt;|\?\?|\?\.|::|[|](?![|])|\?(?![?\.]))/g, m => sp('op', m))
         // 7. Keywords — skip inside already-inserted spans
         .replace(new RegExp(`(<[^>]+>)|(\\b(?:${KW.join('|')})\\b)`, 'g'),
           (m, tag, kw) => tag ? tag : sp('kw', kw))
@@ -2265,6 +2377,112 @@ node dist/cli.js --bundle examples/dungeon/main.axn demo/dungeon.sources.js
 npm run build          # tsc — compile compiler sources
 npm run build-rpg      # transpile rpg.axn → demo/
 npm test               # run @test on rpg.axn + v04_features.axn
+`);
+
+  // ── v0.6 — Result type ───────────────────────────────────────────────────
+  setCode('result-basic-code', `
+// Built-in Result type: Ok { value } | Err { message }
+@throws fn parse_int(s: string) -> Result<int> {
+  let n = parseInt(s, 10)
+  if isNaN(n) { err("not a number: " + s) }
+  else         { ok(n) }
+}
+
+// Consume with match
+fn display(input: string) -> string =
+  match parse_int(input) {
+    | Ok  { value }   => "Got: " + value
+    | Err { message } => "Error: " + message
+  }
+
+// Consume with stdlib helpers
+fn safe_add(a: string, b: string) -> int {
+  let ra = parse_int(a)
+  let rb = parse_int(b)
+  unwrap_or(ra, 0) + unwrap_or(rb, 0)
+}
+
+@test "parse ok"    { is_ok(parse_int("42")) }
+@test "parse err"   { is_err(parse_int("xyz")) }
+@test "unwrap_or"   { unwrap_or(parse_int("bad"), -1) == -1 }
+@test "safe add"    { safe_add("3", "4") == 7 }
+`);
+
+  setCode('result-propagate-code', `
+record User    { id: int; name: string }
+record Profile { bio: string; avatar: string }
+
+@throws fn fetch_user(id: int) -> Result<User> {
+  if id <= 0 { err("invalid id") }
+  else        { ok({ id, name: "Alice" }) }
+}
+
+@throws fn fetch_profile(user: User) -> Result<Profile> {
+  if user.id == 99 { err("profile not found") }
+  else              { ok({ bio: "Explorer", avatar: "avatar.png" }) }
+}
+
+// ? operator: unwrap Ok, or return the Err immediately
+@throws fn get_bio(id: int) -> Result<string> {
+  let user    = fetch_user(id)?      // returns Err if fetch_user fails
+  let profile = fetch_profile(user)? // returns Err if fetch_profile fails
+  ok(profile.bio)
+}
+
+@test "get bio ok"  { is_ok(get_bio(1)) }
+@test "get bio err" { is_err(get_bio(-1)) }
+`);
+
+  // ── v0.6 — @throws ───────────────────────────────────────────────────────
+  setCode('ann-throws-code', `
+// @throws declares a fallible function — return type must be Result<T>
+@throws fn divide(a: int, b: int) -> Result<int> {
+  if b == 0 { err("division by zero") }
+  else       { ok(a / b) }
+}
+
+// Combine with other annotations
+@pure @throws fn parse_positive(s: string) -> Result<int> {
+  let n = parseInt(s, 10)
+  if isNaN(n) || n <= 0 { err("expected a positive number") }
+  else                   { ok(n) }
+}
+
+// Callers can use ? to propagate, or handle explicitly
+@throws fn ratio(a: string, b: string) -> Result<float> {
+  let x = parse_positive(a)?
+  let y = parse_positive(b)?
+  divide(x, y)
+}
+
+@test "divide ok"     { unwrap_or(divide(10, 2), -1) == 5 }
+@test "divide by 0"   { is_err(divide(10, 0)) }
+@test "ratio ok"      { is_ok(ratio("10", "2")) }
+@test "ratio bad arg" { is_err(ratio("abc", "2")) }
+`);
+
+  // ── v0.6 — refine ────────────────────────────────────────────────────────
+  setCode('refine-code', `
+// refine x: "claim" — semantic narrowing; emits JSDoc, no runtime cost
+fn apply_discount(price: float, code: string) -> float {
+  refine price: "positive USD amount before discount, must be > 0"
+  refine code:  "valid promotional code from the current catalog"
+  price * 0.9
+}
+
+fn create_account(email: string, age: int) -> void {
+  refine email: "well-formed email address"
+  refine age:   "integer representing the user's age in years, must be >= 13"
+  // ... registration logic
+}
+
+// Multiple refinements on the same binding — all are recorded
+fn process_transaction(amount: float, currency: string) -> string {
+  refine amount:   "positive monetary amount"
+  refine amount:   "must not exceed the account balance"
+  refine currency: "ISO 4217 three-letter currency code"
+  "processed " + amount + " " + currency
+}
 `);
 
   // ── v0.7 — Generics ──────────────────────────────────────────────────────
