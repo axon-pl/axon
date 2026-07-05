@@ -441,7 +441,7 @@ const place_room_doors = (g, room) => {
     let r = room.r1 + ri;
     let c = room.c2 + 1;
     if (gget(g, r - 1, c) == "Wall" && gget(g, r + 1, c) == "Wall") {
-      return gset(g, r, c, "Door");
+      gset(g, r, c, "Door");
     }
   }
   let li = -1;
@@ -454,7 +454,7 @@ const place_room_doors = (g, room) => {
     let r = room.r1 + li;
     let c = room.c1 - 1;
     if (gget(g, r - 1, c) == "Wall" && gget(g, r + 1, c) == "Wall") {
-      return gset(g, r, c, "Door");
+      gset(g, r, c, "Door");
     }
   }
   let bi = -1;
@@ -467,7 +467,7 @@ const place_room_doors = (g, room) => {
     let r = room.r2 + 1;
     let c = room.c1 + bi;
     if (gget(g, r, c - 1) == "Wall" && gget(g, r, c + 1) == "Wall") {
-      return gset(g, r, c, "Door");
+      gset(g, r, c, "Door");
     }
   }
   let ti = -1;
@@ -495,7 +495,7 @@ const place_room_doors = (g, room) => {
  */
 const scatter_room = (g, room, level, seed, is_last) => {
   if (is_last) {
-    return gset(g, room_cr(room), room_cc(room), "Stairs");
+    gset(g, room_cr(room), room_cc(room), "Stairs");
   }
   let dr = room.r2 - room.r1 + 1;
   let dc = room.c2 - room.c1 + 1;
@@ -792,7 +792,7 @@ const render_stats = (map, seed) => {
   let specials = 0;
   grid.forEach(row => row.forEach((cell) => {
     if (cell.tag == "Floor") {
-      return floors = floors + 1;
+      floors = floors + 1;
     }
     if (cell.tag != "Floor" && cell.tag != "Wall") {
       return specials = specials + 1;
@@ -820,13 +820,13 @@ const render_stats = (map, seed) => {
 const parse_level = (s) => {
   let n = parseInt(s);
   if (isNaN(n)) {
-    return err("Level must be a number — got: \"" + s + "\"");
+    err("Level must be a number — got: \"" + s + "\"");
   }
   if (n < 1) {
-    return err("Level must be at least 1 — got: " + n);
+    err("Level must be at least 1 — got: " + n);
   }
   if (n > 10) {
-    return err("Level must be 10 or less — got: " + n);
+    err("Level must be 10 or less — got: " + n);
   }
   // refine n: "a dungeon level in [1, 10]"
   return ok(n);
@@ -840,7 +840,7 @@ const parse_level = (s) => {
 const parse_seed = (s) => {
   let n = parseInt(s);
   if (isNaN(n)) {
-    return err("Seed must be a number — got: \"" + s + "\"");
+    err("Seed must be a number — got: \"" + s + "\"");
   }
   let seed = Math.abs(n) % 2147483648;
   // refine seed: "a non-negative dungeon seed in [0, 2^31)"
@@ -855,11 +855,11 @@ const parse_seed = (s) => {
 const parse_config = (input) => {
   let trimmed = input.trim();
   if (trimmed.length == 0) {
-    return err("Enter a code in the format level:seed — e.g. 3:42");
+    err("Enter a code in the format level:seed — e.g. 3:42");
   }
   let parts = trimmed.split(":");
   if (parts.length < 2) {
-    return err("Format is level:seed — e.g. 3:42");
+    err("Format is level:seed — e.g. 3:42");
   }
   const _r0 = parse_level(parts[0].trim());
   if (_r0.tag === 'Err') return _r0;

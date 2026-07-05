@@ -727,7 +727,7 @@ const buy_item = (name) => {
   if (item_arr.length > 0) {
     let item = item_arr[0];
     if (is_in_cart(state, item)) {
-      return state = {
+      state = {
   all_items: state.all_items,
   cart: state.cart.filter(c => c.name != name),
   filter_cat: state.filter_cat,
@@ -736,7 +736,7 @@ const buy_item = (name) => {
   search: state.search
 };
     } else {
-      return state = {
+      state = {
   all_items: state.all_items,
   cart: state.cart.concat([item]),
   filter_cat: state.filter_cat,

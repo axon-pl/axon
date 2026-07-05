@@ -315,8 +315,11 @@
       margin-top: 24px;
     }
 
-    /* ── Mobile ── */
+    /* ── Tablet / mobile ─────────────────────────────────────── */
     @media (max-width: 768px) {
+      .page-header { padding: 0 16px; gap: 8px; }
+      .header-badge { font-size: 10px; padding: 2px 7px; }
+
       .page-body {
         grid-template-columns: 1fr;
         padding: 12px 12px 0;
@@ -333,10 +336,30 @@
       }
       .source-panel {
         grid-column: 1;
-        grid-row: 4;
+        grid-row: 3;
       }
       .kingdom-day { font-size: 28px; }
       .kingdom-name { font-size: 20px; }
+    }
+
+    /* ── Small phones (≤ 480px) ───────────────────────────────── */
+    @media (max-width: 480px) {
+      .page-header { padding: 0 12px; }
+      .header-title { font-size: 15px; }
+      .header-sub { font-size: 10px; }
+      .header-badge { display: none; }
+
+      .page-body { padding: 10px 10px 0; gap: 10px; }
+
+      .kingdom-header { padding: 14px 16px; }
+      .kingdom-name { font-size: 17px; }
+      .kingdom-day { font-size: 24px; }
+      .kingdom-meta { font-size: 14px; }
+
+      .ctrl-btn { font-size: 11px; padding: 8px 0; }
+      .speed-btn { padding: 5px 9px; }
+
+      .source-block pre { font-size: 11px; padding: 12px; }
     }
   </style>
 </head>

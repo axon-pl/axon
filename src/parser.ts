@@ -596,9 +596,10 @@ export class Parser {
         continue
       }
 
-      // If statement
+      // If statement — always parsed in stmtMode=true (no return injection);
+      // returns are injected after the loop by injectTailReturns for the last IfStmt.
       if (this.check('KW_IF')) {
-        const ifStmt = this.parseIfStmt(stmtMode)
+        const ifStmt = this.parseIfStmt(true)
         stmts.push(ifStmt)
         continue
       }
@@ -742,11 +743,42 @@ export class Parser {
       }
     }
 
+    // Tail-position fix: if the last stmt is an IfStmt in a function-body context
+    // (!stmtMode), inject returns into its branches so it acts as the function's
+    // implicit return value. This ensures if-stmts that are NOT the last stmt
+    // in their block are never given premature returns.
+    if (!stmtMode && stmts.length > 0) {
+      const last = stmts[stmts.length - 1]
+      if (last.kind === 'IfStmt') {
+        this.injectTailReturns(last)
+      }
+    }
+
     if (!stmtMode && stmts.length === 1 && stmts[0].kind === 'ReturnStmt') {
       return stmts[0].value
     }
 
     return { kind: 'BlockExpr', stmts }
+  }
+
+  // Inject `return` into the tail-position branches of an IfStmt so it can
+  // serve as a function's implicit return value.
+  private injectTailReturns(stmt: BlockStmt): void {
+    if (stmt.kind !== 'IfStmt') return
+    this.injectTailIntoBlock(stmt.then)
+    if (stmt.else_) this.injectTailIntoBlock(stmt.else_)
+  }
+
+  // Walk to the last statement in a block and convert ExprStmt → ReturnStmt,
+  // or recurse into a nested IfStmt.
+  private injectTailIntoBlock(block: BlockExpr): void {
+    if (block.stmts.length === 0) return
+    const last = block.stmts[block.stmts.length - 1]
+    if (last.kind === 'ExprStmt') {
+      ;(last as any).kind = 'ReturnStmt'
+    } else if (last.kind === 'IfStmt') {
+      this.injectTailReturns(last)
+    }
   }
 
   // stmtMode propagates from the enclosing for-loop body so nested if blocks
