@@ -17,6 +17,7 @@ import {
 } from './types.js'
 import { SYNTH_STDLIB } from './stdlib.js'
 
+// Method-syntax stdlib calls: value.method(args) → synth_method(value, args)
 const STDLIB_METHODS = new Set([
   'trim', 'split', 'starts_with', 'ends_with', 'contains', 'to_upper', 'to_lower',
   'replace_all', 'pad_start', 'pad_end',
@@ -24,6 +25,20 @@ const STDLIB_METHODS = new Set([
   'flat', 'flat_map', 'take', 'drop', 'uniq', 'chunk', 'set_at', 'reverse',
   'sum_by', 'min', 'max', 'min_by', 'max_by', 'sort_by', 'sort_by_desc',
   'is_ok', 'is_err', 'unwrap', 'unwrap_or',
+])
+
+// All stdlib identifiers — prefixed synth_* in output to avoid global collisions
+const STDLIB_ALL = new Set([
+  'map', 'filter', 'fold', 'pipe', 'zip', 'range', 'first', 'last', 'sum', 'count',
+  'any', 'all', 'flat', 'flat_map', 'groupBy', 'pick', 'omit',
+  'sort_by', 'sort_by_desc',
+  'trim', 'split', 'starts_with', 'ends_with', 'contains', 'to_upper', 'to_lower',
+  'replace_all', 'pad_start', 'pad_end',
+  'min', 'max', 'min_by', 'max_by',
+  'take', 'drop', 'uniq', 'chunk', 'set_at', 'reverse', 'sum_by',
+  'clamp', 'abs', 'round', 'floor', 'ceil', 'pow', 'sqrt', 'random', 'random_int',
+  'ok', 'err', 'is_ok', 'is_err', 'unwrap', 'unwrap_or',
+  'delay', 'println',
 ])
 
 export class Codegen {
@@ -524,10 +539,10 @@ export class Codegen {
       case 'RawJS':       return expr.code
       // v0.6: ResultPropagateExpr handled at statement level; if reached here it's
       // inside a sub-expression (e.g. pipeline) — emit as unwrap() for now
-      case 'ResultPropagateExpr': return `unwrap(${this.emitExpr(expr.value)})`
+      case 'ResultPropagateExpr': return `synth_unwrap(${this.emitExpr(expr.value)})`
       // v0.8: await expr
       case 'AwaitExpr': return `await ${this.emitExpr(expr.value)}`
-      case 'Identifier':  return expr.name
+      case 'Identifier':  return STDLIB_ALL.has(expr.name) ? `synth_${expr.name}` : expr.name
 
       case 'UnaryExpr': {
         const unaryOp = expr.op === 'not' ? '!' : expr.op
@@ -581,7 +596,7 @@ export class Codegen {
         }
         if (expr.callee.kind === 'MemberExpr' && STDLIB_METHODS.has(expr.callee.property)) {
           const obj = this.emitExpr(expr.callee.object)
-          const fn = expr.callee.property
+          const fn = `synth_${expr.callee.property}`
           return args ? `${fn}(${obj}, ${args})` : `${fn}(${obj})`
         }
         const callee = this.emitExpr(expr.callee)

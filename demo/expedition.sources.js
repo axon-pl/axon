@@ -150,8 +150,8 @@ const visible_missions = () => {
   let sector = Fleet.sector;
   let max_danger = Fleet.max_danger;
   let sort_key = Fleet.sort_key;
-  let filtered = filter(fleet, m => sector == "All" || m.sector == sector && m.danger <= max_danger);
-  return ((_m) => (_m === "distance") ? sort_by(filtered, m => m.distance) : (_m === "danger") ? sort_by(filtered, m => m.danger) : (_m === "ore") ? sort_by_desc(filtered, m => m.ore) : (_m === "data") ? sort_by_desc(filtered, m => m.data) : filtered)(sort_key);
+  let filtered = synth_filter(fleet, m => sector == "All" || m.sector == sector && m.danger <= max_danger);
+  return ((_m) => (_m === "distance") ? synth_sort_by(filtered, m => m.distance) : (_m === "danger") ? synth_sort_by(filtered, m => m.danger) : (_m === "ore") ? synth_sort_by_desc(filtered, m => m.ore) : (_m === "data") ? synth_sort_by_desc(filtered, m => m.data) : filtered)(sort_key);
 };
 
 /**
@@ -160,15 +160,15 @@ const visible_missions = () => {
  */
 const fleet_stats = (missions) => {
   return (() => {
-  let n = count(missions);
-  let ore = sum_by(missions, m => m.ore);
-  let fuel = sum_by(missions, m => m.fuel);
-  let data = sum_by(missions, m => m.data);
-  let sum_d = sum_by(missions, m => m.danger);
+  let n = synth_count(missions);
+  let ore = synth_sum_by(missions, m => m.ore);
+  let fuel = synth_sum_by(missions, m => m.fuel);
+  let data = synth_sum_by(missions, m => m.data);
+  let sum_d = synth_sum_by(missions, m => m.danger);
   let avg_d = n > 0 ? Math.round(sum_d * 10 / n) / 10 : 0;
-  let max_dist = n > 0 ? max_by(missions, m => m.distance).distance : 0;
-  let danger4 = filter(missions, m => m.danger >= 4);
-  let high_risk = count(danger4);
+  let max_dist = n > 0 ? synth_max_by(missions, m => m.distance).distance : 0;
+  let danger4 = synth_filter(missions, m => m.danger >= 4);
+  let high_risk = synth_count(danger4);
   return { count: n, ore, fuel, data, avg_d, max_dist, high_risk };
 })();
 };
@@ -189,7 +189,7 @@ const render_card = (m) => {
 const render = () => {
   let missions = visible_missions();
   let s = fleet_stats(missions);
-  document.getElementById("grid").innerHTML = count(missions) > 0 ? map(missions, m => render_card(m)).join("") : "<div class=\"empty-state\">No missions match the current filters.</div>";
+  document.getElementById("grid").innerHTML = synth_count(missions) > 0 ? synth_map(missions, m => render_card(m)).join("") : "<div class=\"empty-state\">No missions match the current filters.</div>";
   document.getElementById("stat-count").textContent = s.count;
   document.getElementById("stat-ore").textContent = s.ore;
   document.getElementById("stat-fuel").textContent = s.fuel;
@@ -197,7 +197,7 @@ const render = () => {
   document.getElementById("stat-avgd").textContent = s.avg_d;
   document.getElementById("stat-dist").textContent = s.max_dist + " ly";
   document.getElementById("stat-risk").textContent = s.high_risk;
-  return document.getElementById("fleet-total").textContent = s.count + " of " + count(fleet) + " missions";
+  return document.getElementById("fleet-total").textContent = s.count + " of " + synth_count(fleet) + " missions";
 };
 
 Fleet.subscribe(() => {
