@@ -1,0 +1,29 @@
+// Benchmark: Error handling with propagation
+@throws
+fn parse_age(s: string) -> any {
+  let n = parseInt(s, 10)
+  if isNaN(n)  { err("Not a number: " + s) }
+  if n < 0     { err("Age cannot be negative: " + n) }
+  if n > 150   { err("Unlikely age: " + n) }
+  else { ok(n) }
+}
+
+@throws
+fn validate_user(name: string, age_str: string) -> any {
+  if name.length == 0 { err("Name cannot be empty") }
+  let age = parse_age(age_str)?
+  ok({ name: name, age: age })
+}
+
+fn process(name: string, age_str: string) -> string {
+  match validate_user(name, age_str) {
+    | Ok { value }    => "Valid: " + value.name + ", age " + value.age
+    | Err { message } => "Error: " + message
+  }
+}
+
+print(process("Alice", "30"))
+print(process("Bob",   "abc"))
+print(process("",      "25"))
+print(process("Diana", "-5"))
+print(process("Eve",   "200"))

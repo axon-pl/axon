@@ -1,0 +1,34 @@
+// Benchmark: Data pipeline — filter, transform, aggregate
+record Order {
+  customer: string
+  product:  string
+  qty:      int
+  price:    float
+  shipped:  bool
+}
+
+let orders = [
+  Order("Alice",   "Widget A", 3,  9.99,  true),
+  Order("Bob",     "Widget B", 1,  24.99, false),
+  Order("Charlie", "Widget A", 5,  9.99,  true),
+  Order("Diana",   "Widget C", 2,  49.99, true),
+  Order("Eve",     "Widget B", 4,  24.99, true),
+  Order("Frank",   "Widget A", 1,  9.99,  false),
+  Order("Grace",   "Widget C", 3,  49.99, true),
+]
+
+let revenue =
+  orders
+    |> filter(o => o.shipped)
+    |> map(o => o.qty * o.price)
+    |> sum
+
+let top_customers =
+  orders
+    |> filter(o => o.shipped)
+    |> sort_by_desc(o => o.qty * o.price)
+    |> map(o => o.customer)
+    |> take(3)
+
+print("Revenue: $" + revenue)
+print("Top customers: " + top_customers.join(", "))

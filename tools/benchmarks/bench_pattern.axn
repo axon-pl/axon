@@ -1,0 +1,32 @@
+// Benchmark: Pattern matching on tagged union types
+type Shape =
+  | Circle  { radius: float }
+  | Rect    { width: float, height: float }
+  | Triangle { base: float, height: float }
+
+fn area(s: Shape) -> float {
+  match s {
+    | Circle { radius }         => 3.14159 * radius * radius
+    | Rect { width, height }    => width * height
+    | Triangle { base, height } => 0.5 * base * height
+  }
+}
+
+fn describe(s: Shape) -> string {
+  match s {
+    | Circle { radius } when radius > 10 => "large circle"
+    | Circle { radius }                  => "small circle"
+    | Rect { width, height }             => "rectangle " + width + "x" + height
+    | Triangle { base, height }          => "triangle"
+  }
+}
+
+let shapes = [
+  Circle(5.0), Circle(15.0),
+  Rect(4.0, 6.0), Rect(10.0, 3.0),
+  Triangle(8.0, 5.0),
+]
+
+for s in shapes {
+  print(describe(s) + " — area: " + area(s))
+}
