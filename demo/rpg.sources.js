@@ -1,25 +1,17 @@
-/** @typedef {number} Gold */
 /** @param {number} v @returns {boolean} */
 const __validate_Gold = (v) => v >= 0;
-/** @typedef {number} XP */
 /** @param {number} v @returns {boolean} */
 const __validate_XP = (v) => v >= 0;
-/** @typedef {number} HP */
 /** @param {number} v @returns {boolean} */
 const __validate_HP = (v) => (v >= 0) && (v <= 999);
-/** @typedef {number} StatValue */
 /** @param {number} v @returns {boolean} */
 const __validate_StatValue = (v) => (v >= 1) && (v <= 50);
-/** @typedef {number} Level */
 /** @param {number} v @returns {boolean} */
 const __validate_Level = (v) => (v >= 1) && (v <= 20);
-/** @typedef {string} HeroName */
 /** @param {string} v @returns {boolean} */
 const __validate_HeroName = (v) => v.length > 0;
-/** @typedef {string} ClassName */
 /** @param {string} v @returns {boolean} */
 const __validate_ClassName = (v) => v.length > 0;
-
 /** @typedef {{
  *   name: string,
  *   heroClass: string,
@@ -35,7 +27,6 @@ const __validate_ClassName = (v) => v.length > 0;
  * }} Hero
  */
 const Hero = (name, heroClass, hp, maxHp, baseStrength, baseDefense, level, xp, alive, weapon, armor) => ({ name, heroClass, hp, maxHp, baseStrength, baseDefense, level, xp, alive, weapon, armor });
-
 /** @typedef {{
  *   id: string,
  *   name: string,
@@ -50,7 +41,6 @@ const Hero = (name, heroClass, hp, maxHp, baseStrength, baseDefense, level, xp, 
  * }} Enemy
  */
 const Enemy = (id, name, hp, maxHp, attack, defense, weakness, xpReward, goldReward, alive) => ({ id, name, hp, maxHp, attack, defense, weakness, xpReward, goldReward, alive });
-
 /** @typedef {{
  *   id: string,
  *   name: string,
@@ -63,7 +53,6 @@ const Enemy = (id, name, hp, maxHp, attack, defense, weakness, xpReward, goldRew
  * }} Equipment
  */
 const Equipment = (id, name, slot, atkBonus, defBonus, price, forClass, desc) => ({ id, name, slot, atkBonus, defBonus, price, forClass, desc });
-
 /** @typedef {{
  *   id: string,
  *   name: string,
@@ -74,40 +63,16 @@ const Equipment = (id, name, slot, atkBonus, defBonus, price, forClass, desc) =>
  * }} Item
  */
 const Item = (id, name, effect, power, price, count) => ({ id, name, effect, power, price, count });
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} hp
- * @param {number} maxHp
- * @returns {string}
- */
 const hp_bar = (hp, maxHp) => {
   let filled = maxHp > 0 ? $max(Math, 0, Math.round(hp / maxHp * 10)) : 0;
   let bar = $map($range(0, 10), i => i < filled ? "#" : ".");
   return bar.join("");
 };
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} xp
- * @param {number} xpNext
- * @returns {string}
- */
 const xp_bar = (xp, xpNext) => {
   let filled = xpNext > 0 ? $max(Math, 0, Math.round(xp / xpNext * 8)) : 8;
   let bar = $map($range(0, 8), i => i < filled ? "*" : ".");
   return bar.join("");
 };
-
-/**
- * XP needed for next level — exponential curve across 15 levels
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} level
- * @returns {number}
- */
 const xp_to_next = (() => {
   const __cache = new Map();
   return (level) => {
@@ -120,17 +85,8 @@ const xp_to_next = (() => {
     return __result;
   };
 })();
-
 const weapon_atk = (w) => w ? w.atkBonus : 0;
-
 const armor_def = (a) => a ? a.defBonus : 0;
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {number}
- */
 const effective_str = (() => {
   const __cache = new Map();
   return (hero) => {
@@ -143,13 +99,6 @@ const effective_str = (() => {
     return __result;
   };
 })();
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {number}
- */
 const effective_def = (() => {
   const __cache = new Map();
   return (hero) => {
@@ -162,215 +111,61 @@ const effective_def = (() => {
     return __result;
   };
 })();
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {string}
- */
 const format_hero_line = (hero) => {
   let bar = hp_bar(hero.hp, hero.maxHp);
   let title = level_title(hero.heroClass, hero.level);
   let sym = class_symbol(hero.heroClass);
   return `${sym} ${hero.name} Lv.${hero.level} ${title}  [${bar}] ${hero.hp}/${hero.maxHp} HP`;
 };
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {string}
- */
 const format_xp_line = (hero) => {
   let bar = xp_bar(hero.xp, xp_to_next(hero.level));
   let next = xp_to_next(hero.level);
   return `   XP [${bar}] ${hero.xp}/${next}`;
 };
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {string}
- */
 const format_equip_line = (hero) => {
   let wName = hero.weapon?.name ?? "bare hands";
   let aName = hero.armor?.name ?? "no armor";
   return `   ${wName} / ${aName}`;
 };
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} attacker
- * @param {string} means
- * @param {string} outcome
- * @param {string} defender
- * @param {number} dmg
- * @returns {string}
- */
 const fmt_attack = (attacker, means, outcome, defender, dmg) => outcome === "misses" ? `${attacker} misses ${defender} with ${means}!` : `${attacker} ${outcome} ${defender} with ${means} for ${dmg}!`;
-
-/**
- * Breakdown line — power, armor mitigation, crit, final damage
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} atk
- * @param {number} bonus
- * @param {number} mitigation
- * @param {string} source
- * @param {boolean} isCrit
- * @param {number} finalDmg
- * @returns {string}
- */
 const fmt_dmg_detail = (atk, bonus, mitigation, source, isCrit, finalDmg) => {
   let powerPart = bonus > 0 ? `ATK ${atk} + elem ${bonus}` : `ATK ${atk}`;
   let armorPart = mitigation > 0 ? `, ${source} -${mitigation}` : ", no armor reduction";
   let critPart = isCrit ? ", critical x2" : "";
   return `  [${powerPart}${armorPart}${critPart} → ${finalDmg} dmg]`;
 };
-
 const fmt_death = (name) => `  ${name} has fallen.`;
-
 const fmt_level_up = (name, lv) => `** ${name} reached level ${lv}! **`;
-
 const fmt_heal = (name, item, hp) => `  ${name} drinks ${item}, restoring ${hp} HP.`;
-
 const fmt_revive = (name, item) => `  ${name} is revived by ${item}!`;
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} weaponId
- * @returns {string}
- */
 const mage_spell = (weaponId) => ((_m) => (_m === "app_staff") ? "Spark Bolt" : (_m === "arcane_staff") ? "Arcane Lance" : (_m === "arcane_tome") ? "Rune Barrage" : (_m === "soul_staff") ? "Soulfire" : "Magic Missile")(weaponId);
-
-/**
- * What the hero attacks with — weapon for martial classes, spell for mages
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {string}
- */
 const attack_means = (hero) => ((_m) => (_m === "mage") ? hero.weapon?.id ? mage_spell(hero.weapon.id) : "Magic Missile" : hero.weapon?.name ?? "bare hands")(hero.heroClass);
-
-/**
- * Class-specific rank titles by level band
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} heroClass
- * @param {number} level
- * @returns {string}
- */
 const level_title = (heroClass, level) => ((_m) => (_m === "mage") ? ((_m) => (_m < 3) ? "Apprentice" : (_m < 6) ? "Adept" : (_m < 9) ? "Evoker" : (_m < 12) ? "Archmage" : "Archon")(level) : (_m === "knight") ? ((_m) => (_m < 3) ? "Squire" : (_m < 6) ? "Knight" : (_m < 9) ? "Champion" : (_m < 12) ? "Paladin" : "Paragon")(level) : (_m === "ranger") ? ((_m) => (_m < 3) ? "Scout" : (_m < 6) ? "Tracker" : (_m < 9) ? "Hunter" : (_m < 12) ? "Warden" : "Pathfinder")(level) : ((_m) => (_m < 3) ? "Novice" : (_m < 6) ? "Adept" : (_m < 9) ? "Veteran" : (_m < 12) ? "Hero" : "Legend")(level))(heroClass);
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} heroClass
- * @returns {string}
- */
 const class_symbol = (heroClass) => ((_m) => (_m === "mage") ? "[M]" : (_m === "knight") ? "[K]" : (_m === "ranger") ? "[R]" : "[?]")(heroClass);
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} roll
- * @returns {string}
- */
 const combat_outcome_label = (roll) => ((_m) => (_m >= 20) ? "PERFECT STRIKE on" : (_m >= 18) ? "CRITICAL HIT on" : (_m >= 8) ? "hits" : (_m >= 3) ? "grazes" : "misses")(roll);
-
-/**
- * v0.4 when guards — classify HP as a ratio, one expressive match
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} hp
- * @param {number} maxHp
- * @returns {string}
- */
 const hp_status_label = (hp, maxHp) => {
   let pct = maxHp > 0 ? hp * 100 / maxHp : 0;
   return ((_m) => ((n) => (n <= 0) ? "DEAD" : ((n) => (n <= 20) ? "CRITICAL" : ((n) => (n <= 45) ? "Wounded" : ((n) => (n <= 70) ? "Hurt" : "Healthy")(_m))(_m))(_m))(_m))(pct);
 };
-
 __synth_tests.push({ desc: "level_title: mage lv1 = Apprentice", fn: () => level_title("mage", 1) === "Apprentice" });
-
 __synth_tests.push({ desc: "level_title: mage lv10 = Archmage", fn: () => level_title("mage", 10) === "Archmage" });
-
 __synth_tests.push({ desc: "level_title: knight lv7 = Champion", fn: () => level_title("knight", 7) === "Champion" });
-
 __synth_tests.push({ desc: "level_title: ranger lv15 = Pathfinder", fn: () => level_title("ranger", 15) === "Pathfinder" });
-
 __synth_tests.push({ desc: "class_symbol: mage = [M]", fn: () => class_symbol("mage") === "[M]" });
-
 __synth_tests.push({ desc: "class_symbol: ranger = [R]", fn: () => class_symbol("ranger") === "[R]" });
-
 __synth_tests.push({ desc: "combat_outcome: roll 20 = PERFECT", fn: () => combat_outcome_label(20).includes("PERFECT") });
-
 __synth_tests.push({ desc: "combat_outcome: roll 5 = grazes", fn: () => combat_outcome_label(5) === "grazes" });
-
 __synth_tests.push({ desc: "combat_outcome: roll 1 = misses", fn: () => combat_outcome_label(1) === "misses" });
-
 __synth_tests.push({ desc: "hp_status_label: 0 = DEAD", fn: () => hp_status_label(0, 100) === "DEAD" });
-
 __synth_tests.push({ desc: "hp_status_label: 15 = CRITICAL", fn: () => hp_status_label(15, 100) === "CRITICAL" });
-
 __synth_tests.push({ desc: "hp_status_label: 80 = Healthy", fn: () => hp_status_label(80, 100) === "Healthy" });
-
 __synth_tests.push({ desc: "element_bonus: mage vs arcane = 9", fn: () => element_bonus("mage", "arcane") === 9 });
-
 __synth_tests.push({ desc: "element_bonus: knight vs light = 4", fn: () => element_bonus("knight", "light") === 4 });
-
 __synth_tests.push({ desc: "element_bonus: no match = 0", fn: () => element_bonus("mage", "fire") === 7 });
-
-/**
- * Elemental affinity bonus — heroClass column vs weakness row
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} heroClass
- * @param {string} weakness
- * @returns {number}
- */
 const element_bonus = (heroClass, weakness) => ((_m) => (_m === "mage") ? ((_m) => (_m === "arcane") ? 9 : (_m === "fire") ? 7 : (_m === "light") ? 8 : 0)(weakness) : (_m === "ranger") ? ((_m) => (_m === "nature") ? 7 : (_m === "cold") ? 5 : (_m === "thunder") ? 8 : 0)(weakness) : (_m === "knight") ? ((_m) => (_m === "physical") ? 6 : (_m === "light") ? 4 : 0)(weakness) : 0)(heroClass);
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} heroClass
- * @param {string} forClass
- * @returns {boolean}
- */
 const can_class_equip = (heroClass, forClass) => ((_m) => (_m === "all") ? true : (_m === "mage") ? heroClass === "mage" : (_m === "knight") ? heroClass === "knight" : (_m === "ranger") ? heroClass === "ranger" : false)(forClass);
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} weakness
- * @returns {string}
- */
 const weakness_label = (weakness) => ((_m) => (_m === "arcane") ? "Weak to ARCANE   [mage +9]" : (_m === "fire") ? "Weak to FIRE     [mage +7, ranger +0]" : (_m === "light") ? "Weak to LIGHT    [mage +8, knight +4]" : (_m === "thunder") ? "Weak to THUNDER  [ranger +8]" : (_m === "nature") ? "Weak to NATURE   [ranger +7]" : (_m === "cold") ? "Weak to COLD     [ranger +5]" : (_m === "physical") ? "Weak to PHYSICAL [knight +6]" : "No known weakness")(weakness);
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} effect
- * @param {number} power
- * @returns {string}
- */
 const item_label = (effect, power) => ((_m) => (_m === "heal") ? `Restore ${power} HP (one hero)` : (_m === "healAll") ? `Restore ${power} HP (all heroes)` : (_m === "revive") ? "Revive fallen hero" : (_m === "damage") ? `Deal ${power} damage` : "—")(effect);
-
-/**
- * Full hit breakdown — power, armor mitigation (def/2), crit multiplier, final
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} atk
- * @param {number} def
- * @param {number} bonus
- * @param {number} roll
- * @returns {*}
- */
 const damage_breakdown = (atk, def, bonus, roll) => {
   let mitigation = Math.floor(def / 2);
   let power = atk + bonus;
@@ -380,17 +175,6 @@ const damage_breakdown = (atk, def, bonus, roll) => {
   let finalDmg = $max(Math, 1, afterArmor * mult);
   return { atk, bonus, power, mitigation, afterArmor, isCrit, finalDmg };
 };
-
-/**
- * Memoized damage formula — same inputs always yield same result
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} atk
- * @param {number} def
- * @param {number} bonus
- * @param {number} roll
- * @returns {number}
- */
 const compute_damage = (() => {
   const __cache = new Map();
   return (atk, def, bonus, roll) => {
@@ -403,67 +187,20 @@ const compute_damage = (() => {
     return __result;
   };
 })();
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {*} defender
- * @returns {string}
- */
 const armor_source = (defender) => defender.armor ? defender.armor.name : "defense";
-
-/**
- * Battle payout — 25% bonus so potion-heavy runs can still finish the weapon ladder
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} baseReward
- * @returns {number}
- */
 const battle_gold = (baseReward) => Math.floor(baseReward * 5 / 4);
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {*} entity
- * @param {number} dmg
- * @returns {*}
- */
 const apply_damage = (entity, dmg) => {
   let newHp = $max(Math, 0, entity.hp - dmg);
   return { ...entity, hp: newHp, alive: newHp > 0 };
 };
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @param {number} amount
- * @returns {Hero}
- */
 const apply_heal = (hero, amount) => {
   let newHp = $min(Math, hero.maxHp, hero.hp + amount);
   return { ...hero, hp: newHp };
 };
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @param {number} hp
- * @returns {Hero}
- */
 const apply_revive = (hero, hp) => {
   let revHp = $min(Math, hero.maxHp, hp);
   return { ...hero, hp: revHp, alive: true };
 };
-
-/**
- * Increment level, increase stats, carry over excess XP
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {Hero}
- */
 const apply_level_up = (hero) => {
   let newLevel = hero.level + 1;
   let hpGain = 12;
@@ -478,54 +215,13 @@ const apply_level_up = (hero) => {
   baseDefense: hero.baseDefense + 1
 };
 };
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {Hero}
- */
 const maybe_level_up = (hero) => hero.xp >= xp_to_next(hero.level) && hero.level < 20 ? apply_level_up(hero) : hero;
-
-/**
- * Add XP and trigger level-up if threshold crossed; dead heroes unchanged
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @param {number} xpGained
- * @returns {Hero}
- */
 const award_xp = (hero, xpGained) => hero.alive ? maybe_level_up({ ...hero, xp: hero.xp + xpGained }) : hero;
-
 const alive_heroes = (party) => $filter(party, __x => __x.alive);
-
 const party_hp = (party) => $sum($map($filter(party, __x => __x.alive), __x => __x.hp));
-
 const any_alive = (party) => $any(party, __x => __x.alive);
-
 const hero_names = (party) => $map($filter(party, __x => __x.alive), __x => __x.name);
-
-/**
- * Heroes recover 50 HP resting in town; dead heroes stay dead
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero[]} party
- * @returns {Hero[]}
- */
 const rest_party = (party) => $map(party, h => h.alive ? { ...h, hp: $min(Math, h.maxHp, h.hp + 50) } : h);
-
-/**
- * All 6 params auto-validated at entry; each with its own guard clause
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {HeroName} name
- * @param {ClassName} heroClass
- * @param {HP} hp
- * @param {StatValue} strength
- * @param {StatValue} defense
- * @param {Level} level
- * @returns {Hero}
- */
 const create_hero = (name, heroClass, hp, strength, defense, level) => {
   if (!__validate_HeroName(name)) throw new Error(`SynthConstraintError: name violates HeroName constraint (got ${JSON.stringify(name)})`);
   if (!__validate_ClassName(heroClass)) throw new Error(`SynthConstraintError: heroClass violates ClassName constraint (got ${JSON.stringify(heroClass)})`);
@@ -547,13 +243,6 @@ const create_hero = (name, heroClass, hp, strength, defense, level) => {
   armor: null
 });
 };
-
-/**
- * Complete 50-enemy roster for the marathon — 5 chapters of 10, each ending in a boss
- * @pure — no side effects
- * @total — always returns, never throws
- * @returns {*}
- */
 const all_enemies = (() => {
   const __cache = new Map();
   return () => {
@@ -1116,58 +805,11 @@ const all_enemies = (() => {
     return __result;
   };
 })();
-
-/**
- * Look up enemy for this stage from the memoized roster
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} stageNum
- * @returns {*}
- */
 const make_enemy = (stageNum) => all_enemies()[stageNum];
-
-/**
- * ASCII portrait — unique art for bosses and notable enemies, fallback for rest
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} id
- * @returns {string}
- */
 const enemy_art = (id) => ((_m) => (_m === "warlord") ? ["   /[=]\\   ", "  (>.<)    ", "  /| |\\   ", "  |___|   ", "  // \\\\   "] : (_m === "crypt_lord") ? ["  .oOo.  ", " (X   X) ", "  [|o|]  ", "   |||   ", "   |||   "] : (_m === "stone_col") ? ["  #####  ", "  #O O#  ", "  #-_-#  ", "  #####  ", "  # # #  "] : (_m === "archdemon") ? ["  /\\**/\\  ", " (>|  |<)", "  |||||  ", "  \\|  |/ ", "   ||||  "] : (_m === "ancient_lich") ? ["    _____   ", "   (X   X)  ", "   |  v  |  ", "    \\___/   ", "   /|   |\\ "] : (_m === "goblin") ? ["    (^_^)   ", "   \\|___|/  ", "    |   |   ", "   / \\ / \\  "] : (_m === "wolf") ? ["   ,v.v,   ", "  (> . <)  ", "   )   (   ", "   mm mm   "] : (_m === "bog_witch") ? ["   /^.^\\   ", "  ( -.- )  ", "   |\\|/|   ", "   |   |   "] : (_m === "orc") ? ["  {O   O}  ", "  | \\^/ |  ", "   \\   /   ", "   |___|   "] : (_m === "troll_brute") ? ["  {O     O}", "  |   !   |", "   \\  W  / ", "   |     | "] : (_m === "skeleton") ? ["   _+_   ", "  (x.x)  ", "  /| |\\  ", "   | |   "] : (_m === "shadow") ? ["  ~   ~  ", " (~.~)   ", "  |||||  ", "   | |   "] : (_m === "vampire") ? ["  ,*-*,  ", "  (>.>)  ", "  /|O|\\  ", "   | |   "] : (_m === "guardian") ? ["  [|||]  ", "  (X.X)  ", "  /|+|\\  ", "  |___|  "] : (_m === "cave_troll") ? ["  ,--,   ", " (0  0)  ", " /|##|\\  ", " [_____] "] : (_m === "rock_elem") ? ["  ###    ", " (#.#)   ", " |###|   ", " [___]   "] : (_m === "magma_crab") ? ["  /VVV\\  ", " (o. .o) ", " |=====| ", " //   \\\\ "] : (_m === "lava_wurm") ? ["   ~^^^~ ", "  (O.O)  ", "  ))|(( ", "  \\/|\\/  "] : (_m === "earth_titan") ? ["  ######  ", "  #O  O#  ", "  # -- #  ", "  ######  ", "  ##  ##  "] : (_m === "hellhound") ? ["   .v.v.  ", "  (>..<)  ", "  ))   (( ", "  mm  mm  "] : (_m === "inf_drake") ? ["   /^-^\\   ", "  / 0.0 \\  ", " < >   < > ", "  \\_____/  ", "  //   \\\\ "] : (_m === "chaos_witch") ? ["  ,*^*,  ", "  (*.*) ", "  /|+|\\  ", "  |   |  "] : (_m === "nightmare") ? ["  /\\  /\\  ", " ( 0  0)  ", "  \\====/ ", "   ||||  "] : (_m === "void_stalker") ? ["  ... ..  ", "  .X..X.  ", "  ......  ", "  . .. .  "] : (_m === "lich_guard") ? ["  [=|=]  ", "  (X X)  ", "  /|#|\\  ", "  |___|  "] : (_m === "death_kn") ? ["  [|||]  ", "  (=X=)  ", "  /|+|\\  ", "  [___]  "] : (_m === "bone_dragon") ? ["  /^___^\\  ", " ( X . X ) ", "  |     |  ", "  \\/   \\/  ", "  //   \\\\ "] : (_m === "dark_pal") ? ["  [###]  ", "  (X.X)  ", "  |[*]|  ", "  [___]  "] : (_m === "undead_drag") ? ["  /^===^\\  ", " ( X . X ) ", "  |=====|  ", "  \\/   \\/  ", "  //   \\\\ "] : (_m === "lich_aspect") ? ["    __---__ ", "   (X     X)", "   |  -=-  |", "    \\-----/ ", "   /|     |\\ "] : ["  ~^^^~  ", "  (o.o)  ", "   )|(   ", "  [___]  "])(id);
-
-/**
- * 5-line ASCII portrait for each party member — match on name
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} name
- * @returns {string}
- */
 const hero_art = (name) => ((_m) => (_m === "Aria") ? ["   ,*,   ", "  (o.o)  ", "  /|~|\\  ", "  // \\\\ "] : (_m === "Theron") ? ["  [| |]  ", "  (=.=)  ", "  |[#]|  ", "  [___]  "] : (_m === "Lyra") ? ["   /^\\   ", "  (-_-)  ", "   >|<   ", "  / | \\  "] : ["  [???]  "])(name);
-
-/**
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} name
- * @returns {string}
- */
 const hero_art_mini = (name) => ((_m) => (_m === "Aria") ? "(o.o)" : (_m === "Theron") ? "(=.=)" : (_m === "Lyra") ? "(-_-)" : "(?.?)")(name);
-
-/**
- * Short ASCII icon for each item/equipment ID — shown in shop and on hero cards
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} id
- * @returns {string}
- */
 const equip_icon = (id) => ((_m) => (_m === "iron_sword") ? "[/] " : (_m === "app_staff") ? "[i] " : (_m === "shortbow") ? "[)] " : (_m === "steel_sword") ? "[S] " : (_m === "arcane_staff") ? "[|] " : (_m === "longbow") ? "[D] " : (_m === "silver_blade") ? "[*] " : (_m === "arcane_tome") ? "[T] " : (_m === "hunter_bow") ? "[>] " : (_m === "dragon_sword") ? "[X] " : (_m === "soul_staff") ? "[S] " : (_m === "storm_bow") ? "[Z] " : (_m === "chainmail") ? "[#] " : (_m === "silk_robe") ? "[~] " : (_m === "ranger_vest") ? "[^] " : (_m === "battle_plate") ? "[=] " : (_m === "void_robe") ? "[V] " : (_m === "elven_cloak") ? "[>] " : (_m === "dragon_scale") ? "[X] " : (_m === "archmage_robe") ? "[M] " : (_m === "shadow_cloak") ? "[s] " : (_m === "minor_pot") ? "(o) " : (_m === "major_pot") ? "(.) " : (_m === "mega_pot") ? "(O) " : (_m === "tonic") ? "[t] " : (_m === "elixir") ? "[E] " : (_m === "phoenix") ? "<+> " : (_m === "phoenix_fth") ? "<*> " : (_m === "fire_scroll") ? "[F] " : (_m === "thunder_orb") ? "[Z] " : (_m === "inferno") ? "[B] " : "[ ] ")(id);
-
-/**
- * Weapon and armor line with ASCII icons for the town party panel
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {string}
- */
 const format_equip_with_icons = (hero) => {
   let wIcon = hero.weapon?.id ? equip_icon(hero.weapon.id) : "--- ";
   let aIcon = hero.armor?.id ? equip_icon(hero.armor.id) : "--- ";
@@ -1175,21 +817,12 @@ const format_equip_with_icons = (hero) => {
   let aName = hero.armor?.name ?? "no armor";
   return `${wIcon}${wName}  ·  ${aIcon}${aName}`;
 };
-
-/**
- * Chapter label for each stage group — bosses get a special prefix
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} stageNum
- * @returns {string}
- */
 const stage_name = (stageNum) => {
   let chapter = stageNum < 10 ? "Ch.I  The Wilds" : stageNum < 20 ? "Ch.II  The Ruins" : stageNum < 30 ? "Ch.III The Deep" : stageNum < 40 ? "Ch.IV  The Abyss" : "Ch.V   The Sanctum";
   let bossTag = stageNum === 9 || stageNum === 19 || stageNum === 29 || stageNum === 39 || stageNum === 49 ? "  [BOSS]" : "";
   let displayNum = stageNum + 1;
   return `${chapter} — Stage ${displayNum}/50${bossTag}`;
 };
-
 const shop_weapons = () => [{
   id: "iron_sword",
   name: "Iron Sword",
@@ -1299,7 +932,6 @@ const shop_weapons = () => [{
   forClass: "ranger",
   desc: "ATK +28"
 }];
-
 const shop_armors = () => [{
   id: "chainmail",
   name: "Chain Mail",
@@ -1382,7 +1014,6 @@ const shop_armors = () => [{
   forClass: "ranger",
   desc: "DEF +25"
 }];
-
 const shop_potions = () => [{
   id: "minor_pot",
   name: "Minor Potion",
@@ -1424,7 +1055,6 @@ const shop_potions = () => [{
   price: 155,
   count: 1
 }];
-
 const shop_battle_items = () => [{
   id: "phoenix",
   name: "Phoenix Dust",
@@ -1466,9 +1096,7 @@ const shop_battle_items = () => [{
   price: 310,
   count: 1
 }];
-
 const shop_consumables = () => shop_potions().concat(shop_battle_items());
-
 const starting_potions = () => [{
   id: "minor_pot",
   name: "Minor Potion",
@@ -1486,14 +1114,6 @@ const starting_potions = () => [{
   price: 48,
   count: 1
 }];
-
-/**
- * @effects dom.create, dom.attrs
- * @param {string} tag
- * @param {Object} attrs
- * @param {*} ...children
- * @returns {Element}
- */
 const el = (tag, attrs, ...children) => {
   let e = document.createElement(tag);
   Object.entries(attrs).forEach(([k, v]) => {
@@ -1518,13 +1138,6 @@ const el = (tag, attrs, ...children) => {
 });
   return e;
 };
-
-/**
- * Bootstrap the RPG — all scenes wired to a single mutable state
- * @effects dom.write, dom.events, state.mutable, rng
- * @param {string} rootId
- * @returns {void}
- */
 const render_game = (rootId) => {
   let state = {
   scene: "intro",
@@ -2349,4 +1962,3 @@ Statistically, it could go either way.`
 };
   return render();
 };
-

@@ -17,8 +17,6 @@ let BULLET_H = 14;
 let PBULLET_SPD = 440;
 let ABULLET_SPD = 160;
 let MARCH_BASE = 36;
-
-/** @store Game — reactive state boundary (v0.8) */
 const Game = (() => {
   let _state = { score: 0, hi: 0, lives: 3, wave: 1, phase: "title" };
   const _subs = [];
@@ -35,7 +33,6 @@ const Game = (() => {
     subscribe(fn) { _subs.push(fn); fn(_state); },
   };
 })();
-
 let aliens = $map($range(0, ALIEN_ROWS * ALIEN_COLS), i => true);
 let alien_dx = 0.0;
 let alien_dy = 0.0;
@@ -45,25 +42,13 @@ let p_bullets = [];
 let a_bullets = [];
 let fire_cd = 0.0;
 let alien_fire_timer = 1.5;
-
 const alien_row = (i) => $floor(i / ALIEN_COLS);
-
 const alien_col = (i) => i - $floor(i / ALIEN_COLS) * ALIEN_COLS;
-
 const row_color = (row) => ((_m) => (_m === 0) ? "#ff2d78" : (_m === 1) ? "#ff6e3a" : (_m === 2) ? "#ffd166" : (_m === 3) ? "#06d6a0" : "#00e5ff")(row);
-
 const row_pts = (row) => ((_m) => (_m === 0) ? 30 : (_m === 1) ? 25 : (_m === 2) ? 20 : (_m === 3) ? 15 : 10)(row);
-
 const alien_x = (i) => ALIEN_OX + alien_col(i) * (ALIEN_W + ALIEN_GAP_X) + alien_dx;
-
 const alien_y = (i) => ALIEN_OY + alien_row(i) * (ALIEN_H + ALIEN_GAP_Y) + alien_dy;
-
 const alive_count = () => $count(aliens, a => a);
-
-/**
- * @param {*} wave
- * @returns {*}
- */
 const reset_wave = (wave) => {
   aliens = $map($range(0, ALIEN_ROWS * ALIEN_COLS), i => true);
   alien_dx = 0.0;
@@ -74,25 +59,12 @@ const reset_wave = (wave) => {
   fire_cd = 0.0;
   return alien_fire_timer = 1.5;
 };
-
-/**
- * @returns {*}
- */
 const start_game = () => {
   reset_wave(1);
   player_x = (CANVAS_W - PLAYER_W) / 2;
   return Game.set({ score: 0, lives: 3, wave: 1, phase: "playing" });
 };
-
-/**
- * @param {*} x
- * @returns {*}
- */
 const move_player = (x) => player_x = $clamp(x - PLAYER_W / 2, 0, CANVAS_W - PLAYER_W);
-
-/**
- * @returns {*}
- */
 const fire = () => {
   if (fire_cd <= 0) {
     let bx = player_x + PLAYER_W / 2;
@@ -101,11 +73,6 @@ const fire = () => {
     return fire_cd = 0.32;
   }
 };
-
-/**
- * @param {*} dt
- * @returns {*}
- */
 const tick = (dt) => {
   if (Game.phase != "playing") {
     return 0;
@@ -195,24 +162,15 @@ const tick = (dt) => {
     }
   }
 };
-
-/**
- * @returns {*}
- */
 const next_wave = () => {
   let nw = Game.wave + 1;
   reset_wave(nw);
   return Game.set({ wave: nw, phase: "playing" });
 };
-
 const get_aliens = () => $map($filter($range(0, ALIEN_ROWS * ALIEN_COLS), i => aliens[i]), i => (() => {
   let color = row_color(alien_row(i));
   return { x: alien_x(i), y: alien_y(i), w: ALIEN_W, h: ALIEN_H, color };
 })());
-
 const get_player = () => ({ x: player_x, y: PLAYER_Y, w: PLAYER_W, h: PLAYER_H });
-
 const get_pbullets = () => p_bullets;
-
 const get_abullets = () => a_bullets;
-

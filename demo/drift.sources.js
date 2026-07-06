@@ -8,8 +8,6 @@ let CAR_W = 54;
 let CAR_H = 90;
 let PLAYER_Y = CANVAS_H - 130;
 let SPAWN_Y = 0 - CAR_H;
-
-/** @store Game — reactive state boundary (v0.8) */
 const Game = (() => {
   let _state = { score: 0, hi: 0, lives: 3, phase: "title", speed: 220.0 };
   const _subs = [];
@@ -26,7 +24,6 @@ const Game = (() => {
     subscribe(fn) { _subs.push(fn); fn(_state); },
   };
 })();
-
 let player_lane = 1;
 let player_target = 1;
 let player_x = ROAD_X + LANE_W + (LANE_W - CAR_W) / 2;
@@ -34,16 +31,9 @@ let traffic = [];
 let road_scroll = 0.0;
 let spawn_timer = 0.0;
 let invuln_timer = 0.0;
-
 const lane_x = (lane) => ROAD_X + lane * LANE_W + (LANE_W - CAR_W) / 2;
-
 const car_color = (seed) => ((_m) => (_m === 0) ? "#ff2d78" : (_m === 1) ? "#ff6e3a" : (_m === 2) ? "#ffd166" : "#b84fff")($floor(seed * 4));
-
 const car_label = (seed) => ((_m) => (_m === 0) ? "SEDAN" : (_m === 1) ? "COUPE" : "TRUCK")($floor(seed * 3));
-
-/**
- * @returns {*}
- */
 const start_game = () => {
   player_lane = 1;
   player_target = 1;
@@ -54,29 +44,16 @@ const start_game = () => {
   invuln_timer = 0.0;
   return Game.set({ score: 0, lives: 3, phase: "playing", speed: 220.0 });
 };
-
-/**
- * @returns {*}
- */
 const move_left = () => {
   if (player_target > 0) {
     return player_target = player_target - 1;
   }
 };
-
-/**
- * @returns {*}
- */
 const move_right = () => {
   if (player_target < LANE_COUNT - 1) {
     return player_target = player_target + 1;
   }
 };
-
-/**
- * @param {*} dt
- * @returns {*}
- */
 const tick = (dt) => {
   if (Game.phase != "playing") {
     return 0;
@@ -131,14 +108,8 @@ const tick = (dt) => {
     return Game.set({ speed: cap_speed, score: new_score, hi: new_hi });
   }
 };
-
 const get_player = () => ({ x: player_x, y: PLAYER_Y, w: CAR_W, h: CAR_H });
-
 const get_traffic = () => traffic;
-
 const get_road_scroll = () => road_scroll;
-
 const get_road = () => ({ x: ROAD_X, w: ROAD_W, lane_w: LANE_W, lanes: LANE_COUNT });
-
 const get_invuln = () => invuln_timer > 0;
-

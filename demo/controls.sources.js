@@ -1,26 +1,17 @@
-/** @typedef {string} NonEmptyString */
 /** @param {string} v @returns {boolean} */
 const __validate_NonEmptyString = (v) => v.length > 0;
-/** @typedef {string} EmailAddress */
 /** @param {string} v @returns {boolean} */
 const __validate_EmailAddress = (v) => __synth_presets.email.test(v);
-/** @typedef {number} PositiveInt */
 /** @param {number} v @returns {boolean} */
 const __validate_PositiveInt = (v) => v > 0;
-/** @typedef {number} Score */
 /** @param {number} v @returns {boolean} */
 const __validate_Score = (v) => (v >= 0) && (v <= 100);
-/** @typedef {number} BoundedCount */
 /** @param {number} v @returns {boolean} */
 const __validate_BoundedCount = (v) => (v >= -10) && (v <= 10);
-/** @typedef {string} CSSClass */
 /** @param {string} v @returns {boolean} */
 const __validate_CSSClass = (v) => v.length > 0;
-/** @typedef {string} ThemeName */
-/** @typedef {string} SlugString */
 /** @param {string} v @returns {boolean} */
 const __validate_SlugString = (v) => __synth_presets.slug.test(v);
-
 /** @typedef {{
  *   count: number,
  *   min: number,
@@ -28,7 +19,6 @@ const __validate_SlugString = (v) => __synth_presets.slug.test(v);
  * }} CounterState
  */
 const CounterState = (count, min, max) => ({ count, min, max });
-
 /** @typedef {{
  *   valid: boolean,
  *   message: string,
@@ -36,7 +26,6 @@ const CounterState = (count, min, max) => ({ count, min, max });
  * }} ValidationResult
  */
 const ValidationResult = (valid, message, value) => ({ valid, message, value });
-
 /** @typedef {{
  *   open: boolean,
  *   title: string,
@@ -44,7 +33,6 @@ const ValidationResult = (valid, message, value) => ({ valid, message, value });
  * }} ModalState
  */
 const ModalState = (open, title, body) => ({ open, title, body });
-
 /** @typedef {{
  *   name: string,
  *   score: Score,
@@ -52,135 +40,47 @@ const ModalState = (open, title, body) => ({ open, title, body });
  * }} Player
  */
 const Player = (name, score, active) => ({ name, score, active });
-
 const counter_make = (min, max, initial) => ({ count: $max(Math, $min, $min(Math, $max, initial)), min: $min, max: $max });
-
 const counter_inc = (state) => ({
   count: $min(Math, state.count + 1, state.max),
   min: state.min,
   max: state.max
 });
-
 const counter_dec = (state) => ({
   count: $max(Math, state.count - 1, state.min),
   min: state.min,
   max: state.max
 });
-
 const counter_can_inc = (state) => state.count < state.max;
-
 const counter_can_dec = (state) => state.count > state.min;
-
-/**
- * Format counter value as a signed display string
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {CounterState} state
- * @returns {string}
- */
 const counter_display = (state) => {
   let n = state.count;
   return ((_m) => (_m > 0) ? `+${n}` : (_m < 0) ? `${n}` : "0")(n);
 };
-
 const is_valid_email = (email) => __validate_EmailAddress(email);
-
-/**
- * Produce a structured validation result with human-readable feedback
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} email
- * @returns {ValidationResult}
- */
 const validate_email = (email) => ((_m) => (_m === 0) ? { valid: false, message: "Email is required", value: email } : ((_m) => (_m === true) ? { valid: true, message: "Looks good!", value: email } : (_m === false) ? { valid: false, message: "Enter a valid email address", value: email } : undefined)(is_valid_email(email)))(email.length);
-
 const validation_css_class = (result) => result.valid ? "field-valid" : result.value.length === 0 ? "field-empty" : "field-invalid";
-
 const toggle_flip = (state) => !state;
-
 const toggle_label = (state, onLabel, offLabel) => state ? onLabel : offLabel;
-
 const toggle_css_class = (state, baseClass) => state ? `${baseClass} ${baseClass}--on` : `${baseClass} ${baseClass}--off`;
-
 const theme_class = (name) => `theme-${name}`;
-
 const theme_next = (current, available) => available[(available.indexOf(current) + 1) % available.length];
-
-/**
- * Human-readable display label for a named theme
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {ThemeName} name
- * @returns {string}
- */
 const theme_label = (name) => ((_m) => (_m === "light") ? "Light" : (_m === "dark") ? "Dark" : (_m === "synthwave") ? "Synthwave" : name)(name);
-
 const modal_open = (title, body) => ({ open: true, title: title, body: body });
-
 const modal_close = (state) => ({ open: false, title: state.title, body: state.body });
-
-/**
- * Format a welcome message — params are auto-validated at the boundary
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {EmailAddress} email
- * @param {NonEmptyString} name
- * @returns {string}
- */
 const send_welcome = (email, name) => {
   if (!__validate_EmailAddress(email)) throw new Error(`SynthConstraintError: email violates EmailAddress constraint (got ${JSON.stringify(email)})`);
   if (!__validate_NonEmptyString(name)) throw new Error(`SynthConstraintError: name violates NonEmptyString constraint (got ${JSON.stringify(name)})`);
   return `Welcome, ${name}! A confirmation has been sent to ${email}.`;
 };
-
-/**
- * Format a score label — Score type ensures 0-100, NonEmptyString ensures label exists
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {NonEmptyString} label
- * @param {Score} value
- * @returns {string}
- */
 const format_score = (label, value) => {
   if (!__validate_NonEmptyString(label)) throw new Error(`SynthConstraintError: label violates NonEmptyString constraint (got ${JSON.stringify(label)})`);
   if (!__validate_Score(value)) throw new Error(`SynthConstraintError: value violates Score constraint (got ${JSON.stringify(value)})`);
   return `${label}: ${value}/100`;
 };
-
-/**
- * Sum the counts from an array of counter states
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {CounterState[]} states
- * @returns {number}
- */
 const counter_history_total = (states) => $sum($map(states, __x => __x.count));
-
-/**
- * Get names of all active players
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Player[]} players
- * @returns {string}
- */
 const top_players = (players) => $map($filter(players, __x => __x.active), __x => __x.name);
-
-/**
- * Sum all player scores
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Player[]} players
- * @returns {number}
- */
 const total_score = (players) => $sum($map(players, __x => __x.score));
-
-/**
- * Classic recursive Fibonacci — automatically memoized by @memo
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} n
- * @returns {number}
- */
 const fibonacci = (() => {
   const __cache = new Map();
   return (n) => {
@@ -193,14 +93,6 @@ const fibonacci = (() => {
     return __result;
   };
 })();
-
-/**
- * n*(n+1)/2 — memoized for repeated calls with same n
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} n
- * @returns {number}
- */
 const triangle_number = (() => {
   const __cache = new Map();
   return (n) => {
@@ -213,76 +105,19 @@ const triangle_number = (() => {
     return __result;
   };
 })();
-
-/**
- * Validate every email in a list and return all results
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} emails
- * @returns {ValidationResult[]}
- */
 const validate_email_batch = (emails) => $map(emails, validate_email);
-
-/**
- * Count how many emails in a list pass validation
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} emails
- * @returns {number}
- */
 const count_valid_emails = (emails) => $count($filter(emails, is_valid_email));
-
-/**
- * Return the first invalid email, or empty string if all pass
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} emails
- * @returns {string}
- */
 const first_invalid_email = (emails) => {
   let invalid = $filter(emails, e => !is_valid_email(e));
   return invalid.length > 0 ? $first(invalid) : "";
 };
-
-/**
- * Map theme names to their display labels
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} themes
- * @returns {string}
- */
 const theme_options = (themes) => $map(themes, theme_label);
-
-/**
- * True if any counter state has reached its maximum value
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {CounterState[]} states
- * @returns {boolean}
- */
 const any_at_max = (states) => $any(states, s => s.count === s.max);
-
-/**
- * Validate email with debug logging — intentionally impure to demo checker
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} email
- * @returns {boolean}
- */
 const debug_validate = (email) => {
   let result = is_valid_email(email);
   console.log("debug_validate:", email, "->", result);
   return result;
 };
-
-/**
- * Create a DOM element, apply attributes, and append children
- * @effects dom.create, dom.attrs, dom.children
- * @param {string} tag
- * @param {Object} attrs
- * @param {*} ...children
- * @returns {Element}
- */
 const el = (tag, attrs, ...children) => {
   let e = document.createElement(tag);
   Object.entries(attrs).forEach(([k, v]) => {
@@ -317,25 +152,10 @@ const el = (tag, attrs, ...children) => {
 });
   return e;
 };
-
-/**
- * Append a child element into a container by ID
- * @effects dom.write
- * @param {string} containerId
- * @param {Element} child
- * @returns {void}
- */
 const mount = (containerId, child) => {
   let container = document.getElementById(containerId);
   return container.appendChild(child);
 };
-
-/**
- * Mount a stateful counter widget
- * @effects dom.write, dom.events, state.mutable
- * @param {string} containerId
- * @returns {void}
- */
 const render_counter = (containerId) => {
   let state = counter_make(-10, 10, 0);
   let display = el("span", { class: "counter-value" }, counter_display(state));
@@ -355,13 +175,6 @@ const render_counter = (containerId) => {
 });
   return mount(containerId, el("div", { class: "counter-widget" }, decBtn, display, incBtn));
 };
-
-/**
- * Mount an email input widget with live validation feedback
- * @effects dom.write, dom.events, state.mutable
- * @param {string} containerId
- * @returns {void}
- */
 const render_email_validator = (containerId) => {
   let input = el("input", {
   type: "email",
@@ -378,15 +191,6 @@ const render_email_validator = (containerId) => {
 });
   return mount(containerId, el("div", { class: "validator-widget" }, el("label", { for: "email-input", class: "field-label" }, "Email Address"), input, feedback));
 };
-
-/**
- * Mount a toggle switch that flips between two labelled states
- * @effects dom.write, dom.events, state.mutable
- * @param {string} containerId
- * @param {string} onLabel
- * @param {string} offLabel
- * @returns {void}
- */
 const render_toggle = (containerId, onLabel, offLabel) => {
   let state = false;
   let track = el("div", { class: toggle_css_class(state, "toggle-track") });
@@ -401,13 +205,6 @@ const render_toggle = (containerId, onLabel, offLabel) => {
 });
   return mount(containerId, btn);
 };
-
-/**
- * Mount a button that cycles through available themes
- * @effects dom.write, dom.events, state.mutable
- * @param {string} containerId
- * @returns {void}
- */
 const render_theme_switcher = (containerId) => {
   let themes = ["light", "dark", "synthwave"];
   let labels = theme_options(themes);
@@ -423,13 +220,6 @@ const render_theme_switcher = (containerId) => {
 });
   return mount(containerId, btn);
 };
-
-/**
- * Mount a button that opens a modal dialog
- * @effects dom.write, dom.events, state.mutable
- * @param {string} containerId
- * @returns {void}
- */
 const render_modal_demo = (containerId) => {
   let state = modal_close({ open: false, title: "", body: "" });
   let closeBtn = el("button", { class: "btn btn-primary modal-close-btn" }, "Close");
@@ -452,4 +242,3 @@ const render_modal_demo = (containerId) => {
   document.body.appendChild(overlay);
   return mount(containerId, openBtn);
 };
-

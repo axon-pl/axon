@@ -1,19 +1,13 @@
-/** @typedef {number} HP */
 /** @param {number} v @returns {boolean} */
 const __validate_HP = (v) => (v >= 0) && (v <= 200);
-/** @typedef {number} StatValue */
 /** @param {number} v @returns {boolean} */
 const __validate_StatValue = (v) => (v >= 1) && (v <= 20);
-/** @typedef {number} Level */
 /** @param {number} v @returns {boolean} */
 const __validate_Level = (v) => (v >= 1) && (v <= 20);
-/** @typedef {string} HeroName */
 /** @param {string} v @returns {boolean} */
 const __validate_HeroName = (v) => v.length > 0;
-/** @typedef {string} ClassName */
 /** @param {string} v @returns {boolean} */
 const __validate_ClassName = (v) => v.length > 0;
-
 /** @typedef {{
  *   name: string,
  *   heroClass: string,
@@ -26,7 +20,6 @@ const __validate_ClassName = (v) => v.length > 0;
  * }} Hero
  */
 const Hero = (name, heroClass, hp, maxHp, strength, defense, level, alive) => ({ name, heroClass, hp, maxHp, strength, defense, level, alive });
-
 /** @typedef {{
  *   name: string,
  *   hp: number,
@@ -38,25 +31,11 @@ const Hero = (name, heroClass, hp, maxHp, strength, defense, level, alive) => ({
  * }} Enemy
  */
 const Enemy = (name, hp, maxHp, attack, defense, weakness, alive) => ({ name, hp, maxHp, attack, defense, weakness, alive });
-
 const hero_is_alive = (h) => h.alive;
-
 const any_alive = (party) => $any(party, __x => __x.alive);
-
 const format_attack_msg = (attacker, outcome, defender, dmg) => `${attacker} ${outcome} ${defender} for ${dmg} damage!`;
-
 const format_death_msg = (name) => `${name} has fallen in battle.`;
-
 const format_hero_label = (hero) => `${hero.name} Lv.${hero.level} ${hero.heroClass}`;
-
-/**
- * Generate a visual HP bar string with percentage
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} hp
- * @param {number} maxHp
- * @returns {string}
- */
 const hp_bar_text = (hp, maxHp) => {
   let filled = maxHp > 0 ? $max(Math, 0, Math.round(hp / maxHp * 8)) : 0;
   let bar = $map($range(0, 8), i => i < filled ? "#" : ".");
@@ -64,88 +43,20 @@ const hp_bar_text = (hp, maxHp) => {
   let barStr = bar.join("");
   return `${barStr} ${hp}/${maxHp} (${pct}%)`;
 };
-
-/**
- * One-line hero status for the combat panel
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {string}
- */
 const format_hero_card_line = (hero) => {
   let bar = hp_bar_text(hero.hp, hero.maxHp);
   let title = level_title(hero.level);
   return `${hero.name} the ${title}  ${bar}`;
 };
-
-/**
- * One-line enemy status for the combat panel
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Enemy} enemy
- * @returns {string}
- */
 const format_enemy_card_line = (enemy) => {
   let bar = hp_bar_text(enemy.hp, enemy.maxHp);
   return `${enemy.name}  ${bar}`;
 };
-
-/**
- * Rank title based on level range
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} level
- * @returns {string}
- */
 const level_title = (level) => ((_m) => (_m < 4) ? "Novice" : (_m < 7) ? "Adept" : (_m < 10) ? "Veteran" : "Master")(level);
-
-/**
- * Narrative label for a d20 attack roll
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} roll
- * @returns {string}
- */
 const combat_outcome_label = (roll) => ((_m) => (_m >= 20) ? "lands a perfect strike on" : (_m >= 18) ? "scores a CRITICAL HIT on" : (_m >= 8) ? "hits" : (_m >= 3) ? "grazes" : "misses")(roll);
-
-/**
- * Extra damage when class targets enemy weakness — nested match on two axes
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} heroClass
- * @param {string} weakness
- * @returns {number}
- */
 const element_bonus = (heroClass, weakness) => ((_m) => (_m === "mage") ? ((_m) => (_m === "arcane") ? 8 : (_m === "fire") ? 5 : 0)(weakness) : (_m === "ranger") ? ((_m) => (_m === "nature") ? 6 : (_m === "cold") ? 4 : 0)(weakness) : (_m === "knight") ? ((_m) => (_m === "physical") ? 5 : 0)(weakness) : 0)(heroClass);
-
-/**
- * Single-char symbol for each hero class
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} heroClass
- * @returns {string}
- */
 const class_symbol = (heroClass) => ((_m) => (_m === "mage") ? "[M]" : (_m === "knight") ? "[K]" : (_m === "ranger") ? "[R]" : "[?]")(heroClass);
-
-/**
- * Display label for enemy weakness
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {string} weakness
- * @returns {string}
- */
 const class_weakness_hint = (weakness) => ((_m) => (_m === "arcane") ? "weak to ARCANE (mage bonus)" : (_m === "fire") ? "weak to FIRE (mage bonus)" : (_m === "nature") ? "weak to NATURE (ranger bonus)" : (_m === "cold") ? "weak to COLD (ranger bonus)" : (_m === "physical") ? "weak to PHYSICAL (knight bonus)" : "no known weakness")(weakness);
-
-/**
- * Core damage formula — memoized, same inputs always produce same damage
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {number} atk
- * @param {number} def
- * @param {number} bonus
- * @param {number} roll
- * @returns {number}
- */
 const compute_damage = (() => {
   const __cache = new Map();
   return (atk, def, bonus, roll) => {
@@ -160,14 +71,6 @@ const compute_damage = (() => {
     return __result;
   };
 })();
-
-/**
- * Composite strength rating — memoized per unique hero state
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero} hero
- * @returns {number}
- */
 const hero_power = (() => {
   const __cache = new Map();
   return (hero) => {
@@ -180,19 +83,6 @@ const hero_power = (() => {
     return __result;
   };
 })();
-
-/**
- * Construct a Hero — all 5 typed params auto-validated at entry
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {HeroName} name
- * @param {ClassName} heroClass
- * @param {HP} hp
- * @param {StatValue} strength
- * @param {StatValue} defense
- * @param {Level} level
- * @returns {Hero}
- */
 const create_hero = (name, heroClass, hp, strength, defense, level) => {
   if (!__validate_HeroName(name)) throw new Error(`SynthConstraintError: name violates HeroName constraint (got ${JSON.stringify(name)})`);
   if (!__validate_ClassName(heroClass)) throw new Error(`SynthConstraintError: heroClass violates ClassName constraint (got ${JSON.stringify(heroClass)})`);
@@ -202,32 +92,8 @@ const create_hero = (name, heroClass, hp, strength, defense, level) => {
   if (!__validate_Level(level)) throw new Error(`SynthConstraintError: level violates Level constraint (got ${JSON.stringify(level)})`);
   return ({ name, heroClass, hp, maxHp: hp, strength, defense, level, alive: true });
 };
-
-/**
- * Living party members via .alive shorthand
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero[]} party
- * @returns {Hero[]}
- */
 const alive_heroes = (party) => $filter(party, __x => __x.alive);
-
-/**
- * Names of all living heroes — chain of .field shorthands
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero[]} party
- * @returns {string}
- */
 const party_names = (party) => $map($filter(party, __x => __x.alive), __x => __x.name);
-
-/**
- * Sum of living HP — .hp shorthand after .alive filter
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero[]} party
- * @returns {number}
- */
 const total_party_hp = (() => {
   const __cache = new Map();
   return (party) => {
@@ -240,14 +106,6 @@ const total_party_hp = (() => {
     return __result;
   };
 })();
-
-/**
- * Sum of hero_power across all party members
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero[]} party
- * @returns {number}
- */
 const party_power_rating = (() => {
   const __cache = new Map();
   return (party) => {
@@ -260,61 +118,19 @@ const party_power_rating = (() => {
     return __result;
   };
 })();
-
-/**
- * Count surviving heroes
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero[]} party
- * @returns {number}
- */
 const count_alive = (party) => $count($filter(party, __x => __x.alive));
-
-/**
- * The hero with the highest power rating
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero[]} party
- * @returns {Hero}
- */
 const strongest_hero = (party) => {
   let sorted = party.slice().sort((a, b) => hero_power(b) - hero_power(a));
   return $first(sorted);
 };
-
-/**
- * Debug party state — @pure is false, checker will warn
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {Hero[]} party
- * @returns {boolean}
- */
 const debug_party = (party) => {
   console.log("debug_party:", $map(party, __x => __x.name));
   return true;
 };
-
-/**
- * Return entity with updated hp and alive flag — no mutation
- * @pure — no side effects
- * @total — always returns, never throws
- * @param {*} entity
- * @param {number} dmg
- * @returns {*}
- */
 const apply_damage = (entity, dmg) => {
   let newHp = $max(Math, 0, entity.hp - dmg);
   return { ...entity, hp: newHp, alive: newHp > 0 };
 };
-
-/**
- * Create a DOM element with attributes and children
- * @effects dom.create, dom.attrs, dom.children
- * @param {string} tag
- * @param {Object} attrs
- * @param {*} ...children
- * @returns {Element}
- */
 const el = (tag, attrs, ...children) => {
   let e = document.createElement(tag);
   Object.entries(attrs).forEach(([k, v]) => {
@@ -341,13 +157,6 @@ const el = (tag, attrs, ...children) => {
 });
   return e;
 };
-
-/**
- * Render one hero row with HP bar and stats
- * @effects dom.create
- * @param {Hero} hero
- * @returns {Element}
- */
 const render_hero_row = (hero) => {
   let sym = class_symbol(hero.heroClass);
   let label = format_hero_card_line(hero);
@@ -356,26 +165,12 @@ const render_hero_row = (hero) => {
   let rowClass = hero.alive ? "hero-row" : "hero-row hero-dead";
   return el("div", { class: rowClass }, el("span", { class: "hero-sym" }, sym), el("span", { class: "hero-label" }, label), el("span", { class: "hero-pwr" }, pStr));
 };
-
-/**
- * Render the enemy status panel
- * @effects dom.create
- * @param {Enemy} enemy
- * @returns {Element}
- */
 const render_enemy_panel = (enemy) => {
   let label = format_enemy_card_line(enemy);
   let hint = class_weakness_hint(enemy.weakness);
   let atkStr = `ATK:${enemy.attack}  DEF:${enemy.defense}`;
   return el("div", { class: "enemy-panel" }, el("div", { class: "enemy-name" }, enemy.name), el("div", { class: "enemy-bar" }, label), el("div", { class: "enemy-hint" }, hint), el("div", { class: "enemy-stats" }, atkStr));
 };
-
-/**
- * Render all hero rows with party-level stats
- * @effects dom.create
- * @param {Hero[]} party
- * @returns {Element}
- */
 const render_party_panel = (party) => {
   let aliveCount = count_alive(party);
   let totalHp = total_party_hp(party);
@@ -387,13 +182,6 @@ const render_party_panel = (party) => {
   container.appendChild(el("div", { class: "party-summary" }, summaryStr));
   return container;
 };
-
-/**
- * Bootstrap the combat engine — pure logic, thin DOM layer
- * @effects dom.write, dom.events, state.mutable, rng
- * @param {string} rootId
- * @returns {void}
- */
 const render_combat = (rootId) => {
   let make_party = () => [create_hero("Aria", "mage", 60, 12, 5, 8), create_hero("Theron", "knight", 80, 8, 12, 6), create_hero("Lyra", "ranger", 70, 10, 7, 7)];
   let make_enemy = () => {
@@ -495,4 +283,3 @@ const render_combat = (rootId) => {
   addLog("Press ATTACK to begin.");
   return refresh();
 };
-
