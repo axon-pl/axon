@@ -1,0 +1,229 @@
+// ── NEON BREAKOUT — Synthwave Breakout Game ──────────────────────────────────
+// Showcases: store · match · @memo · do notation · object shorthand · pipeline
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+let COLS        = 10
+let ROWS        = 6
+let BRICK_W     = 72
+let BRICK_H     = 22
+let BRICK_GAP   = 5
+let PADDLE_W    = 100
+let PADDLE_H    = 12
+let BALL_R      = 8
+let CANVAS_W    = 800
+let CANVAS_H    = 520
+let PADDLE_Y    = CANVAS_H - 40
+let BALL_SPEED  = 340
+
+// ── Brick colors by row ────────────────────────────────────────────────────────
+
+fn row_color(row) =
+  match row {
+    | 0 => "#ff2d78"
+    | 1 => "#ff6e3a"
+    | 2 => "#ffd166"
+    | 3 => "#06d6a0"
+    | 4 => "#00e5ff"
+    | _ => "#b84fff"
+  }
+
+fn row_points(row) =
+  match row {
+    | 0 => 60
+    | 1 => 50
+    | 2 => 40
+    | 3 => 30
+    | 4 => 20
+    | _ => 10
+  }
+
+// ── Game store ────────────────────────────────────────────────────────────────
+
+store Game {
+  score:  int    = 0
+  lives:  int    = 3
+  phase:  string = "title"
+  level:  int    = 1
+  hi:     int    = 0
+}
+
+// ── Mutable physics state (updated every frame) ───────────────────────────────
+
+let ball_x  = CANVAS_W / 2
+let ball_y  = CANVAS_H / 2
+let ball_vx = BALL_SPEED * 0.6
+let ball_vy = 0 - BALL_SPEED * 0.8
+let paddle_x = (CANVAS_W - PADDLE_W) / 2
+
+// Flat brick array: true = alive, false = broken
+let bricks = range(0, ROWS * COLS).map(i => true)
+
+// ── Brick helpers (@memo: grid layout never changes) ──────────────────────────
+
+@memo
+fn brick_x(col) = 40 + col * (BRICK_W + BRICK_GAP)
+
+@memo
+fn brick_y(row) = 60 + row * (BRICK_H + BRICK_GAP)
+
+fn brick_index(row, col) = row * COLS + col
+
+fn alive_count() = bricks.count(alive => alive)
+
+// ── Level reset ───────────────────────────────────────────────────────────────
+
+fn reset_ball() {
+  ball_x  = CANVAS_W / 2
+  ball_y  = CANVAS_H - 120
+  ball_vx = BALL_SPEED * (random() > 0.5 ? 0.6 : 0 - 0.6)
+  ball_vy = 0 - BALL_SPEED * 0.8
+}
+
+fn reset_bricks() {
+  bricks = range(0, ROWS * COLS).map(i => true)
+}
+
+fn start_game() {
+  reset_ball()
+  reset_bricks()
+  paddle_x = (CANVAS_W - PADDLE_W) / 2
+  Game.set({ score: 0, lives: 3, phase: "playing", level: 1 })
+}
+
+fn next_level() {
+  reset_ball()
+  reset_bricks()
+  paddle_x = (CANVAS_W - PADDLE_W) / 2
+  let new_level = Game.level + 1
+  Game.set({ phase: "playing", level: new_level })
+}
+
+// ── Paddle control ────────────────────────────────────────────────────────────
+
+fn move_paddle(x) {
+  paddle_x = clamp(x - PADDLE_W / 2, 0, CANVAS_W - PADDLE_W)
+}
+
+// ── Collision helpers (do notation for multi-step checks) ─────────────────────
+
+fn check_brick_collisions() {
+  let hit_row = 0 - 1
+  let hit_col = 0 - 1
+  let hit_from_bottom = false
+
+  let r = 0
+  while r < ROWS {
+    let c = 0
+    while c < COLS {
+      let idx = brick_index(r, c)
+      if bricks[idx] {
+        let bx = brick_x(c)
+        let by = brick_y(r)
+        let in_x = ball_x + BALL_R > bx and ball_x - BALL_R < bx + BRICK_W
+        let in_y = ball_y + BALL_R > by and ball_y - BALL_R < by + BRICK_H
+        if in_x and in_y and hit_row < 0 {
+          hit_row = r
+          hit_col = c
+          let ball_mid_y = ball_y
+          hit_from_bottom = ball_mid_y > by + BRICK_H / 2
+        }
+      }
+      c += 1
+    }
+    r += 1
+  }
+
+  if hit_row >= 0 {
+    let idx = brick_index(hit_row, hit_col)
+    bricks = set_at(bricks, idx, false)
+    ball_vy = hit_from_bottom ? abs(ball_vy) : 0 - abs(ball_vy)
+    let pts = row_points(hit_row)
+    let new_score = Game.score + pts
+    let new_hi    = new_score > Game.hi ? new_score : Game.hi
+    Game.set({ score: new_score, hi: new_hi })
+    true
+  } else {
+    false
+  }
+}
+
+// ── Physics tick ──────────────────────────────────────────────────────────────
+
+fn tick(dt) {
+  if Game.phase != "playing" { 0 } else {
+    let speed_mult = 1.0 + (Game.level - 1) * 0.12
+
+    ball_x += ball_vx * dt * speed_mult
+    ball_y += ball_vy * dt * speed_mult
+
+    // Wall bounces
+    if ball_x - BALL_R < 0 {
+      ball_x  = BALL_R
+      ball_vx = abs(ball_vx)
+    }
+    if ball_x + BALL_R > CANVAS_W {
+      ball_x  = CANVAS_W - BALL_R
+      ball_vx = 0 - abs(ball_vx)
+    }
+    if ball_y - BALL_R < 0 {
+      ball_y  = BALL_R
+      ball_vy = abs(ball_vy)
+    }
+
+    // Paddle collision
+    let on_paddle_x = ball_x + BALL_R > paddle_x and ball_x - BALL_R < paddle_x + PADDLE_W
+    let on_paddle_y = ball_y + BALL_R >= PADDLE_Y and ball_y - BALL_R < PADDLE_Y + PADDLE_H
+    if on_paddle_x and on_paddle_y and ball_vy > 0 {
+      ball_y  = PADDLE_Y - BALL_R
+      let hit_pos  = (ball_x - paddle_x) / PADDLE_W
+      let angle    = (hit_pos - 0.5) * 2.2
+      let speed    = BALL_SPEED * speed_mult
+      ball_vx = speed * angle
+      ball_vy = 0 - abs(sqrt(speed * speed - ball_vx * ball_vx))
+    }
+
+    // Brick collisions
+    check_brick_collisions()
+
+    // Ball lost
+    if ball_y - BALL_R > CANVAS_H {
+      let new_lives = Game.lives - 1
+      if new_lives <= 0 {
+        Game.set({ lives: 0, phase: "gameover" })
+      } else {
+        Game.set({ lives: new_lives, phase: "ready" })
+        reset_ball()
+      }
+    }
+
+    // Level clear
+    if alive_count() == 0 {
+      Game.set({ phase: "levelup" })
+    }
+  }
+}
+
+// ── Draw data accessors (read-only, called by HTML renderer) ──────────────────
+
+fn get_ball()   = { x: ball_x, y: ball_y, r: BALL_R }
+fn get_paddle() = { x: paddle_x, y: PADDLE_Y, w: PADDLE_W, h: PADDLE_H }
+
+fn get_bricks() =
+  range(0, ROWS).flat_map(r =>
+    range(0, COLS).filter(c => bricks[brick_index(r, c)]).map(c =>
+      do {
+        let color = row_color(r)
+        { x: brick_x(c), y: brick_y(r), w: BRICK_W, h: BRICK_H, color }
+      }
+    )
+  )
+
+fn status_line() =
+  match Game.phase {
+    | "title"    => "PRESS SPACE OR CLICK TO START"
+    | "ready"    => "BALL LOST — PRESS SPACE TO CONTINUE"
+    | "levelup"  => "LEVEL CLEAR! PRESS SPACE FOR NEXT LEVEL"
+    | "gameover" => "GAME OVER — PRESS SPACE TO RETRY"
+    | _          => ""
+  }

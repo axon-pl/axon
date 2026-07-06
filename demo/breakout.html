@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEON BREAKOUT — Synth Language Demo</title>
+<style>
+  :root {
+    --bg:      #07070f;
+    --surface: #0e0e1c;
+    --pink:    #ff2d78;
+    --cyan:    #00e5ff;
+    --purple:  #b84fff;
+    --gold:    #ffd166;
+    --text:    #e0e0f0;
+    --muted:   #5050a0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  /* Scrolling neon grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: grid-scroll 24s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes grid-scroll {
+    from { background-position: 0 0; }
+    to   { background-position: 0 40px; }
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 840px;
+    padding: 16px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* ── Header ─────────────────────────────────────────────────────────────── */
+
+  .hdr {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #1e1e3a;
+  }
+
+  .logo {
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: .2em;
+    color: var(--cyan);
+    text-shadow: 0 0 12px #00e5ff99;
+  }
+
+  .logo span { color: var(--pink); text-shadow: 0 0 12px #ff2d7899; }
+
+  .hdr-right {
+    font-size: .62rem;
+    color: var(--muted);
+    letter-spacing: .08em;
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  .hdr-right a { color: var(--cyan); text-decoration: none; }
+
+  /* ── Score bar ──────────────────────────────────────────────────────────── */
+
+  .score-bar {
+    width: 800px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .score-pill {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid #1e1e3a;
+    border-radius: 6px;
+    padding: 7px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .pill-label {
+    font-size: .55rem;
+    letter-spacing: .12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .pill-val {
+    font-size: 1rem;
+    font-weight: bold;
+  }
+
+  .pill-val.pink   { color: var(--pink);   text-shadow: 0 0 8px #ff2d7866; }
+  .pill-val.cyan   { color: var(--cyan);   text-shadow: 0 0 8px #00e5ff66; }
+  .pill-val.purple { color: var(--purple); text-shadow: 0 0 8px #b84fff66; }
+  .pill-val.gold   { color: var(--gold); }
+
+  /* Lives as pips */
+  .lives-pips { display: flex; gap: 5px; align-items: center; height: 18px; }
+
+  .pip {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--pink);
+    box-shadow: 0 0 6px var(--pink);
+    transition: opacity .3s;
+  }
+
+  .pip.dead { background: #2a1530; box-shadow: none; opacity: .4; }
+
+  /* ── Canvas container ───────────────────────────────────────────────────── */
+
+  .canvas-wrap {
+    position: relative;
+    width: 800px;
+    height: 520px;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 40px #00e5ff1a, 0 0 80px #b84fff0d;
+  }
+
+  /* CRT scanlines */
+  .canvas-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(0,0,0,.06) 3px, rgba(0,0,0,.06) 4px
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  canvas {
+    display: block;
+    cursor: none;
+  }
+
+  /* ── Footer ─────────────────────────────────────────────────────────────── */
+
+  .footer {
+    font-size: .6rem;
+    color: var(--muted);
+    letter-spacing: .06em;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  .footer a { color: var(--cyan); text-decoration: none; }
+
+  @media (max-width: 840px) {
+    .score-bar, .canvas-wrap, canvas { width: 100%; }
+    .canvas-wrap { height: auto; aspect-ratio: 800/520; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="logo">NEON<span>BREAK</span></div>
+    <div class="hdr-right">
+      Built with <a href="landing.html">Synth</a> · AI-native language<br>
+      <a href="https://github.com/synth-pl/synth" target="_blank">github.com/synth-pl/synth</a>
+    </div>
+  </header>
+
+  <!-- Score bar -->
+  <div class="score-bar">
+    <div class="score-pill">
+      <div class="pill-label">Score</div>
+      <div class="pill-val pink" id="score">0</div>
+    </div>
+    <div class="score-pill">
+      <div class="pill-label">Hi Score</div>
+      <div class="pill-val gold" id="hi">0</div>
+    </div>
+    <div class="score-pill">
+      <div class="pill-label">Level</div>
+      <div class="pill-val cyan" id="level">1</div>
+    </div>
+    <div class="score-pill">
+      <div class="pill-label">Lives</div>
+      <div class="lives-pips" id="lives">
+        <div class="pip" id="pip0"></div>
+        <div class="pip" id="pip1"></div>
+        <div class="pip" id="pip2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-wrap">
+    <canvas id="c" width="800" height="520"></canvas>
+  </div>
+
+  <div class="footer">
+    Mouse or arrow keys to move · Space to start/continue · Built in 191 lines of
+    <a href="playground.html">Synth</a>
+  </div>
+
+</div><!-- .wrap -->
+
+<script src="synth.stdlib.js"></script>
+<script src="breakout.sources.js"></script>
+<script>
+const canvas = document.getElementById('c')
+const ctx    = canvas.getContext('2d')
+const W = 800, H = 520
+
+// ── Particles ──────────────────────────────────────────────────────────────
+const particles = []
+
+function spawnParticles(x, y, color) {
+  for (let i = 0; i < 14; i++) {
+    const angle = (Math.PI * 2 * i) / 14 + (Math.random() - .5) * .4
+    const speed = 80 + Math.random() * 160
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1,
+      color,
+      r: 2 + Math.random() * 3
+    })
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i]
+    p.x    += p.vx * dt
+    p.y    += p.vy * dt
+    p.vy   += 200 * dt
+    p.life -= dt * 2.2
+    if (p.life <= 0) particles.splice(i, 1)
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life
+    ctx.fillStyle = p.color
+    ctx.shadowColor = p.color
+    ctx.shadowBlur = 6
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  ctx.globalAlpha = 1
+  ctx.shadowBlur = 0
+}
+
+// ── Screen flash ────────────────────────────────────────────────────────────
+let flashAlpha = 0
+let flashColor = '#ff2d78'
+
+function triggerFlash(color) {
+  flashAlpha = 0.35
+  flashColor = color
+}
+
+// ── Drawing helpers ─────────────────────────────────────────────────────────
+function drawGlowRect(x, y, w, h, color, glowSize = 10) {
+  ctx.shadowColor = color
+  ctx.shadowBlur  = glowSize
+  ctx.fillStyle   = color
+  ctx.fillRect(x, y, w, h)
+  ctx.shadowBlur  = 0
+}
+
+function drawRoundRect(x, y, w, h, r, fill, stroke) {
+  ctx.beginPath()
+  ctx.roundRect(x, y, w, h, r)
+  if (stroke) {
+    ctx.strokeStyle = stroke
+    ctx.lineWidth = 1.5
+    ctx.shadowColor = stroke
+    ctx.shadowBlur = 12
+    ctx.stroke()
+    ctx.shadowBlur = 0
+  }
+  if (fill) {
+    ctx.fillStyle = fill
+    ctx.fill()
+  }
+}
+
+function drawBrick(bx, by, bw, bh, color) {
+  // Dark fill with colored top edge highlight
+  const grad = ctx.createLinearGradient(bx, by, bx, by + bh)
+  grad.addColorStop(0, color + 'dd')
+  grad.addColorStop(1, color + '55')
+  ctx.fillStyle = grad
+  ctx.shadowColor = color
+  ctx.shadowBlur = 8
+  ctx.fillRect(bx, by, bw, bh)
+  ctx.shadowBlur = 0
+
+  // Top highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.18)'
+  ctx.fillRect(bx + 2, by + 2, bw - 4, 3)
+
+  // Border
+  ctx.strokeStyle = color + 'aa'
+  ctx.lineWidth = 1
+  ctx.strokeRect(bx + .5, by + .5, bw - 1, bh - 1)
+}
+
+// ── Main draw ───────────────────────────────────────────────────────────────
+let prevScore = 0
+let prevBrickCount = 60
+let prevPhase = ''
+let lastBallPos = { x: W/2, y: H/2 }
+
+function draw(dt) {
+  // Background
+  ctx.fillStyle = '#07070f'
+  ctx.fillRect(0, 0, W, H)
+
+  // Subtle vignette
+  const vig = ctx.createRadialGradient(W/2, H/2, H*.3, W/2, H/2, H*.85)
+  vig.addColorStop(0, 'transparent')
+  vig.addColorStop(1, 'rgba(0,0,0,.5)')
+  ctx.fillStyle = vig
+  ctx.fillRect(0, 0, W, H)
+
+  const phase = Game.phase
+
+  // ── Draw bricks ────────────────────────────────────────────────────────
+  const brickList = get_bricks()
+
+  // Detect brick break → spawn particles
+  if (brickList.length < prevBrickCount && phase === 'playing') {
+    const ball = get_ball()
+    const hitColor = brickList.length > 0 ? brickList[0].color : '#ff2d78'
+    spawnParticles(lastBallPos.x, lastBallPos.y, hitColor)
+    triggerFlash(hitColor)
+  }
+  prevBrickCount = brickList.length
+
+  for (const b of brickList) {
+    drawBrick(b.x, b.y, b.w, b.h, b.color)
+  }
+
+  // ── Draw paddle ─────────────────────────────────────────────────────────
+  const pad = get_paddle()
+  const padGrad = ctx.createLinearGradient(pad.x, pad.y, pad.x + pad.w, pad.y)
+  padGrad.addColorStop(0,   '#b84fff')
+  padGrad.addColorStop(0.5, '#00e5ff')
+  padGrad.addColorStop(1,   '#b84fff')
+  ctx.shadowColor = '#00e5ff'
+  ctx.shadowBlur  = 16
+  ctx.fillStyle   = padGrad
+  drawRoundRect(pad.x, pad.y, pad.w, pad.h, 5, padGrad, null)
+  ctx.shadowBlur  = 0
+
+  // ── Draw ball ────────────────────────────────────────────────────────────
+  const ball = get_ball()
+  lastBallPos = { x: ball.x, y: ball.y }
+
+  // Trail glow
+  ctx.shadowColor = '#ff2d78'
+  ctx.shadowBlur  = 20
+  const ballGrad = ctx.createRadialGradient(ball.x - 2, ball.y - 2, 1, ball.x, ball.y, ball.r)
+  ballGrad.addColorStop(0, '#ffffff')
+  ballGrad.addColorStop(0.4, '#ff9aaa')
+  ballGrad.addColorStop(1, '#ff2d78')
+  ctx.fillStyle = ballGrad
+  ctx.beginPath()
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.shadowBlur = 0
+
+  // ── Particles ─────────────────────────────────────────────────────────────
+  updateParticles(dt)
+  drawParticles()
+
+  // ── Flash overlay ──────────────────────────────────────────────────────────
+  if (flashAlpha > 0) {
+    ctx.globalAlpha = flashAlpha
+    ctx.fillStyle = flashColor
+    ctx.fillRect(0, 0, W, H)
+    ctx.globalAlpha = 1
+    flashAlpha = Math.max(0, flashAlpha - dt * 3)
+  }
+
+  // ── Phase overlays ─────────────────────────────────────────────────────────
+  if (phase !== 'playing') {
+    // Dim background
+    ctx.fillStyle = 'rgba(4,4,12,0.72)'
+    ctx.fillRect(0, 0, W, H)
+
+    const isTitle    = phase === 'title'
+    const isGameOver = phase === 'gameover'
+    const isLevelUp  = phase === 'levelup'
+    const isReady    = phase === 'ready'
+
+    // Big title
+    ctx.textAlign = 'center'
+    if (isTitle) {
+      ctx.font = 'bold 52px "Courier New", monospace'
+      ctx.shadowColor = '#00e5ff'
+      ctx.shadowBlur = 28
+      ctx.fillStyle = '#00e5ff'
+      ctx.fillText('NEON', W/2 - 74, H/2 - 20)
+      ctx.shadowColor = '#ff2d78'
+      ctx.shadowBlur = 28
+      ctx.fillStyle = '#ff2d78'
+      ctx.fillText('BREAK', W/2 + 44, H/2 - 20)
+      ctx.shadowBlur = 0
+      ctx.font = '13px "Courier New", monospace'
+      ctx.fillStyle = '#b84fff'
+      ctx.fillText('A SYNTH LANGUAGE DEMO', W/2, H/2 + 14)
+    } else if (isGameOver) {
+      ctx.font = 'bold 44px "Courier New", monospace'
+      ctx.shadowColor = '#ff2d78'
+      ctx.shadowBlur = 24
+      ctx.fillStyle = '#ff2d78'
+      ctx.fillText('GAME OVER', W/2, H/2 - 18)
+      ctx.shadowBlur = 0
+      ctx.font = '13px "Courier New", monospace'
+      ctx.fillStyle = '#ffd166'
+      ctx.fillText('SCORE: ' + Game.score + '  ·  HI: ' + Game.hi, W/2, H/2 + 16)
+    } else if (isLevelUp) {
+      ctx.font = 'bold 44px "Courier New", monospace'
+      ctx.shadowColor = '#06d6a0'
+      ctx.shadowBlur = 24
+      ctx.fillStyle = '#06d6a0'
+      ctx.fillText('LEVEL CLEAR!', W/2, H/2 - 18)
+      ctx.shadowBlur = 0
+      ctx.font = '13px "Courier New", monospace'
+      ctx.fillStyle = '#00e5ff'
+      ctx.fillText('LEVEL ' + (Game.level + 1) + ' — BALL GETS FASTER', W/2, H/2 + 16)
+    } else if (isReady) {
+      ctx.font = 'bold 32px "Courier New", monospace'
+      ctx.shadowColor = '#ffd166'
+      ctx.shadowBlur = 18
+      ctx.fillStyle = '#ffd166'
+      ctx.fillText('BALL LOST', W/2, H/2 - 14)
+      ctx.shadowBlur = 0
+    }
+
+    // Blinking instruction
+    if (Math.floor(Date.now() / 500) % 2 === 0) {
+      ctx.font = '12px "Courier New", monospace'
+      ctx.fillStyle = '#6060a0'
+      ctx.fillText(status_line(), W/2, H/2 + 54)
+    }
+    ctx.textAlign = 'left'
+  }
+
+  // ── Update HUD ──────────────────────────────────────────────────────────────
+  const sc = Game.score
+  if (sc !== prevScore) {
+    document.getElementById('score').textContent = sc
+    document.getElementById('hi').textContent    = Game.hi
+    prevScore = sc
+  }
+  document.getElementById('level').textContent = Game.level
+
+  // Lives pips
+  const lives = Game.lives
+  for (let i = 0; i < 3; i++) {
+    document.getElementById('pip' + i).className = 'pip' + (i < lives ? '' : ' dead')
+  }
+}
+
+// ── Game loop ──────────────────────────────────────────────────────────────
+let last = performance.now()
+
+function loop(now) {
+  const dt = Math.min((now - last) / 1000, .05)
+  last = now
+  tick(dt)
+  draw(dt)
+  requestAnimationFrame(loop)
+}
+
+requestAnimationFrame(loop)
+
+// ── Controls ───────────────────────────────────────────────────────────────
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect()
+  const scaleX = W / rect.width
+  move_paddle((e.clientX - rect.left) * scaleX)
+})
+
+canvas.addEventListener('click', e => {
+  const phase = Game.phase
+  if (phase === 'title' || phase === 'gameover') start_game()
+  else if (phase === 'ready')    Game.set({ phase: 'playing' })
+  else if (phase === 'levelup')  next_level()
+})
+
+document.addEventListener('keydown', e => {
+  const phase = Game.phase
+  if (e.code === 'Space') {
+    e.preventDefault()
+    if (phase === 'title' || phase === 'gameover') start_game()
+    else if (phase === 'ready')   Game.set({ phase: 'playing' })
+    else if (phase === 'levelup') next_level()
+  }
+  if (e.code === 'ArrowLeft')  move_paddle(get_paddle().x + 24)
+  if (e.code === 'ArrowRight') move_paddle(get_paddle().x + 76)
+})
+
+// Arrow key held movement
+const keys = {}
+document.addEventListener('keydown', e => keys[e.code] = true)
+document.addEventListener('keyup',   e => keys[e.code] = false)
+
+setInterval(() => {
+  if (Game.phase !== 'playing') return
+  const pad = get_paddle()
+  if (keys['ArrowLeft'])  move_paddle(pad.x + 8)
+  if (keys['ArrowRight']) move_paddle(pad.x + 8 + 100)
+}, 16)
+</script>
+</body>
+</html>
