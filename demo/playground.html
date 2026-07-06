@@ -977,7 +977,8 @@ function updateEditorHl() {
 editor.value = EXAMPLES.hello
 updateLineNums()
 updateEditorHl()
-scheduleCompile(0)
+compile()
+runCode()
 
 // ── Editor events ─────────────────────────────────────────────────────────────
 editor.addEventListener('input', () => {
@@ -1170,7 +1171,8 @@ function loadExample(key) {
   editor.value = EXAMPLES[key]
   updateLineNums()
   updateEditorHl()
-  scheduleCompile(0)
+  compile()     // synchronous — ensures lastJs is fresh before runCode reads it
+  runCode()     // auto-run so both panes reflect the new example immediately
   document.getElementById('example-select').value = ''
 }
 
