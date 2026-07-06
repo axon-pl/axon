@@ -1500,7 +1500,11 @@ function compile() {
   }
 
   const { js, errors, warnings } = AxonCompiler.compile(src)
-  lastJs = js
+  // Strip stdlib preamble from display — it's injected at runtime, not part of user code.
+  // Handles both old bundles (emitStdlib=true default) and new ones (emitStdlib=false).
+  const stdlib = AxonCompiler.stdlib || ''
+  const userJs = (js && stdlib && js.startsWith(stdlib)) ? js.slice(stdlib.length).trimStart() : js
+  lastJs = userJs
 
   // Render errors / warnings
   errorBar.innerHTML = ''
