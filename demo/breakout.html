@@ -351,6 +351,10 @@ let prevPhase = ''
 let lastBallPos = { x: W/2, y: H/2 }
 
 function draw(dt) {
+  // Guard: skip frame if ball physics produced NaN (shouldn't happen after fix)
+  const _b = get_ball()
+  if (!isFinite(_b.x) || !isFinite(_b.y)) return
+
   // Background
   ctx.fillStyle = '#07070f'
   ctx.fillRect(0, 0, W, H)

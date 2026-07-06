@@ -175,10 +175,10 @@ const tick = (dt) => {
     let on_paddle_y = ball_y + BALL_R >= PADDLE_Y && ball_y - BALL_R < PADDLE_Y + PADDLE_H;
     if (on_paddle_x && on_paddle_y && ball_vy > 0) {
       ball_y = PADDLE_Y - BALL_R;
-      let hit_pos = (ball_x - paddle_x) / PADDLE_W;
-      let angle = (hit_pos - 0.5) * 2.2;
+      let hit_pos = synth_clamp((ball_x - paddle_x) / PADDLE_W, 0.05, 0.95);
+      let angle = (hit_pos - 0.5) * 1.8;
       let speed = BALL_SPEED * speed_mult;
-      ball_vx = synth_clamp(speed * angle, 0 - speed * 0.85, speed * 0.85);
+      ball_vx = speed * angle;
       ball_vy = 0 - synth_sqrt(speed * speed - ball_vx * ball_vx);
     }
     check_brick_collisions();
