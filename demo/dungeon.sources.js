@@ -97,13 +97,6 @@ __synth_tests.push({ desc: "chest is not passable", fn: () => is_passable("Chest
 __synth_tests.push({ desc: "stairs glyph is correct", fn: () => tile_glyph("Stairs") == "≋" });
 __synth_tests.push({ desc: "door label is correct", fn: () => tile_label("Door") == "wooden door" });
 
-/** @typedef {{
- *   grid: string,
- *   rows: number,
- *   cols: number,
- *   level: number
- * }} DungeonMap
- */
 const DungeonMap = (grid, rows, cols, level) => ({ grid, rows, cols, level });
 const lcg = (s) => (s % 2147483648 * 1664525 + 1013904223) % 2147483648;
 const cell_hash = (s, r, c) => {
@@ -459,11 +452,6 @@ const render_stats = (map, seed) => {
   return "<div class=\"map-stats\">" + "<span>Level <strong>" + $map.level + "</strong></span>" + "<span>Seed <strong>" + seed + "</strong></span>" + "<span>Size <strong>" + $map.cols + "×" + $map.rows + "</strong></span>" + "<span>Floors <strong>" + floors + "</strong></span>" + "<span>Special <strong>" + specials + "</strong></span>" + "</div>";
 };
 
-/** @typedef {{
- *   level: number,
- *   seed: number
- * }} DungeonConfig
- */
 const DungeonConfig = (level, seed) => ({ level, seed });
 const parse_level = (s) => {
   let n = parseInt(s);
@@ -537,13 +525,6 @@ __synth_tests.push({ desc: "whitespace is trimmed", fn: () => (() => {
   return $is_ok(r) && r.value.level == 2 && r.value.seed == 100;
 })() });
 
-/** @typedef {{
- *   level: number,
- *   seed: number,
- *   rows: number,
- *   cols: number
- * }} AppState
- */
 const AppState = (level, seed, rows, cols) => ({ level, seed, rows, cols });
 const init = () => ({ level: 1, seed: 7777, rows: 22, cols: 48 });
 const next_seed = (s) => (s * 6364136 + 1442695) % 9007199254740991;

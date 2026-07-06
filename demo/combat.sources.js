@@ -1,35 +1,9 @@
-/** @param {number} v @returns {boolean} */
 const __validate_HP = (v) => (v >= 0) && (v <= 200);
-/** @param {number} v @returns {boolean} */
 const __validate_StatValue = (v) => (v >= 1) && (v <= 20);
-/** @param {number} v @returns {boolean} */
 const __validate_Level = (v) => (v >= 1) && (v <= 20);
-/** @param {string} v @returns {boolean} */
 const __validate_HeroName = (v) => v.length > 0;
-/** @param {string} v @returns {boolean} */
 const __validate_ClassName = (v) => v.length > 0;
-/** @typedef {{
- *   name: string,
- *   heroClass: string,
- *   hp: number,
- *   maxHp: number,
- *   strength: number,
- *   defense: number,
- *   level: number,
- *   alive: boolean
- * }} Hero
- */
 const Hero = (name, heroClass, hp, maxHp, strength, defense, level, alive) => ({ name, heroClass, hp, maxHp, strength, defense, level, alive });
-/** @typedef {{
- *   name: string,
- *   hp: number,
- *   maxHp: number,
- *   attack: number,
- *   defense: number,
- *   weakness: string,
- *   alive: boolean
- * }} Enemy
- */
 const Enemy = (name, hp, maxHp, attack, defense, weakness, alive) => ({ name, hp, maxHp, attack, defense, weakness, alive });
 const hero_is_alive = (h) => h.alive;
 const any_alive = (party) => $any(party, __x => __x.alive);

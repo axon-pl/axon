@@ -1,31 +1,9 @@
-/** @param {number} v @returns {boolean} */
 const __validate_BPM = (v) => (v >= 60) && (v <= 200);
-/** @param {number} v @returns {boolean} */
 const __validate_Duration = (v) => v > 0;
-/** @param {string} v @returns {boolean} */
 const __validate_TrackTitle = (v) => v.length > 0;
-/** @param {string} v @returns {boolean} */
 const __validate_ArtistName = (v) => v.length > 0;
-/** @param {number} v @returns {boolean} */
 const __validate_Volume = (v) => (v >= 0) && (v <= 100);
-/** @typedef {{
- *   id: number,
- *   title: string,
- *   artist: string,
- *   bpm: number,
- *   duration: number,
- *   genre: string,
- *   featured: boolean
- * }} Track
- */
 const Track = (id, title, artist, bpm, duration, genre, featured) => ({ id, title, artist, bpm, duration, genre, featured });
-/** @typedef {{
- *   count: number,
- *   totalDuration: number,
- *   avgBpm: number,
- *   featuredCount: number
- * }} LibraryStats
- */
 const LibraryStats = (count, totalDuration, avgBpm, featuredCount) => ({ count, totalDuration, avgBpm, featuredCount });
 const track_is_featured = (t) => t.featured;
 const pad2 = (n) => n < 10 ? "0" + String(n) : String(n);

@@ -191,7 +191,7 @@ export class Codegen {
   private emitConstraintValidator(typeName: string, baseType: TypeExpr, constraint: Constraint): void {
     const fnName = `__validate_${typeName}`
     const predicate = this.constraintToPredicate(constraint, 'v')
-    this.emitLine(`/** @param {${this.typeToJS(baseType)}} v @returns {boolean} */`)
+    if (!this.compact) this.emitLine(`/** @param {${this.typeToJS(baseType)}} v @returns {boolean} */`)
     this.emitLine(`const ${fnName} = (v) => ${predicate};`)
   }
 
@@ -219,14 +219,16 @@ export class Codegen {
   }
 
   private emitRecord(decl: RecordDecl): void {
-    const lines = [`/** @typedef {{`]
-    decl.fields.forEach((f, i) => {
-      const comma = i < decl.fields.length - 1 ? ',' : ''
-      lines.push(` *   ${f.name}: ${this.typeToJS(f.type)}${comma}`)
-    })
-    lines.push(` * }} ${decl.name}`)
-    lines.push(` */`)
-    lines.forEach(l => this.emitLine(l))
+    if (!this.compact) {
+      const lines = [`/** @typedef {{`]
+      decl.fields.forEach((f, i) => {
+        const comma = i < decl.fields.length - 1 ? ',' : ''
+        lines.push(` *   ${f.name}: ${this.typeToJS(f.type)}${comma}`)
+      })
+      lines.push(` * }} ${decl.name}`)
+      lines.push(` */`)
+      lines.forEach(l => this.emitLine(l))
+    }
     // Emit a positional constructor factory unless a tagged-union variant with
     // the same name already exists (it will emit its own constructor).
     const isUnionVariant = [...this.unionVariants.values()].some(vs => vs.includes(decl.name))

@@ -86,15 +86,6 @@ const Armor = Object.freeze({ tag: "Armor" });
 const Potion = Object.freeze({ tag: "Potion" });
 const Relic = Object.freeze({ tag: "Relic" });
 const Scroll = Object.freeze({ tag: "Scroll" });
-/** @typedef {{
- *   name: string,
- *   category: Category,
- *   rarity: string,
- *   price: number,
- *   power: number,
- *   lore: string
- * }} Item
- */
 const Item = (name, category, rarity, price, power, lore) => ({ name, category, rarity, price, power, lore });
 const keep_if = (items, pred) => $filter(items, pred);
 const transform = (items, f) => $map(items, f);
@@ -349,15 +340,6 @@ const get_catalog = () => [{
   lore: "Erases one object from history. One use only."
 }];
 
-/** @typedef {{
- *   all_items: Item[],
- *   cart: Item[],
- *   filter_cat: string,
- *   filter_rar: string,
- *   sort_key: string,
- *   search: string
- * }} AppState
- */
 const AppState = (all_items, cart, filter_cat, filter_rar, sort_key, search) => ({ all_items, cart, filter_cat, filter_rar, sort_key, search });
 const make_state = () => ({
   all_items: get_catalog(),

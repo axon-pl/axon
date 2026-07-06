@@ -1,67 +1,13 @@
-/** @param {number} v @returns {boolean} */
 const __validate_Gold = (v) => v >= 0;
-/** @param {number} v @returns {boolean} */
 const __validate_XP = (v) => v >= 0;
-/** @param {number} v @returns {boolean} */
 const __validate_HP = (v) => (v >= 0) && (v <= 999);
-/** @param {number} v @returns {boolean} */
 const __validate_StatValue = (v) => (v >= 1) && (v <= 50);
-/** @param {number} v @returns {boolean} */
 const __validate_Level = (v) => (v >= 1) && (v <= 20);
-/** @param {string} v @returns {boolean} */
 const __validate_HeroName = (v) => v.length > 0;
-/** @param {string} v @returns {boolean} */
 const __validate_ClassName = (v) => v.length > 0;
-/** @typedef {{
- *   name: string,
- *   heroClass: string,
- *   hp: number,
- *   maxHp: number,
- *   baseStrength: number,
- *   baseDefense: number,
- *   level: number,
- *   xp: number,
- *   alive: boolean,
- *   weapon: *,
- *   armor: *
- * }} Hero
- */
 const Hero = (name, heroClass, hp, maxHp, baseStrength, baseDefense, level, xp, alive, weapon, armor) => ({ name, heroClass, hp, maxHp, baseStrength, baseDefense, level, xp, alive, weapon, armor });
-/** @typedef {{
- *   id: string,
- *   name: string,
- *   hp: number,
- *   maxHp: number,
- *   attack: number,
- *   defense: number,
- *   weakness: string,
- *   xpReward: number,
- *   goldReward: number,
- *   alive: boolean
- * }} Enemy
- */
 const Enemy = (id, name, hp, maxHp, attack, defense, weakness, xpReward, goldReward, alive) => ({ id, name, hp, maxHp, attack, defense, weakness, xpReward, goldReward, alive });
-/** @typedef {{
- *   id: string,
- *   name: string,
- *   slot: string,
- *   atkBonus: number,
- *   defBonus: number,
- *   price: number,
- *   forClass: string,
- *   desc: string
- * }} Equipment
- */
 const Equipment = (id, name, slot, atkBonus, defBonus, price, forClass, desc) => ({ id, name, slot, atkBonus, defBonus, price, forClass, desc });
-/** @typedef {{
- *   id: string,
- *   name: string,
- *   effect: string,
- *   power: number,
- *   price: number,
- *   count: number
- * }} Item
- */
 const Item = (id, name, effect, power, price, count) => ({ id, name, effect, power, price, count });
 const hp_bar = (hp, maxHp) => {
   let filled = maxHp > 0 ? $max(Math, 0, Math.round(hp / maxHp * 10)) : 0;

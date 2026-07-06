@@ -1,44 +1,13 @@
-/** @param {string} v @returns {boolean} */
 const __validate_NonEmptyString = (v) => v.length > 0;
-/** @param {string} v @returns {boolean} */
 const __validate_EmailAddress = (v) => __synth_presets.email.test(v);
-/** @param {number} v @returns {boolean} */
 const __validate_PositiveInt = (v) => v > 0;
-/** @param {number} v @returns {boolean} */
 const __validate_Score = (v) => (v >= 0) && (v <= 100);
-/** @param {number} v @returns {boolean} */
 const __validate_BoundedCount = (v) => (v >= -10) && (v <= 10);
-/** @param {string} v @returns {boolean} */
 const __validate_CSSClass = (v) => v.length > 0;
-/** @param {string} v @returns {boolean} */
 const __validate_SlugString = (v) => __synth_presets.slug.test(v);
-/** @typedef {{
- *   count: number,
- *   min: number,
- *   max: number
- * }} CounterState
- */
 const CounterState = (count, min, max) => ({ count, min, max });
-/** @typedef {{
- *   valid: boolean,
- *   message: string,
- *   value: string
- * }} ValidationResult
- */
 const ValidationResult = (valid, message, value) => ({ valid, message, value });
-/** @typedef {{
- *   open: boolean,
- *   title: string,
- *   body: string
- * }} ModalState
- */
 const ModalState = (open, title, body) => ({ open, title, body });
-/** @typedef {{
- *   name: string,
- *   score: Score,
- *   active: boolean
- * }} Player
- */
 const Player = (name, score, active) => ({ name, score, active });
 const counter_make = (min, max, initial) => ({ count: $max(Math, $min, $min(Math, $max, initial)), min: $min, max: $max });
 const counter_inc = (state) => ({
