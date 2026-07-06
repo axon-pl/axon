@@ -65,7 +65,6 @@ const is_err = (r) => r != null && r.tag === 'Err';
 const unwrap = (r) => { if (r != null && r.tag === 'Ok') return r.value; throw new Error(r != null ? r.message : 'unwrap called on null'); };
 const unwrap_or = (r, fallback) => (r != null && r.tag === 'Ok') ? r.value : fallback;
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-const print = (...args) => console.log(...args);
 const println = (...args) => { console.log(...args); console.log(''); };
 const __axon_tests = [];
 const __runAxonTests = () => {

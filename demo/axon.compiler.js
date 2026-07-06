@@ -74,7 +74,6 @@ const is_err = (r) => r != null && r.tag === 'Err';
 const unwrap = (r) => { if (r != null && r.tag === 'Ok') return r.value; throw new Error(r != null ? r.message : 'unwrap called on null'); };
 const unwrap_or = (r, fallback) => (r != null && r.tag === 'Ok') ? r.value : fallback;
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-const print = (...args) => console.log(...args);
 const println = (...args) => { console.log(...args); console.log(''); };
 const __axon_tests = [];
 const __runAxonTests = () => {
@@ -2530,8 +2529,11 @@ class Codegen {
                 return `${obj}${opt}[${idx}]`;
             }
             case 'CallExpr': {
-                const callee = this.emitExpr(expr.callee);
                 const args = expr.args.map(a => this.emitExpr(a)).join(', ');
+                if (expr.callee.kind === 'Identifier' && expr.callee.name === 'print') {
+                    return `console.log(${args})`;
+                }
+                const callee = this.emitExpr(expr.callee);
                 // v0.4: optional call — callee?.(args)
                 if (expr.optional)
                     return `${callee}?.(${args})`;

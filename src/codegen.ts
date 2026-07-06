@@ -566,8 +566,11 @@ export class Codegen {
       }
 
       case 'CallExpr': {
-        const callee = this.emitExpr(expr.callee)
         const args = expr.args.map(a => this.emitExpr(a)).join(', ')
+        if (expr.callee.kind === 'Identifier' && expr.callee.name === 'print') {
+          return `console.log(${args})`
+        }
+        const callee = this.emitExpr(expr.callee)
         // v0.4: optional call — callee?.(args)
         if (expr.optional) return `${callee}?.(${args})`
         return `${callee}(${args})`
