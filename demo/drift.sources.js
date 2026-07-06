@@ -37,9 +37,9 @@ let invuln_timer = 0.0;
 
 const lane_x = (lane) => ROAD_X + lane * LANE_W + (LANE_W - CAR_W) / 2;
 
-const car_color = (seed) => ((_m) => (_m === 0) ? "#ff2d78" : (_m === 1) ? "#ff6e3a" : (_m === 2) ? "#ffd166" : "#b84fff")(synth_floor(seed * 4));
+const car_color = (seed) => ((_m) => (_m === 0) ? "#ff2d78" : (_m === 1) ? "#ff6e3a" : (_m === 2) ? "#ffd166" : "#b84fff")($floor(seed * 4));
 
-const car_label = (seed) => ((_m) => (_m === 0) ? "SEDAN" : (_m === 1) ? "COUPE" : "TRUCK")(synth_floor(seed * 3));
+const car_label = (seed) => ((_m) => (_m === 0) ? "SEDAN" : (_m === 1) ? "COUPE" : "TRUCK")($floor(seed * 3));
 
 /**
  * @returns {*}
@@ -85,13 +85,13 @@ const tick = (dt) => {
     road_scroll = road_scroll + speed * dt;
     let tx = lane_x(player_target);
     let diff = tx - player_x;
-    let step = diff * synth_clamp(dt * 12.0, 0.0, 1.0);
+    let step = diff * $clamp(dt * 12.0, 0.0, 1.0);
     player_x = player_x + step;
-    if (synth_abs(diff) < 1.5) {
+    if ($abs(diff) < 1.5) {
       player_x = tx;
       player_lane = player_target;
     }
-    traffic = synth_filter(synth_map(traffic, c => (() => {
+    traffic = $filter($map(traffic, c => (() => {
       let x = c.x;
       let y = c.y + speed * dt;
       let color = c.color;
@@ -99,11 +99,11 @@ const tick = (dt) => {
       return { x, y, color, seed };
 })()), c => c.y < CANVAS_H + CAR_H + 20);
     spawn_timer = spawn_timer + dt;
-    let interval = synth_clamp(1.6 - speed * 0.0025, 0.35, 1.6);
+    let interval = $clamp(1.6 - speed * 0.0025, 0.35, 1.6);
     if (spawn_timer >= interval) {
       spawn_timer = 0.0;
-      let lane = synth_floor(synth_random() * LANE_COUNT);
-      let seed = synth_random();
+      let lane = $floor($random() * LANE_COUNT);
+      let seed = $random();
       let color = car_color(seed);
       traffic = [...traffic, { x: lane_x(lane), y: SPAWN_Y, color, seed }];
     }
@@ -111,11 +111,11 @@ const tick = (dt) => {
     if (invuln_timer <= 0) {
       let px = player_x;
       let py = PLAYER_Y;
-      let hit = synth_any(traffic, c => synth_abs(c.x - px) < CAR_W - 8 && synth_abs(c.y - py) < CAR_H - 16);
+      let hit = $any(traffic, c => $abs(c.x - px) < CAR_W - 8 && $abs(c.y - py) < CAR_H - 16);
       if (hit) {
         let nl = Game.lives - 1;
         invuln_timer = 1.8;
-        traffic = synth_filter(traffic, c => synth_abs(c.x - px) >= CAR_W - 8 || synth_abs(c.y - py) >= CAR_H - 16);
+        traffic = $filter(traffic, c => $abs(c.x - px) >= CAR_W - 8 || $abs(c.y - py) >= CAR_H - 16);
         if (nl <= 0) {
           Game.set({ lives: 0, phase: "gameover" });
         } else {
@@ -125,7 +125,7 @@ const tick = (dt) => {
     }
     let new_speed = speed + dt * 6.0;
     let cap_speed = new_speed < 560.0 ? new_speed : 560.0;
-    let pts = synth_floor(speed * dt * 0.08);
+    let pts = $floor(speed * dt * 0.08);
     let new_score = Game.score + pts;
     let new_hi = new_score > Game.hi ? new_score : Game.hi;
     return Game.set({ speed: cap_speed, score: new_score, hi: new_hi });

@@ -36,7 +36,7 @@ const Game = (() => {
   };
 })();
 
-let aliens = synth_map(synth_range(0, ALIEN_ROWS * ALIEN_COLS), i => true);
+let aliens = $map($range(0, ALIEN_ROWS * ALIEN_COLS), i => true);
 let alien_dx = 0.0;
 let alien_dy = 0.0;
 let alien_dir = 1;
@@ -46,9 +46,9 @@ let a_bullets = [];
 let fire_cd = 0.0;
 let alien_fire_timer = 1.5;
 
-const alien_row = (i) => synth_floor(i / ALIEN_COLS);
+const alien_row = (i) => $floor(i / ALIEN_COLS);
 
-const alien_col = (i) => i - synth_floor(i / ALIEN_COLS) * ALIEN_COLS;
+const alien_col = (i) => i - $floor(i / ALIEN_COLS) * ALIEN_COLS;
 
 const row_color = (row) => ((_m) => (_m === 0) ? "#ff2d78" : (_m === 1) ? "#ff6e3a" : (_m === 2) ? "#ffd166" : (_m === 3) ? "#06d6a0" : "#00e5ff")(row);
 
@@ -58,14 +58,14 @@ const alien_x = (i) => ALIEN_OX + alien_col(i) * (ALIEN_W + ALIEN_GAP_X) + alien
 
 const alien_y = (i) => ALIEN_OY + alien_row(i) * (ALIEN_H + ALIEN_GAP_Y) + alien_dy;
 
-const alive_count = () => synth_count(aliens, a => a);
+const alive_count = () => $count(aliens, a => a);
 
 /**
  * @param {*} wave
  * @returns {*}
  */
 const reset_wave = (wave) => {
-  aliens = synth_map(synth_range(0, ALIEN_ROWS * ALIEN_COLS), i => true);
+  aliens = $map($range(0, ALIEN_ROWS * ALIEN_COLS), i => true);
   alien_dx = 0.0;
   alien_dy = 0.0;
   alien_dir = 1;
@@ -88,7 +88,7 @@ const start_game = () => {
  * @param {*} x
  * @returns {*}
  */
-const move_player = (x) => player_x = synth_clamp(x - PLAYER_W / 2, 0, CANVAS_W - PLAYER_W);
+const move_player = (x) => player_x = $clamp(x - PLAYER_W / 2, 0, CANVAS_W - PLAYER_W);
 
 /**
  * @returns {*}
@@ -116,23 +116,23 @@ const tick = (dt) => {
     alien_dx = alien_dx + MARCH_BASE * alien_dir * dt * speed_mult;
     let n = alive_count();
     if (n > 0) {
-      let xs_left = synth_map(synth_filter(synth_range(0, ALIEN_ROWS * ALIEN_COLS), i => aliens[i]), i => alien_x(i));
-      let xs_right = synth_map(synth_filter(synth_range(0, ALIEN_ROWS * ALIEN_COLS), i => aliens[i]), i => alien_x(i) + ALIEN_W);
-      let min_x = synth_min(xs_left);
-      let max_x = synth_max(xs_right);
+      let xs_left = $map($filter($range(0, ALIEN_ROWS * ALIEN_COLS), i => aliens[i]), i => alien_x(i));
+      let xs_right = $map($filter($range(0, ALIEN_ROWS * ALIEN_COLS), i => aliens[i]), i => alien_x(i) + ALIEN_W);
+      let min_x = $min(xs_left);
+      let max_x = $max(xs_right);
       if (min_x <= 0 || max_x >= CANVAS_W) {
         alien_dir = 0 - alien_dir;
         alien_dy = alien_dy + 18;
       }
     }
-    p_bullets = synth_filter(synth_map(p_bullets, b => (() => {
+    p_bullets = $filter($map(p_bullets, b => (() => {
       return { x: b.x, y: b.y - PBULLET_SPD * dt };
 })()), b => b.y > 0);
-    a_bullets = synth_filter(synth_map(a_bullets, b => (() => {
+    a_bullets = $filter($map(a_bullets, b => (() => {
       return { x: b.x, y: b.y + ABULLET_SPD * dt };
 })()), b => b.y < CANVAS_H);
     let i = 0;
-    while (i < synth_count(p_bullets, x => true)) {
+    while (i < $count(p_bullets, x => true)) {
       let b = p_bullets[i];
       let j = 0;
       let hit = 0 - 1;
@@ -147,20 +147,20 @@ const tick = (dt) => {
         j += 1;
       }
       if (hit >= 0) {
-        aliens = synth_set_at(aliens, hit, false);
+        aliens = $set_at(aliens, hit, false);
         let pts = row_pts(alien_row(hit));
         let ns = Game.score + pts;
         let nhi = ns > Game.hi ? ns : Game.hi;
         Game.set({ score: ns, hi: nhi });
         let bx = b.x;
         let by = b.y;
-        p_bullets = synth_filter(p_bullets, pb => pb.x != bx || pb.y != by);
+        p_bullets = $filter(p_bullets, pb => pb.x != bx || pb.y != by);
       } else {
         i += 1;
       }
     }
     if (alien_fire_timer <= 0 && alive_count() > 0) {
-      let col = synth_floor(synth_random() * ALIEN_COLS);
+      let col = $floor($random() * ALIEN_COLS);
       let bot = 0 - 1;
       let k = 0;
       while (k < ALIEN_ROWS * ALIEN_COLS) {
@@ -172,13 +172,13 @@ const tick = (dt) => {
       if (bot >= 0) {
         a_bullets = [...a_bullets, { x: alien_x(bot) + ALIEN_W / 2, y: alien_y(bot) + ALIEN_H }];
       }
-      alien_fire_timer = synth_clamp(2.0 - Game.wave * 0.2, 0.5, 2.0);
+      alien_fire_timer = $clamp(2.0 - Game.wave * 0.2, 0.5, 2.0);
     }
     let px = player_x;
     let py = PLAYER_Y;
-    let hit_player = synth_any(a_bullets, b => b.x > px && b.x < px + PLAYER_W && b.y > py && b.y < py + PLAYER_H);
+    let hit_player = $any(a_bullets, b => b.x > px && b.x < px + PLAYER_W && b.y > py && b.y < py + PLAYER_H);
     if (hit_player) {
-      a_bullets = synth_filter(a_bullets, b => b.x <= px || b.x >= px + PLAYER_W || b.y <= py || b.y >= py + PLAYER_H);
+      a_bullets = $filter(a_bullets, b => b.x <= px || b.x >= px + PLAYER_W || b.y <= py || b.y >= py + PLAYER_H);
       let nl = Game.lives - 1;
       if (nl <= 0) {
         Game.set({ lives: 0, phase: "gameover" });
@@ -186,7 +186,7 @@ const tick = (dt) => {
         Game.set({ lives: nl });
       }
     }
-    let invasion = synth_any(synth_range(0, ALIEN_ROWS * ALIEN_COLS), i => aliens[i] && alien_y(i) + ALIEN_H >= PLAYER_Y);
+    let invasion = $any($range(0, ALIEN_ROWS * ALIEN_COLS), i => aliens[i] && alien_y(i) + ALIEN_H >= PLAYER_Y);
     if (invasion) {
       Game.set({ phase: "gameover" });
     }
@@ -205,7 +205,7 @@ const next_wave = () => {
   return Game.set({ wave: nw, phase: "playing" });
 };
 
-const get_aliens = () => synth_map(synth_filter(synth_range(0, ALIEN_ROWS * ALIEN_COLS), i => aliens[i]), i => (() => {
+const get_aliens = () => $map($filter($range(0, ALIEN_ROWS * ALIEN_COLS), i => aliens[i]), i => (() => {
   let color = row_color(alien_row(i));
   return { x: alien_x(i), y: alien_y(i), w: ALIEN_W, h: ALIEN_H, color };
 })());

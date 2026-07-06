@@ -17,7 +17,7 @@ import {
 } from './types.js'
 import { SYNTH_STDLIB } from './stdlib.js'
 
-// Method-syntax stdlib calls: value.method(args) → synth_method(value, args)
+// Method-syntax stdlib calls: value.method(args) → $method(value, args)
 const STDLIB_METHODS = new Set([
   'trim', 'split', 'starts_with', 'ends_with', 'contains', 'to_upper', 'to_lower',
   'replace_all', 'pad_start', 'pad_end',
@@ -27,7 +27,7 @@ const STDLIB_METHODS = new Set([
   'is_ok', 'is_err', 'unwrap', 'unwrap_or',
 ])
 
-// All stdlib identifiers — prefixed synth_* in output to avoid global collisions
+// All stdlib identifiers — prefixed $ in output to keep generated code compact
 const STDLIB_ALL = new Set([
   'map', 'filter', 'fold', 'pipe', 'zip', 'range', 'first', 'last', 'sum', 'count',
   'any', 'all', 'flat', 'flat_map', 'groupBy', 'pick', 'omit',
@@ -561,10 +561,10 @@ export class Codegen {
       case 'RawJS':       return expr.code
       // v0.6: ResultPropagateExpr handled at statement level; if reached here it's
       // inside a sub-expression (e.g. pipeline) — emit as unwrap() for now
-      case 'ResultPropagateExpr': return `synth_unwrap(${this.emitExpr(expr.value)})`
+      case 'ResultPropagateExpr': return `$unwrap(${this.emitExpr(expr.value)})`
       // v0.8: await expr
       case 'AwaitExpr': return `await ${this.emitExpr(expr.value)}`
-      case 'Identifier':  return STDLIB_ALL.has(expr.name) ? `synth_${expr.name}` : expr.name
+      case 'Identifier':  return STDLIB_ALL.has(expr.name) ? `$${expr.name}` : expr.name
 
       case 'UnaryExpr': {
         const unaryOp = expr.op === 'not' ? '!' : expr.op
@@ -618,7 +618,7 @@ export class Codegen {
         }
         if (expr.callee.kind === 'MemberExpr' && STDLIB_METHODS.has(expr.callee.property)) {
           const obj = this.emitExpr(expr.callee.object)
-          const fn = `synth_${expr.callee.property}`
+          const fn = `$${expr.callee.property}`
           return args ? `${fn}(${obj}, ${args})` : `${fn}(${obj})`
         }
         const callee = this.emitExpr(expr.callee)
@@ -760,7 +760,7 @@ export class Codegen {
 
   private applyPipeStep(step: Expr, acc: string): string {
     if (step.kind === 'Identifier') {
-      const fn = STDLIB_ALL.has(step.name) ? `synth_${step.name}` : step.name
+      const fn = STDLIB_ALL.has(step.name) ? `$${step.name}` : step.name
       return `${fn}(${acc})`
     }
     if (step.kind === 'CallExpr') {

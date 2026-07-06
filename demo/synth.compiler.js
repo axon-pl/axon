@@ -11,55 +11,55 @@
   // ── stdlib ──────────────────────────────────────────────────────────────────
   const SYNTH_STDLIB = `
 
-const synth_map = (xs, fn) => xs.map(fn);
-const synth_filter = (xs, pred) => xs.filter(pred);
-const synth_fold = (xs, init, fn) => xs.reduce(fn, init);
-const synth_pipe = (...fns) => (x) => fns.reduce((v, f) => f(v), x);
-const synth_zip = (xs, ys) => xs.map((x, i) => [x, ys[i]]);
-const synth_range = (start, end) => Array.from({ length: Math.max(0, end - start) }, (_, i) => start + i);
-const synth_first = (xs) => xs[0];
-const synth_last = (xs) => xs[xs.length - 1];
-const synth_sum = (xs) => xs.reduce((a, b) => a + b, 0);
-const synth_count = (xs, pred) => pred ? xs.filter(pred).length : xs.length;
-const synth_any = (xs, pred) => xs.some(pred);
-const synth_all = (xs, pred) => xs.every(pred);
-const synth_flat = (xs) => xs.flat();
-const synth_groupBy = (xs, keyFn) => xs.reduce((m, x) => { const k = keyFn(x); if (!m.has(k)) m.set(k, []); m.get(k).push(x); return m; }, new Map());
-const synth_pick = (obj, keys) => Object.fromEntries(keys.filter(k => k in obj).map(k => [k, obj[k]]));
-const synth_omit = (obj, keys) => Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k)));
-const synth_sort_by = (xs, keyFn) => [...xs].sort((a, b) => { const ka = keyFn(a), kb = keyFn(b); return ka < kb ? -1 : ka > kb ? 1 : 0; });
-const synth_sort_by_desc = (xs, keyFn) => [...xs].sort((a, b) => { const ka = keyFn(a), kb = keyFn(b); return ka > kb ? -1 : ka < kb ? 1 : 0; });
-const synth_trim = (s) => s.trim();
-const synth_split = (s, sep) => s.split(sep);
-const synth_starts_with = (s, prefix) => s.startsWith(prefix);
-const synth_ends_with = (s, suffix) => s.endsWith(suffix);
-const synth_contains = (s, sub) => s.includes(sub);
-const synth_to_upper = (s) => s.toUpperCase();
-const synth_to_lower = (s) => s.toLowerCase();
-const synth_replace_all = (s, from, to) => s.replaceAll(from, to);
-const synth_pad_start = (s, len, padChar = ' ') => s.padStart(len, padChar);
-const synth_pad_end = (s, len, padChar = ' ') => s.padEnd(len, padChar);
-const synth_min = (xs) => xs.reduce((a, b) => a < b ? a : b);
-const synth_max = (xs) => xs.reduce((a, b) => a > b ? a : b);
-const synth_min_by = (xs, keyFn) => xs.reduce((a, b) => keyFn(a) <= keyFn(b) ? a : b);
-const synth_max_by = (xs, keyFn) => xs.reduce((a, b) => keyFn(a) >= keyFn(b) ? a : b);
-const synth_take = (xs, n) => xs.slice(0, n);
-const synth_drop = (xs, n) => xs.slice(n);
-const synth_uniq = (xs) => [...new Set(xs)];
-const synth_chunk = (xs, n) => { const out = []; for (let i = 0; i < xs.length; i += n) out.push(xs.slice(i, i + n)); return out; };
-const synth_flat_map = (xs, fn) => xs.flatMap(fn);
-const synth_set_at = (xs, i, val) => [...xs.slice(0, i), val, ...xs.slice(i + 1)];
-const synth_reverse = (xs) => [...xs].reverse();
-const synth_sum_by = (xs, keyFn) => xs.reduce((acc, x) => acc + keyFn(x), 0);
-const synth_clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
-const synth_abs = (x) => Math.abs(x);
-const synth_round = (x) => Math.round(x);
-const synth_floor = (x) => Math.floor(x);
-const synth_ceil = (x) => Math.ceil(x);
-const synth_pow = (x, exp) => Math.pow(x, exp);
-const synth_sqrt = (x) => Math.sqrt(x);
-const synth_random = () => Math.random();
-const synth_random_int = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
+const $map = (xs, fn) => xs.map(fn);
+const $filter = (xs, pred) => xs.filter(pred);
+const $fold = (xs, init, fn) => xs.reduce(fn, init);
+const $pipe = (...fns) => (x) => fns.reduce((v, f) => f(v), x);
+const $zip = (xs, ys) => xs.map((x, i) => [x, ys[i]]);
+const $range = (start, end) => Array.from({ length: Math.max(0, end - start) }, (_, i) => start + i);
+const $first = (xs) => xs[0];
+const $last = (xs) => xs[xs.length - 1];
+const $sum = (xs) => xs.reduce((a, b) => a + b, 0);
+const $count = (xs, pred) => pred ? xs.filter(pred).length : xs.length;
+const $any = (xs, pred) => xs.some(pred);
+const $all = (xs, pred) => xs.every(pred);
+const $flat = (xs) => xs.flat();
+const $groupBy = (xs, keyFn) => xs.reduce((m, x) => { const k = keyFn(x); if (!m.has(k)) m.set(k, []); m.get(k).push(x); return m; }, new Map());
+const $pick = (obj, keys) => Object.fromEntries(keys.filter(k => k in obj).map(k => [k, obj[k]]));
+const $omit = (obj, keys) => Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k)));
+const $sort_by = (xs, keyFn) => [...xs].sort((a, b) => { const ka = keyFn(a), kb = keyFn(b); return ka < kb ? -1 : ka > kb ? 1 : 0; });
+const $sort_by_desc = (xs, keyFn) => [...xs].sort((a, b) => { const ka = keyFn(a), kb = keyFn(b); return ka > kb ? -1 : ka < kb ? 1 : 0; });
+const $trim = (s) => s.trim();
+const $split = (s, sep) => s.split(sep);
+const $starts_with = (s, prefix) => s.startsWith(prefix);
+const $ends_with = (s, suffix) => s.endsWith(suffix);
+const $contains = (s, sub) => s.includes(sub);
+const $to_upper = (s) => s.toUpperCase();
+const $to_lower = (s) => s.toLowerCase();
+const $replace_all = (s, from, to) => s.replaceAll(from, to);
+const $pad_start = (s, len, padChar = ' ') => s.padStart(len, padChar);
+const $pad_end = (s, len, padChar = ' ') => s.padEnd(len, padChar);
+const $min = (xs) => xs.reduce((a, b) => a < b ? a : b);
+const $max = (xs) => xs.reduce((a, b) => a > b ? a : b);
+const $min_by = (xs, keyFn) => xs.reduce((a, b) => keyFn(a) <= keyFn(b) ? a : b);
+const $max_by = (xs, keyFn) => xs.reduce((a, b) => keyFn(a) >= keyFn(b) ? a : b);
+const $take = (xs, n) => xs.slice(0, n);
+const $drop = (xs, n) => xs.slice(n);
+const $uniq = (xs) => [...new Set(xs)];
+const $chunk = (xs, n) => { const out = []; for (let i = 0; i < xs.length; i += n) out.push(xs.slice(i, i + n)); return out; };
+const $flat_map = (xs, fn) => xs.flatMap(fn);
+const $set_at = (xs, i, val) => [...xs.slice(0, i), val, ...xs.slice(i + 1)];
+const $reverse = (xs) => [...xs].reverse();
+const $sum_by = (xs, keyFn) => xs.reduce((acc, x) => acc + keyFn(x), 0);
+const $clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+const $abs = (x) => Math.abs(x);
+const $round = (x) => Math.round(x);
+const $floor = (x) => Math.floor(x);
+const $ceil = (x) => Math.ceil(x);
+const $pow = (x, exp) => Math.pow(x, exp);
+const $sqrt = (x) => Math.sqrt(x);
+const $random = () => Math.random();
+const $random_int = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
 const __synth_presets = {
   email:   /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   url:     /^https?:\/\//,
@@ -70,14 +70,14 @@ const __synth_presets = {
   slug:    /^[a-z0-9-]+$/,
   hex:     /^#?[0-9a-fA-F]{3,8}$/,
 };
-const synth_ok = (value) => ({ tag: 'Ok', value });
-const synth_err = (message) => ({ tag: 'Err', message });
-const synth_is_ok = (r) => r != null && r.tag === 'Ok';
-const synth_is_err = (r) => r != null && r.tag === 'Err';
-const synth_unwrap = (r) => { if (r != null && r.tag === 'Ok') return r.value; throw new Error(r != null ? r.message : 'unwrap called on null'); };
-const synth_unwrap_or = (r, fallback) => (r != null && r.tag === 'Ok') ? r.value : fallback;
-const synth_delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-const synth_println = (...args) => { console.log(...args); console.log(''); };
+const $ok = (value) => ({ tag: 'Ok', value });
+const $err = (message) => ({ tag: 'Err', message });
+const $is_ok = (r) => r != null && r.tag === 'Ok';
+const $is_err = (r) => r != null && r.tag === 'Err';
+const $unwrap = (r) => { if (r != null && r.tag === 'Ok') return r.value; throw new Error(r != null ? r.message : 'unwrap called on null'); };
+const $unwrap_or = (r, fallback) => (r != null && r.tag === 'Ok') ? r.value : fallback;
+const $delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const $println = (...args) => { console.log(...args); console.log(''); };
 const __synth_tests = [];
 const __runSynthTests = () => {
   let passed = 0, failed = 0;
@@ -1988,7 +1988,7 @@ class Parser {
 // Synth v0.9.5 — JavaScript code generator
 // Walks the AST and emits clean, idiomatic JS with JSDoc annotations.
 // ─────────────────────────────────────────────────────────────────────────────
-// Method-syntax stdlib calls: value.method(args) → synth_method(value, args)
+// Method-syntax stdlib calls: value.method(args) → $method(value, args)
 const STDLIB_METHODS = new Set([
     'trim', 'split', 'starts_with', 'ends_with', 'contains', 'to_upper', 'to_lower',
     'replace_all', 'pad_start', 'pad_end',
@@ -1997,7 +1997,7 @@ const STDLIB_METHODS = new Set([
     'sum_by', 'min', 'max', 'min_by', 'max_by', 'sort_by', 'sort_by_desc',
     'is_ok', 'is_err', 'unwrap', 'unwrap_or',
 ]);
-// All stdlib identifiers — prefixed synth_* in output to avoid global collisions
+// All stdlib identifiers — prefixed $ in output to keep generated code compact
 const STDLIB_ALL = new Set([
     'map', 'filter', 'fold', 'pipe', 'zip', 'range', 'first', 'last', 'sum', 'count',
     'any', 'all', 'flat', 'flat_map', 'groupBy', 'pick', 'omit',
@@ -2010,16 +2010,26 @@ const STDLIB_ALL = new Set([
     'ok', 'err', 'is_ok', 'is_err', 'unwrap', 'unwrap_or',
     'delay', 'println',
 ]);
+const BLOCK_DECL_KINDS = new Set([
+    'FnDecl', 'StoreDecl', 'RecordDecl', 'TaggedUnionDecl',
+    'TestDecl', 'ModuleDecl', 'EnumDecl', 'InterfaceDecl',
+]);
+function isBlockDecl(decl) {
+    if (decl.kind === 'ExportDecl')
+        return isBlockDecl(decl.decl);
+    return BLOCK_DECL_KINDS.has(decl.kind);
+}
 class Codegen {
     constructor() {
         this.out = [];
         this.indent = 0;
         this.propagateCounter = 0; // unique temp-var IDs for ? propagation
         this.validatedTypes = new Set();
-        // v0.4: track known union variant names for tag pattern matching
         this.unionVariants = new Map();
+        this.compact = false;
     }
-    generate(program, emitStdlib = false) {
+    generate(program, emitStdlib = false, compact = false) {
+        this.compact = compact;
         // Pre-pass: collect constrained types and tagged union variants
         for (const decl of program.body) {
             if (decl.kind === 'TypeAlias' && decl.constraint) {
@@ -2047,9 +2057,17 @@ class Codegen {
         }
         if (emitStdlib)
             this.out.push(SYNTH_STDLIB);
-        for (const decl of program.body) {
+        for (let i = 0; i < program.body.length; i++) {
+            const decl = program.body[i];
             this.emitTopLevel(decl);
-            this.emitLine('');
+            if (!compact) {
+                // Blank line after every block declaration; also before any block declaration
+                // that follows a simple let/expr (one blank line between groups).
+                const next = program.body[i + 1];
+                if (isBlockDecl(decl) || (next && isBlockDecl(next))) {
+                    this.emitLine('');
+                }
+            }
         }
         return this.out.join('');
     }
@@ -2107,18 +2125,21 @@ class Codegen {
                 break;
             // v0.7: interface is type-level only — emit as a JSDoc @interface comment
             case 'InterfaceDecl': {
-                const tp = decl.typeParams?.length ? `<${decl.typeParams.join(', ')}>` : '';
-                this.emitLine(`/** @interface ${decl.name}${tp}`);
-                for (const f of decl.fields) {
-                    this.emitLine(` * @property {${this.typeToJS(f.type)}} ${f.name}`);
+                if (!this.compact) {
+                    const tp = decl.typeParams?.length ? `<${decl.typeParams.join(', ')}>` : '';
+                    this.emitLine(`/** @interface ${decl.name}${tp}`);
+                    for (const f of decl.fields) {
+                        this.emitLine(` * @property {${this.typeToJS(f.type)}} ${f.name}`);
+                    }
+                    this.emitLine(` */`);
                 }
-                this.emitLine(` */`);
                 break;
             }
         }
     }
     emitTypeAlias(decl) {
-        this.emitLine(`/** @typedef {${this.typeToJS(decl.type)}} ${decl.name} */`);
+        if (!this.compact)
+            this.emitLine(`/** @typedef {${this.typeToJS(decl.type)}} ${decl.name} */`);
         if (decl.constraint) {
             this.emitConstraintValidator(decl.name, decl.type, decl.constraint);
         }
@@ -2127,7 +2148,8 @@ class Codegen {
     // Unit variants → frozen constant object.
     // Payload variants → factory function returning a frozen object.
     emitTaggedUnion(decl) {
-        this.emitLine(`// Tagged union: ${decl.name}`);
+        if (!this.compact)
+            this.emitLine(`// Tagged union: ${decl.name}`);
         for (const v of decl.variants) {
             if (v.fields.length === 0) {
                 // Unit variant: Point → frozen constant
@@ -2208,7 +2230,8 @@ class Codegen {
     emitStore(decl) {
         const fieldNames = decl.fields.map(f => f.name);
         const defaults = decl.fields.map(f => `${f.name}: ${this.emitExpr(f.default)}`).join(', ');
-        this.emitLine(`/** @store ${decl.name} — reactive state boundary (v0.8) */`);
+        if (!this.compact)
+            this.emitLine(`/** @store ${decl.name} — reactive state boundary (v0.8) */`);
         this.emitLine(`const ${decl.name} = (() => {`);
         this.indent++;
         this.emitLine(`let _state = { ${defaults} };`);
@@ -2234,7 +2257,8 @@ class Codegen {
     // → const Color = Object.freeze({ Red: 'Red', Green: 'Green', Blue: 'Blue' });
     emitEnum(decl) {
         const members = decl.variants.map(v => `${v}: '${v}'`).join(', ');
-        this.emitLine(`/** @enum {string} ${decl.name} */`);
+        if (!this.compact)
+            this.emitLine(`/** @enum {string} ${decl.name} */`);
         this.emitLine(`const ${decl.name} = Object.freeze({ ${members} });`);
     }
     emitFn(decl) {
@@ -2339,6 +2363,8 @@ class Codegen {
     }
     // ── JSDoc emitter ────────────────────────────────────────────────────────────
     emitJSDoc(anns, params, returnType, isAsync = false) {
+        if (this.compact)
+            return;
         const intent = anns.find(a => a.name === 'intent');
         const effects = anns.find(a => a.name === 'effects');
         const pure = anns.find(a => a.name === 'pure');
@@ -2521,10 +2547,10 @@ class Codegen {
             case 'RawJS': return expr.code;
             // v0.6: ResultPropagateExpr handled at statement level; if reached here it's
             // inside a sub-expression (e.g. pipeline) — emit as unwrap() for now
-            case 'ResultPropagateExpr': return `synth_unwrap(${this.emitExpr(expr.value)})`;
+            case 'ResultPropagateExpr': return `$unwrap(${this.emitExpr(expr.value)})`;
             // v0.8: await expr
             case 'AwaitExpr': return `await ${this.emitExpr(expr.value)}`;
-            case 'Identifier': return STDLIB_ALL.has(expr.name) ? `synth_${expr.name}` : expr.name;
+            case 'Identifier': return STDLIB_ALL.has(expr.name) ? `$${expr.name}` : expr.name;
             case 'UnaryExpr': {
                 const unaryOp = expr.op === 'not' ? '!' : expr.op;
                 if (expr.prefix) {
@@ -2572,7 +2598,7 @@ class Codegen {
                 }
                 if (expr.callee.kind === 'MemberExpr' && STDLIB_METHODS.has(expr.callee.property)) {
                     const obj = this.emitExpr(expr.callee.object);
-                    const fn = `synth_${expr.callee.property}`;
+                    const fn = `$${expr.callee.property}`;
                     return args ? `${fn}(${obj}, ${args})` : `${fn}(${obj})`;
                 }
                 const callee = this.emitExpr(expr.callee);
@@ -2702,7 +2728,7 @@ class Codegen {
     }
     applyPipeStep(step, acc) {
         if (step.kind === 'Identifier') {
-            const fn = STDLIB_ALL.has(step.name) ? `synth_${step.name}` : step.name;
+            const fn = STDLIB_ALL.has(step.name) ? `$${step.name}` : step.name;
             return `${fn}(${acc})`;
         }
         if (step.kind === 'CallExpr') {

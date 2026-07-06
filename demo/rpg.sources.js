@@ -83,8 +83,8 @@ const Item = (id, name, effect, power, price, count) => ({ id, name, effect, pow
  * @returns {string}
  */
 const hp_bar = (hp, maxHp) => {
-  let filled = maxHp > 0 ? synth_max(Math, 0, Math.round(hp / maxHp * 10)) : 0;
-  let bar = synth_map(synth_range(0, 10), i => i < filled ? "#" : ".");
+  let filled = maxHp > 0 ? $max(Math, 0, Math.round(hp / maxHp * 10)) : 0;
+  let bar = $map($range(0, 10), i => i < filled ? "#" : ".");
   return bar.join("");
 };
 
@@ -96,8 +96,8 @@ const hp_bar = (hp, maxHp) => {
  * @returns {string}
  */
 const xp_bar = (xp, xpNext) => {
-  let filled = xpNext > 0 ? synth_max(Math, 0, Math.round(xp / xpNext * 8)) : 8;
-  let bar = synth_map(synth_range(0, 8), i => i < filled ? "*" : ".");
+  let filled = xpNext > 0 ? $max(Math, 0, Math.round(xp / xpNext * 8)) : 8;
+  let bar = $map($range(0, 8), i => i < filled ? "*" : ".");
   return bar.join("");
 };
 
@@ -374,10 +374,10 @@ const item_label = (effect, power) => ((_m) => (_m === "heal") ? `Restore ${powe
 const damage_breakdown = (atk, def, bonus, roll) => {
   let mitigation = Math.floor(def / 2);
   let power = atk + bonus;
-  let afterArmor = synth_max(Math, 1, power - mitigation);
+  let afterArmor = $max(Math, 1, power - mitigation);
   let isCrit = roll >= 18;
   let mult = isCrit ? 2 : 1;
-  let finalDmg = synth_max(Math, 1, afterArmor * mult);
+  let finalDmg = $max(Math, 1, afterArmor * mult);
   return { atk, bonus, power, mitigation, afterArmor, isCrit, finalDmg };
 };
 
@@ -429,7 +429,7 @@ const battle_gold = (baseReward) => Math.floor(baseReward * 5 / 4);
  * @returns {*}
  */
 const apply_damage = (entity, dmg) => {
-  let newHp = synth_max(Math, 0, entity.hp - dmg);
+  let newHp = $max(Math, 0, entity.hp - dmg);
   return { ...entity, hp: newHp, alive: newHp > 0 };
 };
 
@@ -441,7 +441,7 @@ const apply_damage = (entity, dmg) => {
  * @returns {Hero}
  */
 const apply_heal = (hero, amount) => {
-  let newHp = synth_min(Math, hero.maxHp, hero.hp + amount);
+  let newHp = $min(Math, hero.maxHp, hero.hp + amount);
   return { ...hero, hp: newHp };
 };
 
@@ -453,7 +453,7 @@ const apply_heal = (hero, amount) => {
  * @returns {Hero}
  */
 const apply_revive = (hero, hp) => {
-  let revHp = synth_min(Math, hero.maxHp, hp);
+  let revHp = $min(Math, hero.maxHp, hp);
   return { ...hero, hp: revHp, alive: true };
 };
 
@@ -473,7 +473,7 @@ const apply_level_up = (hero) => {
   level: newLevel,
   xp: hero.xp - xp_to_next(hero.level),
   maxHp: newMax,
-  hp: synth_min(Math, hero.hp + hpGain, newMax),
+  hp: $min(Math, hero.hp + hpGain, newMax),
   baseStrength: hero.baseStrength + 1,
   baseDefense: hero.baseDefense + 1
 };
@@ -497,13 +497,13 @@ const maybe_level_up = (hero) => hero.xp >= xp_to_next(hero.level) && hero.level
  */
 const award_xp = (hero, xpGained) => hero.alive ? maybe_level_up({ ...hero, xp: hero.xp + xpGained }) : hero;
 
-const alive_heroes = (party) => synth_filter(party, __x => __x.alive);
+const alive_heroes = (party) => $filter(party, __x => __x.alive);
 
-const party_hp = (party) => synth_sum(synth_map(synth_filter(party, __x => __x.alive), __x => __x.hp));
+const party_hp = (party) => $sum($map($filter(party, __x => __x.alive), __x => __x.hp));
 
-const any_alive = (party) => synth_any(party, __x => __x.alive);
+const any_alive = (party) => $any(party, __x => __x.alive);
 
-const hero_names = (party) => synth_map(synth_filter(party, __x => __x.alive), __x => __x.name);
+const hero_names = (party) => $map($filter(party, __x => __x.alive), __x => __x.name);
 
 /**
  * Heroes recover 50 HP resting in town; dead heroes stay dead
@@ -512,7 +512,7 @@ const hero_names = (party) => synth_map(synth_filter(party, __x => __x.alive), _
  * @param {Hero[]} party
  * @returns {Hero[]}
  */
-const rest_party = (party) => synth_map(party, h => h.alive ? { ...h, hp: synth_min(Math, h.maxHp, h.hp + 50) } : h);
+const rest_party = (party) => $map(party, h => h.alive ? { ...h, hp: $min(Math, h.maxHp, h.hp + 50) } : h);
 
 /**
  * All 6 params auto-validated at entry; each with its own guard clause
@@ -1509,7 +1509,7 @@ const el = (tag, attrs, ...children) => {
       return e.setAttribute(k, String(v));
     }
 });
-  synth_flat(children).forEach((child) => {
+  $flat(children).forEach((child) => {
     if (typeof child === "string") {
       return e.appendChild(document.createTextNode(child));
     } else if (child instanceof Node) {
@@ -1627,7 +1627,7 @@ const render_game = (rootId) => {
         log.push(`** ${enemy.name} defeated! **`);
         log.push(`Gained ${xpGain} XP and ${goldGain} gold.`);
         let oldParty = state.party;
-        let newParty = synth_map(state.party, h => award_xp(h, xpGain));
+        let newParty = $map(state.party, h => award_xp(h, xpGain));
         newParty.forEach((h) => {
           let old = oldParty.find(p => p.name === h.name);
           if (old && h.level > old.level) {
@@ -1650,7 +1650,7 @@ const render_game = (rootId) => {
         const { atk: eAtk, bonus: eBonus, mitigation: eMit, isCrit: eCrit, finalDmg: eDmg } = damage_breakdown(enemy.attack, effective_def(target), 0, 10);
         let eArmor = armor_source(target);
         let targetDies = target.hp - eDmg <= 0;
-        let newParty = synth_map(state.party, h => h.name === target.name ? apply_damage(h, eDmg) : h);
+        let newParty = $map(state.party, h => h.name === target.name ? apply_damage(h, eDmg) : h);
         log.push(fmt_attack(enemy.name, "claws", "strikes back at", target.name, eDmg));
         log.push(fmt_dmg_detail(eAtk, eBonus, eMit, eArmor, eCrit, eDmg));
         targetDies ? log.push(fmt_death(target.name)) : 0;
@@ -1671,7 +1671,7 @@ const render_game = (rootId) => {
   let can_target_with = (item, hero) => {
     return item.effect === "heal" ? hero.alive && hero.hp < hero.maxHp : item.effect === "revive" ? !hero.alive : false;
 };
-  let item_targets = item => synth_filter(state.party, h => can_target_with(item, h));
+  let item_targets = item => $filter(state.party, h => can_target_with(item, h));
   let can_use_item = (item) => {
     return item.effect === "damage" ? state.scene === "battle" && state.enemy && state.enemy.alive : item.effect === "healAll" ? alive_heroes(state.party).length > 0 : item_targets(item).length > 0;
 };
@@ -1694,9 +1694,9 @@ const render_game = (rootId) => {
     if (can_use_item(item) && validTarget) {
       let inBattle = state.scene === "battle";
       let log = inBattle ? state.battleLog.slice() : [];
-      let newInv = synth_filter(synth_map(state.inventory, i => i.id === item.id ? { ...i, count: i.count - 1 } : i), i => i.count > 0);
+      let newInv = $filter($map(state.inventory, i => i.id === item.id ? { ...i, count: i.count - 1 } : i), i => i.count > 0);
       if (item.effect === "heal") {
-        let newParty = synth_map(state.party, h => h.name === hero.name ? apply_heal(h, item.power) : h);
+        let newParty = $map(state.party, h => h.name === hero.name ? apply_heal(h, item.power) : h);
         log.push(fmt_heal(hero.name, item.name, item.power));
         state = {
   ...state,
@@ -1707,7 +1707,7 @@ const render_game = (rootId) => {
 };
         return render();
       } else if (item.effect === "healAll") {
-        let newParty = synth_map(state.party, h => h.alive ? apply_heal(h, item.power) : h);
+        let newParty = $map(state.party, h => h.alive ? apply_heal(h, item.power) : h);
         log.push(`  ${item.name} — all heroes restored ${item.power} HP.`);
         state = {
   ...state,
@@ -1718,7 +1718,7 @@ const render_game = (rootId) => {
 };
         return render();
       } else if (item.effect === "revive") {
-        let newParty = synth_map(state.party, h => h.name === hero.name ? apply_revive(h, item.power) : h);
+        let newParty = $map(state.party, h => h.name === hero.name ? apply_revive(h, item.power) : h);
         log.push(fmt_revive(hero.name, item.name));
         state = {
   ...state,
@@ -1729,7 +1729,7 @@ const render_game = (rootId) => {
 };
         return render();
       } else if (item.effect === "damage") {
-        let newHp = synth_max(Math, 0, state.enemy.hp - item.power);
+        let newHp = $max(Math, 0, state.enemy.hp - item.power);
         let newEnemy = { ...state.enemy, hp: newHp, alive: newHp > 0 };
         log.push(`  ${item.name} — ${item.power} damage to ${state.enemy.name}!`);
         if (!newEnemy.alive) {
@@ -1738,7 +1738,7 @@ const render_game = (rootId) => {
           let goldGain = battle_gold(state.enemy.goldReward);
           log.push(`Gained ${xpGain} XP and ${goldGain} gold.`);
           let oldParty = state.party;
-          let newParty = synth_map(state.party, h => award_xp(h, xpGain));
+          let newParty = $map(state.party, h => award_xp(h, xpGain));
           newParty.forEach((h) => {
             let old = oldParty.find(p => p.name === h.name);
             if (old && h.level > old.level) {
@@ -1794,9 +1794,9 @@ const render_game = (rootId) => {
     let slot = newEquip.slot;
     let oldEquip = slot === "weapon" ? hero.weapon : hero.armor;
     let idx = state.stash.findIndex(e => e.id === newEquip.id);
-    let trimmed = synth_filter(state.stash, (e, i) => i !== idx);
+    let trimmed = $filter(state.stash, (e, i) => i !== idx);
     let newStash = oldEquip ? trimmed.concat([oldEquip]) : trimmed;
-    let newParty = synth_map(state.party, (h) => {
+    let newParty = $map(state.party, (h) => {
       if (h.name === hero.name) {
         let patched = slot === "weapon" ? { ...h, weapon: newEquip } : { ...h, armor: newEquip };
         return patched;
@@ -1811,7 +1811,7 @@ const render_game = (rootId) => {
     let equip = slot === "weapon" ? hero.weapon : hero.armor;
     if (equip) {
       let patched = slot === "weapon" ? { ...hero, weapon: null } : { ...hero, armor: null };
-      let newParty = synth_map(state.party, h => h.name === hero.name ? patched : h);
+      let newParty = $map(state.party, h => h.name === hero.name ? patched : h);
       state = { ...state, party: newParty, stash: state.stash.concat([equip]) };
       return render();
     }
@@ -1877,7 +1877,7 @@ const render_game = (rootId) => {
     if (state.pickingFor) {
       let pf = state.pickingFor;
       let hero = state.party.find(h => h.name === pf.heroName);
-      let compat = synth_filter(state.stash, e => e.slot === pf.slot && can_class_equip(hero.heroClass, e.forClass));
+      let compat = $filter(state.stash, e => e.slot === pf.slot && can_class_equip(hero.heroClass, e.forClass));
       dialogInner.innerHTML = "";
       let dialogHeader = el("div", { class: "picker-dialog-header" }, el("div", { class: "picker-label" }, `Choose ${pf.slot} for ${pf.heroName}`), el("button", { class: "picker-close" }, "✕"));
       dialogHeader.querySelector(".picker-close").addEventListener("click", closePicker);
@@ -1995,7 +1995,7 @@ Statistically, it could go either way.`
     let titleEl = el("div", { class: "intro-slide-title" }, current.title);
     root.appendChild(titleEl);
     let textBox = el("div", { class: "intro-text-box" });
-    synth_split(current.text, `
+    $split(current.text, `
 `).forEach((line) => {
       let cls = line === "" ? "intro-spacer" : "intro-line";
       textBox.appendChild(el("div", { class: cls }, line));
@@ -2156,7 +2156,7 @@ Statistically, it could go either way.`
     let buy_item = (item) => {
       if (state.gold >= item.price) {
         let existing = state.inventory.find(i => i.id === item.id);
-        let newInv = existing ? synth_map(state.inventory, i => i.id === item.id ? { ...i, count: i.count + 1 } : i) : state.inventory.concat([{ ...item, count: 1 }]);
+        let newInv = existing ? $map(state.inventory, i => i.id === item.id ? { ...i, count: i.count + 1 } : i) : state.inventory.concat([{ ...item, count: 1 }]);
         state = { ...state, gold: state.gold - item.price, inventory: newInv };
         return render();
       }

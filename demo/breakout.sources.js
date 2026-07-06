@@ -38,7 +38,7 @@ let ball_y = CANVAS_H / 2;
 let ball_vx = BALL_SPEED * 0.6;
 let ball_vy = 0 - BALL_SPEED * 0.8;
 let paddle_x = (CANVAS_W - PADDLE_W) / 2;
-let bricks = synth_map(synth_range(0, ROWS * COLS), i => true);
+let bricks = $map($range(0, ROWS * COLS), i => true);
 
 const brick_x = (col) => col * (BRICK_W + BRICK_GAP);
 
@@ -46,7 +46,7 @@ const brick_y = (row) => 60 + row * (BRICK_H + BRICK_GAP);
 
 const brick_index = (row, col) => row * COLS + col;
 
-const alive_count = () => synth_count(bricks, alive => alive);
+const alive_count = () => $count(bricks, alive => alive);
 
 /**
  * @returns {*}
@@ -54,14 +54,14 @@ const alive_count = () => synth_count(bricks, alive => alive);
 const reset_ball = () => {
   ball_x = CANVAS_W / 2;
   ball_y = CANVAS_H - 120;
-  ball_vx = BALL_SPEED * (synth_random() > 0.5 ? 0.6 : 0 - 0.6);
+  ball_vx = BALL_SPEED * ($random() > 0.5 ? 0.6 : 0 - 0.6);
   return ball_vy = 0 - BALL_SPEED * 0.8;
 };
 
 /**
  * @returns {*}
  */
-const reset_bricks = () => bricks = synth_map(synth_range(0, ROWS * COLS), i => true);
+const reset_bricks = () => bricks = $map($range(0, ROWS * COLS), i => true);
 
 /**
  * @returns {*}
@@ -88,7 +88,7 @@ const next_level = () => {
  * @param {*} x
  * @returns {*}
  */
-const move_paddle = (x) => paddle_x = synth_clamp(x - PADDLE_W / 2, 0, CANVAS_W - PADDLE_W);
+const move_paddle = (x) => paddle_x = $clamp(x - PADDLE_W / 2, 0, CANVAS_W - PADDLE_W);
 
 /**
  * @returns {*}
@@ -120,8 +120,8 @@ const check_brick_collisions = () => {
   }
   if (hit_row >= 0) {
     let idx = brick_index(hit_row, hit_col);
-    bricks = synth_set_at(bricks, idx, false);
-    ball_vy = hit_from_bottom ? synth_abs(ball_vy) : 0 - synth_abs(ball_vy);
+    bricks = $set_at(bricks, idx, false);
+    ball_vy = hit_from_bottom ? $abs(ball_vy) : 0 - $abs(ball_vy);
     let pts = row_points(hit_row);
     let new_score = Game.score + pts;
     let new_hi = new_score > Game.hi ? new_score : Game.hi;
@@ -145,25 +145,25 @@ const tick = (dt) => {
     ball_y += ball_vy * dt * speed_mult;
     if (ball_x - BALL_R < 0) {
       ball_x = BALL_R;
-      ball_vx = synth_abs(ball_vx);
+      ball_vx = $abs(ball_vx);
     }
     if (ball_x + BALL_R > CANVAS_W) {
       ball_x = CANVAS_W - BALL_R;
-      ball_vx = 0 - synth_abs(ball_vx);
+      ball_vx = 0 - $abs(ball_vx);
     }
     if (ball_y - BALL_R < 0) {
       ball_y = BALL_R;
-      ball_vy = synth_abs(ball_vy);
+      ball_vy = $abs(ball_vy);
     }
     let prev_vy = ball_vy;
     let on_paddle_x = ball_x + BALL_R > paddle_x && ball_x - BALL_R < paddle_x + PADDLE_W;
     if (on_paddle_x && prev_vy > 0 && ball_y + BALL_R >= PADDLE_Y) {
       ball_y = PADDLE_Y - BALL_R;
-      let hit_pos = synth_clamp((ball_x - paddle_x) / PADDLE_W, 0.05, 0.95);
+      let hit_pos = $clamp((ball_x - paddle_x) / PADDLE_W, 0.05, 0.95);
       let angle = (hit_pos - 0.5) * 1.8;
       let speed = BALL_SPEED * speed_mult;
       ball_vx = speed * angle;
-      ball_vy = 0 - synth_sqrt(speed * speed - ball_vx * ball_vx);
+      ball_vy = 0 - $sqrt(speed * speed - ball_vx * ball_vx);
     }
     let side_in_y = ball_y + BALL_R > PADDLE_Y && ball_y - BALL_R < PADDLE_Y + PADDLE_H;
     if (on_paddle_x && side_in_y && prev_vy <= 0) {
@@ -171,10 +171,10 @@ const tick = (dt) => {
       let right_pen = paddle_x + PADDLE_W + BALL_R - ball_x;
       if (left_pen < right_pen) {
         ball_x = paddle_x - BALL_R;
-        ball_vx = 0 - synth_abs(ball_vx);
+        ball_vx = 0 - $abs(ball_vx);
       } else {
         ball_x = paddle_x + PADDLE_W + BALL_R;
-        ball_vx = synth_abs(ball_vx);
+        ball_vx = $abs(ball_vx);
       }
     }
     check_brick_collisions();
@@ -197,7 +197,7 @@ const get_ball = () => ({ x: ball_x, y: ball_y, r: BALL_R });
 
 const get_paddle = () => ({ x: paddle_x, y: PADDLE_Y, w: PADDLE_W, h: PADDLE_H });
 
-const get_bricks = () => synth_flat_map(synth_range(0, ROWS), r => synth_map(synth_filter(synth_range(0, COLS), c => bricks[brick_index(r, c)]), c => (() => {
+const get_bricks = () => $flat_map($range(0, ROWS), r => $map($filter($range(0, COLS), c => bricks[brick_index(r, c)]), c => (() => {
   let color = row_color(r);
   return { x: brick_x(c), y: brick_y(r), w: BRICK_W, h: BRICK_H, color };
 })()));

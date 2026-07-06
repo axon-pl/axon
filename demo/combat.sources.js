@@ -41,7 +41,7 @@ const Enemy = (name, hp, maxHp, attack, defense, weakness, alive) => ({ name, hp
 
 const hero_is_alive = (h) => h.alive;
 
-const any_alive = (party) => synth_any(party, __x => __x.alive);
+const any_alive = (party) => $any(party, __x => __x.alive);
 
 const format_attack_msg = (attacker, outcome, defender, dmg) => `${attacker} ${outcome} ${defender} for ${dmg} damage!`;
 
@@ -58,8 +58,8 @@ const format_hero_label = (hero) => `${hero.name} Lv.${hero.level} ${hero.heroCl
  * @returns {string}
  */
 const hp_bar_text = (hp, maxHp) => {
-  let filled = maxHp > 0 ? synth_max(Math, 0, Math.round(hp / maxHp * 8)) : 0;
-  let bar = synth_map(synth_range(0, 8), i => i < filled ? "#" : ".");
+  let filled = maxHp > 0 ? $max(Math, 0, Math.round(hp / maxHp * 8)) : 0;
+  let bar = $map($range(0, 8), i => i < filled ? "#" : ".");
   let pct = maxHp > 0 ? Math.floor(hp / maxHp * 100) : 0;
   let barStr = bar.join("");
   return `${barStr} ${hp}/${maxHp} (${pct}%)`;
@@ -152,9 +152,9 @@ const compute_damage = (() => {
     const __key = JSON.stringify([atk, def, bonus, roll]);
     if (__cache.has(__key)) return __cache.get(__key);
     const __result = (() => {
-      let base = synth_max(Math, 1, atk + bonus - Math.floor(def / 2));
+      let base = $max(Math, 1, atk + bonus - Math.floor(def / 2));
       let mult = roll >= 18 ? 2 : 1;
-      return synth_max(Math, 1, base * mult);
+      return $max(Math, 1, base * mult);
     })();
     __cache.set(__key, __result);
     return __result;
@@ -210,7 +210,7 @@ const create_hero = (name, heroClass, hp, strength, defense, level) => {
  * @param {Hero[]} party
  * @returns {Hero[]}
  */
-const alive_heroes = (party) => synth_filter(party, __x => __x.alive);
+const alive_heroes = (party) => $filter(party, __x => __x.alive);
 
 /**
  * Names of all living heroes — chain of .field shorthands
@@ -219,7 +219,7 @@ const alive_heroes = (party) => synth_filter(party, __x => __x.alive);
  * @param {Hero[]} party
  * @returns {string}
  */
-const party_names = (party) => synth_map(synth_filter(party, __x => __x.alive), __x => __x.name);
+const party_names = (party) => $map($filter(party, __x => __x.alive), __x => __x.name);
 
 /**
  * Sum of living HP — .hp shorthand after .alive filter
@@ -234,7 +234,7 @@ const total_party_hp = (() => {
     const __key = JSON.stringify([party]);
     if (__cache.has(__key)) return __cache.get(__key);
     const __result = (() => {
-      return synth_sum(synth_map(synth_filter(party, __x => __x.alive), __x => __x.hp));
+      return $sum($map($filter(party, __x => __x.alive), __x => __x.hp));
     })();
     __cache.set(__key, __result);
     return __result;
@@ -254,7 +254,7 @@ const party_power_rating = (() => {
     const __key = JSON.stringify([party]);
     if (__cache.has(__key)) return __cache.get(__key);
     const __result = (() => {
-      return synth_sum(synth_map(party, hero_power));
+      return $sum($map(party, hero_power));
     })();
     __cache.set(__key, __result);
     return __result;
@@ -268,7 +268,7 @@ const party_power_rating = (() => {
  * @param {Hero[]} party
  * @returns {number}
  */
-const count_alive = (party) => synth_count(synth_filter(party, __x => __x.alive));
+const count_alive = (party) => $count($filter(party, __x => __x.alive));
 
 /**
  * The hero with the highest power rating
@@ -279,7 +279,7 @@ const count_alive = (party) => synth_count(synth_filter(party, __x => __x.alive)
  */
 const strongest_hero = (party) => {
   let sorted = party.slice().sort((a, b) => hero_power(b) - hero_power(a));
-  return synth_first(sorted);
+  return $first(sorted);
 };
 
 /**
@@ -290,7 +290,7 @@ const strongest_hero = (party) => {
  * @returns {boolean}
  */
 const debug_party = (party) => {
-  console.log("debug_party:", synth_map(party, __x => __x.name));
+  console.log("debug_party:", $map(party, __x => __x.name));
   return true;
 };
 
@@ -303,7 +303,7 @@ const debug_party = (party) => {
  * @returns {*}
  */
 const apply_damage = (entity, dmg) => {
-  let newHp = synth_max(Math, 0, entity.hp - dmg);
+  let newHp = $max(Math, 0, entity.hp - dmg);
   return { ...entity, hp: newHp, alive: newHp > 0 };
 };
 
@@ -332,7 +332,7 @@ const el = (tag, attrs, ...children) => {
       return e.setAttribute(k, String(v));
     }
 });
-  synth_flat(children).forEach((child) => {
+  $flat(children).forEach((child) => {
     if (typeof child === "string") {
       return e.appendChild(document.createTextNode(child));
     } else if (child instanceof Node) {
@@ -381,7 +381,7 @@ const render_party_panel = (party) => {
   let totalHp = total_party_hp(party);
   let powerRating = party_power_rating(party);
   let summaryStr = `Party: ${aliveCount} alive · ${totalHp} HP · PWR ${powerRating}`;
-  let rows = synth_map(party, render_hero_row);
+  let rows = $map(party, render_hero_row);
   let container = el("div", { class: "party-panel" });
   rows.forEach(row => container.appendChild(row));
   container.appendChild(el("div", { class: "party-summary" }, summaryStr));
@@ -465,7 +465,7 @@ const render_combat = (rootId) => {
         let target = alive[ti];
         let eDmg = compute_damage(enemy.attack, target.defense, 0, 10);
         let dies = target.hp - eDmg <= 0;
-        party = synth_map(party, h => h.name === target.name ? apply_damage(h, eDmg) : h);
+        party = $map(party, h => h.name === target.name ? apply_damage(h, eDmg) : h);
         addLog(format_attack_msg(eName, "strikes back at", target.name, eDmg));
         if (dies) {
           addLog(format_death_msg(target.name));

@@ -158,9 +158,9 @@ const library_stats = (() => {
     const __key = JSON.stringify([tracks]);
     if (__cache.has(__key)) return __cache.get(__key);
     const __result = (() => {
-      let total_dur = synth_sum(synth_map(tracks, __x => __x.duration));
-      let total_bpm = synth_sum(synth_map(tracks, __x => __x.bpm));
-      let n_featured = synth_count(synth_filter(tracks, __x => __x.featured));
+      let total_dur = $sum($map(tracks, __x => __x.duration));
+      let total_bpm = $sum($map(tracks, __x => __x.bpm));
+      let n_featured = $count($filter(tracks, __x => __x.featured));
       return {
   count: tracks.length,
   totalDuration: total_dur,
@@ -200,7 +200,7 @@ const fibonacci = (() => {
  * @param {Track[]} tracks
  * @returns {Track[]}
  */
-const featured_tracks = (tracks) => synth_filter(tracks, __x => __x.featured);
+const featured_tracks = (tracks) => $filter(tracks, __x => __x.featured);
 
 /**
  * Extract all track titles using .title shorthand
@@ -209,7 +209,7 @@ const featured_tracks = (tracks) => synth_filter(tracks, __x => __x.featured);
  * @param {Track[]} tracks
  * @returns {string}
  */
-const all_titles = (tracks) => synth_map(tracks, __x => __x.title);
+const all_titles = (tracks) => $map(tracks, __x => __x.title);
 
 /**
  * Extract all artist names using .artist shorthand
@@ -218,7 +218,7 @@ const all_titles = (tracks) => synth_map(tracks, __x => __x.title);
  * @param {Track[]} tracks
  * @returns {string}
  */
-const all_artists = (tracks) => synth_map(tracks, __x => __x.artist);
+const all_artists = (tracks) => $map(tracks, __x => __x.artist);
 
 /**
  * Sum all durations using .duration shorthand
@@ -227,7 +227,7 @@ const all_artists = (tracks) => synth_map(tracks, __x => __x.artist);
  * @param {Track[]} tracks
  * @returns {number}
  */
-const total_playtime = (tracks) => synth_sum(synth_map(tracks, __x => __x.duration));
+const total_playtime = (tracks) => $sum($map(tracks, __x => __x.duration));
 
 /**
  * Filter tracks to a specific genre
@@ -237,7 +237,7 @@ const total_playtime = (tracks) => synth_sum(synth_map(tracks, __x => __x.durati
  * @param {string} genre
  * @returns {Track[]}
  */
-const tracks_in_genre = (tracks, genre) => synth_filter(tracks, t => t.genre === genre);
+const tracks_in_genre = (tracks, genre) => $filter(tracks, t => t.genre === genre);
 
 /**
  * True if the collection has at least one featured track
@@ -246,7 +246,7 @@ const tracks_in_genre = (tracks, genre) => synth_filter(tracks, t => t.genre ===
  * @param {Track[]} tracks
  * @returns {boolean}
  */
-const any_featured = (tracks) => synth_any(tracks, __x => __x.featured);
+const any_featured = (tracks) => $any(tracks, __x => __x.featured);
 
 /**
  * Return the top n tracks by BPM descending
@@ -304,7 +304,7 @@ const el = (tag, attrs, ...children) => {
       return e.setAttribute(k, String(v));
     }
 });
-  synth_flat(children).forEach((child) => {
+  $flat(children).forEach((child) => {
     if (typeof child === "string") {
       return e.appendChild(document.createTextNode(child));
     } else if (child instanceof Node) {
@@ -363,7 +363,7 @@ const render_stats_bar = (tracks) => {
  * @returns {Element}
  */
 const render_genre_filters = (genres, activeGenre, onFilter) => {
-  let buttons = synth_map(genres, g => el("button", { class: g === activeGenre ? "filter-btn filter-btn--active" : "filter-btn" }, g === "all" ? "All Tracks" : g));
+  let buttons = $map(genres, g => el("button", { class: g === activeGenre ? "filter-btn filter-btn--active" : "filter-btn" }, g === "all" ? "All Tracks" : g));
   genres.forEach((g, i) => {
     let btn = buttons[i];
     btn.addEventListener("click", () => onFilter(g));
@@ -393,8 +393,8 @@ const render_add_form = (container, onAdd) => {
     let dur = parseInt(durIn.value);
     let genre = genreIn.value.length > 0 ? genreIn.value : "other";
     let err = validate_track_input(title, artist, bpm, dur);
-    if (synth_err.length > 0) {
-      return errEl.textContent = synth_err;
+    if ($err.length > 0) {
+      return errEl.textContent = $err;
     } else {
       errEl.textContent = "";
       let newId = Math.floor(Math.random() * 9000) + 1000;

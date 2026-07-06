@@ -21,7 +21,7 @@ const Life = (() => {
   };
 })();
 
-let cells = synth_map(synth_range(0, ROWS * COLS), i => false);
+let cells = $map($range(0, ROWS * COLS), i => false);
 
 const idx = (c, r) => r * COLS + c;
 
@@ -39,8 +39,8 @@ const next_state = (c, r) => (() => {
  * @returns {*}
  */
 const step = () => {
-  cells = synth_flat_map(synth_range(0, ROWS), r => synth_map(synth_range(0, COLS), c => next_state(c, r)));
-  let pop = synth_count(cells, v => v);
+  cells = $flat_map($range(0, ROWS), r => $map($range(0, COLS), c => next_state(c, r)));
+  let pop = $count(cells, v => v);
   return Life.set({ gen: Life.gen + 1, pop });
 };
 
@@ -48,7 +48,7 @@ const step = () => {
  * @returns {*}
  */
 const clear_grid = () => {
-  cells = synth_map(synth_range(0, ROWS * COLS), i => false);
+  cells = $map($range(0, ROWS * COLS), i => false);
   return Life.set({ gen: 0, pop: 0 });
 };
 
@@ -56,8 +56,8 @@ const clear_grid = () => {
  * @returns {*}
  */
 const randomize = () => {
-  cells = synth_map(synth_range(0, ROWS * COLS), i => synth_random() < 0.28 ? true : false);
-  let pop = synth_count(cells, v => v);
+  cells = $map($range(0, ROWS * COLS), i => $random() < 0.28 ? true : false);
+  let pop = $count(cells, v => v);
   return Life.set({ gen: 0, pop });
 };
 
@@ -69,8 +69,8 @@ const randomize = () => {
  */
 const paint = (c, r, v) => {
   if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
-    cells = synth_set_at(cells, idx(c, r), v);
-    let pop = synth_count(cells, a => a);
+    cells = $set_at(cells, idx(c, r), v);
+    let pop = $count(cells, a => a);
     return Life.set({ pop });
   }
 };
@@ -84,8 +84,8 @@ const toggle = (c, r) => {
   if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
     let i = idx(c, r);
     let was = cells[i];
-    cells = synth_set_at(cells, i, was ? false : true);
-    let pop = synth_count(cells, a => a);
+    cells = $set_at(cells, i, was ? false : true);
+    let pop = $count(cells, a => a);
     return Life.set({ pop });
   }
 };
@@ -94,7 +94,7 @@ const toggle = (c, r) => {
  * @param {*} pts
  * @returns {*}
  */
-const place = (pts) => synth_map(pts, p => paint(p.c, p.r, true));
+const place = (pts) => $map(pts, p => paint(p.c, p.r, true));
 
 /**
  * @returns {*}
@@ -112,7 +112,7 @@ const load_pulsar = () => {
   let cx = COLS / 2;
   let cy = ROWS / 2;
   let offsets = [2, 3, 4, 8, 9, 10];
-  return synth_map(offsets, o => (() => {
+  return $map(offsets, o => (() => {
     paint(cx - o, cy - 1, true);
     paint(cx + o, cy - 1, true);
     paint(cx - o, cy + 1, true);
