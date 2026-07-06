@@ -1,3 +1,7 @@
+let CANVAS_W = 800;
+
+let CANVAS_H = 520;
+
 let COLS = 10;
 
 let ROWS = 6;
@@ -13,10 +17,6 @@ let PADDLE_W = 100;
 let PADDLE_H = 12;
 
 let BALL_R = 8;
-
-let CANVAS_W = 800;
-
-let CANVAS_H = 520;
 
 let PADDLE_Y = CANVAS_H - 40;
 
