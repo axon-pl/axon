@@ -178,8 +178,8 @@ const tick = (dt) => {
       let hit_pos = (ball_x - paddle_x) / PADDLE_W;
       let angle = (hit_pos - 0.5) * 2.2;
       let speed = BALL_SPEED * speed_mult;
-      ball_vx = speed * angle;
-      ball_vy = 0 - synth_abs(synth_sqrt(speed * speed - ball_vx * ball_vx));
+      ball_vx = synth_clamp(speed * angle, 0 - speed * 0.85, speed * 0.85);
+      ball_vy = 0 - synth_sqrt(speed * speed - ball_vx * ball_vx);
     }
     check_brick_collisions();
     if (ball_y - BALL_R > CANVAS_H) {
