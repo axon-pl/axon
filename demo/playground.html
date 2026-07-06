@@ -863,62 +863,96 @@ if counted >= 5 {
 }`,
 
 
-  fib: `// Fibonacci with @memo caching
-fn fib :: (n: int) -> int {
-  @pure @total @memo
-  match n {
-    | 0 => 0
-    | 1 => 1
-    | _ => fib(n - 1) + fib(n - 2)
+  fib: `// Fibonacci — The Sequence Behind the Spiral
+// Shows up in sunflowers, nautilus shells, galaxy arms, and interview questions.
+
+@memo
+fn fib(n: int) -> int {
+  if n <= 1 { n } else { fib(n - 1) + fib(n - 2) }
+}
+
+// The ratio of consecutive terms converges on the golden ratio: 1.6180339...
+console.log("Convergence on phi (the golden ratio):")
+for i in 5..=14 {
+  let ratio = fib(i + 1) / fib(i)
+  console.log("  fib(" + pad_start("" + (i+1), 2) + ") / fib(" + pad_start("" + i, 2) + ") = " + ratio.toFixed(9))
+}
+
+console.log("")
+console.log("Without @memo, fib(40) needs ~330 million calls.")
+console.log("fib(40)  = " + fib(40))
+console.log("fib(50)  = " + fib(50))
+console.log("fib(75)  = " + fib(75))
+console.log("All instant. @memo is carrying this entire example.")`,
+
+  types: `// Constrained Types — Rocket Launch Clearance
+// Type constraints enforce safety rules at the call site, not inside the function.
+
+type FuelLevel    = int    where value >= 0 and value <= 100
+type TempCelsius  = int    where value >= -273 and value <= 500
+type MissionName  = string where length > 2
+
+fn launch_status(name: MissionName, fuel: FuelLevel, temp: TempCelsius) -> string {
+  match fuel {
+    | f when f < 20 => name + ": ABORT     — fuel critical (" + f + "%)"
+    | f when f < 60 => name + ": HOLD      — fuel low (" + f + "%)"
+    | _             => match temp {
+        | t when t > 80  => name + ": HOLD      — temperature too high (" + t + "C)"
+        | t when t < -5  => name + ": HOLD      — temperature too low (" + t + "C)"
+        | _              => name + ": GO FOR LAUNCH"
+      }
   }
 }
 
-for i in 0..10 {
-  console.log("fib(" + i + ") = " + fib(i))
+let missions = [
+  { name: "Artemis VII",  fuel: 98,  temp: 21 },
+  { name: "Helios II",    fuel: 45,  temp: 18 },
+  { name: "Deep Horizon", fuel: 91,  temp: 88 },
+  { name: "Nova Prime",   fuel: 12,  temp: 5  },
+  { name: "Axon-1",       fuel: 100, temp: 20 },
+]
+
+console.log("=== LAUNCH CONTROL ===")
+for m in missions {
+  console.log(launch_status(m.name, m.fuel, m.temp))
 }`,
 
-  types: `// Constrained types — param validation injection
-type Score = int where value >= 0 and value <= 100
-type NonEmpty = string where length > 0
+  match: `// Pattern Matching — Space Weather Alert System
+// Tagged unions let each variant carry its own data. Guards add fine-grained control.
 
-fn grade(score: Score, name: NonEmpty) -> string {
-  match score {
-    | n when n >= 90 => "{name}: A"
-    | n when n >= 80 => "{name}: B"
-    | n when n >= 70 => "{name}: C"
-    | _              => "{name}: F"
+type SpaceEvent =
+  | SolarFlare      { intensity: int }
+  | AsteroidPass    { distance: float }
+  | GeomagneticStorm { kp: int }
+  | AllClear
+
+fn alert(event: SpaceEvent) -> string {
+  match event {
+    | SolarFlare { intensity } when intensity >= 9 => "X-CLASS FLARE — suspend all satellite ops"
+    | SolarFlare { intensity } when intensity >= 6 => "M-class flare  — monitor closely (" + intensity + ")"
+    | SolarFlare { intensity }                     => "C-class flare  — routine (" + intensity + ")"
+    | AsteroidPass { distance } when distance < 0.05 => "CLOSE APPROACH — " + distance + " AU from Earth"
+    | AsteroidPass { distance }                       => "Asteroid pass  — " + distance + " AU, no risk"
+    | GeomagneticStorm { kp } when kp >= 7 => "SEVERE STORM   — aurora visible worldwide"
+    | GeomagneticStorm { kp } when kp >= 5 => "Moderate storm — aurora at high latitudes (kp=" + kp + ")"
+    | GeomagneticStorm { kp }              => "Minor activity — kp=" + kp
+    | AllClear => "All clear      — nominal conditions"
   }
 }
 
-console.log(grade(95, "Alice"))
-console.log(grade(73, "Bob"))`,
+let events = [
+  SolarFlare(9),
+  AsteroidPass(0.03),
+  GeomagneticStorm(8),
+  SolarFlare(3),
+  AllClear,
+  GeomagneticStorm(4),
+  AsteroidPass(1.2),
+]
 
-  match: `// Pattern matching — tagged unions + guards
-type Shape =
-  | Circle { r: float }
-  | Rect   { w: float, h: float }
-  | Point
-
-fn area(shape: Shape) -> float {
-  match shape {
-    | Circle { r }  => 3.14159 * r * r
-    | Rect { w, h } => w * h
-    | Point         => 0.0
-  }
-}
-
-fn describe(shape: Shape) -> string {
-  match shape {
-    | Circle { r } when r > 10 => "big circle (r={r})"
-    | Circle { r }             => "small circle (r={r})"
-    | Rect { w, h }            => "rect {w}×{h}"
-    | Point                    => "point"
-  }
-}
-
-let shapes = [Circle(5.0), Rect(4.0, 3.0), Circle(15.0), Point]
-for s in shapes {
-  console.log(describe(s) + " — area: " + area(s))
+console.log("=== SPACE WEATHER FEED ===")
+for e in events {
+  console.log(alert(e))
 }`,
 
   generics: `// Generics (v0.7) + interfaces
@@ -947,38 +981,50 @@ console.log("original: " + p.first + ", " + p.second)
 console.log("swapped:  " + q.first + ", " + q.second)
 console.log("mapped:   " + r.first + ", " + r.second)`,
 
-  pipeline: `// Pipeline operator |> with .field shorthands
-record User {
-  name:   string
-  score:  int
-  active: bool
+  pipeline: `// Pipeline Operator |> — Weekly Music Chart
+// Data flows left to right. No temp variables, no nesting.
+
+record Track {
+  title:  string
+  artist: string
+  plays:  int
+  genre:  string
 }
 
-let users = [
-  User("Alice",   95, true),
-  User("Bob",     62, false),
-  User("Charlie", 88, true),
-  User("Diana",   74, true),
-  User("Eve",     91, false)
+let tracks = [
+  Track("Neon Spiral",    "Synth City",   8_420_000, "synthwave"),
+  Track("Binary Sun",     "Axon Sound",  12_750_000, "electronic"),
+  Track("Gold Coast",     "The Drift",    3_100_000, "indie"),
+  Track("Pulse Wave",     "Synth City",   6_330_000, "synthwave"),
+  Track("Static Dreams",  "Axon Sound",   9_100_000, "electronic"),
+  Track("Hollow Road",    "The Drift",    1_980_000, "indie"),
+  Track("Midnight Freq",  "The Coast",    4_200_000, "synthwave"),
 ]
 
-let result =
-  users
-    |> filter(.active)
-    |> filter(u => u.score >= 75)
-    |> map(.name)
+let chart =
+  tracks
+    |> filter(t => t.plays > 3_000_000)
+    |> sort_by_desc(t => t.plays)
+    |> map(t => {
+      let m = round(t.plays / 100_000) / 10
+      pad_start("" + m + "M", 8) + "  " + pad_end(t.title, 16) + t.artist
+    })
 
-for name in result {
-  console.log("Top active user: " + name)
+console.log("=== THIS WEEK'S CHART ===")
+let mut rank = 1
+for entry in chart {
+  console.log("#" + rank + "  " + entry)
+  rank += 1
 }
 
-let total_score =
-  users
-    |> filter(.active)
-    |> map(.score)
+let synthwave_plays =
+  tracks
+    |> filter(t => t.genre == "synthwave")
+    |> map(t => t.plays)
     |> sum
 
-console.log("Active users total score: " + total_score)`,
+console.log("")
+console.log("Total synthwave plays: " + (round(synthwave_plays / 100_000) / 10) + "M")`,
 
   store: `// Reactive store + on...change (v0.8)
 store Counter {
@@ -1032,100 +1078,136 @@ async fn main() {
 
 main().catch(e => console.error("Error: " + e))`,
 
-  errors: `// Result type + ? propagation (v0.6)
+  errors: `// Error Handling — Restaurant Order Validator
+// ? propagates errors up the call stack without try/catch noise.
+
 @throws
-fn parse_int(s: string) -> any {
-  let n = parseInt(s, 10)
-  if isNaN(n) { err("Not a number: " + s) }
-  else { ok(n) }
+fn validate_quantity(qty: int) -> any {
+  if qty <= 0  { err("Quantity must be at least 1, got: " + qty) }
+  if qty > 99  { err("Are you feeding an army? Max 99, got: " + qty) }
+  else { ok(qty) }
 }
 
 @throws
-fn parse_positive(s: string) -> any {
-  let n = parse_int(s)?
-  if n <= 0 { err("Must be positive, got: " + n) }
-  else { ok(n) }
+fn validate_item(name: string) -> any {
+  if name.length == 0  { err("Item name cannot be empty") }
+  if name == "nothing" { err("You cannot order nothing. Pick something.") }
+  else { ok(name) }
 }
 
-fn safe_parse(s: string) -> string {
-  match parse_positive(s) {
-    | Ok { value }   => "Parsed: " + value
-    | Err { message } => "Error: " + message
+@throws
+fn place_order(item: string, qty: int) -> any {
+  let validated_item = validate_item(item)?
+  let validated_qty  = validate_quantity(qty)?
+  ok("Order confirmed: " + validated_qty + "x " + validated_item)
+}
+
+fn try_order(item: string, qty: int) -> string {
+  match place_order(item, qty) {
+    | Ok { value }    => "OK   " + value
+    | Err { message } => "FAIL " + message
   }
 }
 
-for s in ["42", "-5", "hello", "100"] {
-  console.log(safe_parse(s))
+console.log(try_order("Margherita",   2))
+console.log(try_order("Truffle Fries", 1))
+console.log(try_order("nothing",       1))
+console.log(try_order("Tiramisu",      0))
+console.log(try_order("Espresso",    150))
+console.log(try_order("",             1))`,
+
+  loops: `// For Loops — Prime Number Sieve
+// Ranges, array iteration, nested loops, and let mut — all in one example.
+
+fn is_prime(n: int) -> bool {
+  if n < 2 { return false }
+  for i in 2..n {
+    if n % i == 0 { return false }
+  }
+  true
+}
+
+// Collect all primes up to 60
+let mut primes = []
+for n in 2..=60 {
+  if is_prime(n) {
+    primes = primes.concat([n])
+  }
+}
+
+console.log("Primes up to 60:")
+console.log(primes.join("  "))
+console.log("Count: " + primes.length)
+
+// Sum and product of the first 5
+let first5 = primes.slice(0, 5)
+let mut sum = 0
+let mut product = 1
+for p in first5 {
+  sum     += p
+  product *= p
+}
+
+console.log("")
+console.log("First 5 primes: " + first5.join(", "))
+console.log("Sum:            " + sum)
+console.log("Product:        " + product)
+
+// Gaps between consecutive primes (twin primes have gap = 2)
+console.log("")
+console.log("Twin prime pairs (gap = 2):")
+for i in 0..primes.length - 1 {
+  if primes[i + 1] - primes[i] == 2 {
+    console.log("  (" + primes[i] + ", " + primes[i + 1] + ")")
+  }
 }`,
 
-  loops: `// For loops + let mut (v0.5.2)
-let mut total = 0
-let mut count = 0
+  enums: `// Enums — Mission Axon-1 Checklist
+// Enums give meaningful names to fixed sets of values.
 
-for i in 1..=10 {
-  total = total + i
-  count = count + 1
-}
-
-console.log("Sum 1..10 = " + total + " (count: " + count + ")")
-
-// Nested loops — multiplication table
-for row in 1..4 {
-  let mut line = ""
-  for col in 1..4 {
-    let product = row * col
-    let pad = product < 10 ? " " : ""
-    line = line + pad + product + " "
-  }
-  console.log(line.trim())
-}
-
-// for...in over array
-let words = ["axon", "is", "fun"]
-let mut upper_words = []
-for w in words {
-  upper_words = upper_words.concat([w.toUpperCase()])
-}
-console.log(upper_words.join(" "))`,
-
-  enums: `// Enums (v0.9.5) — frozen string-keyed objects
 enum Priority = Low | Medium | High | Critical
-
-enum TaskStatus = Backlog | InProgress | Done | Cancelled
+enum Status   = Queued | InProgress | Complete | Scrubbed
 
 record Task {
-  id:       int
-  title:    string
-  status:   TaskStatus
+  task:     string
+  status:   Status
   priority: Priority
 }
 
-fn badge(t: Task) -> string {
-  let s = match t.status {
-    | TaskStatus.Backlog    => "[ ]"
-    | TaskStatus.InProgress => "[~]"
-    | TaskStatus.Done       => "[✓]"
-    | TaskStatus.Cancelled  => "[✗]"
+fn format_task(t: Task) -> string {
+  let icon = match t.status {
+    | Status.Queued     => "[ ]"
+    | Status.InProgress => "[~]"
+    | Status.Complete   => "[v]"
+    | Status.Scrubbed   => "[x]"
   }
-  let p = match t.priority {
-    | Priority.Critical => "🔴"
-    | Priority.High     => "🟠"
-    | Priority.Medium   => "🟡"
-    | Priority.Low      => "🟢"
+  let urgency = match t.priority {
+    | Priority.Critical => "!!! "
+    | Priority.High     => "!!  "
+    | Priority.Medium   => "!   "
+    | Priority.Low      => "    "
   }
-  p + " " + s + " " + t.title
+  urgency + icon + " " + t.task
 }
 
-let tasks = [
-  Task(1, "Design API",    TaskStatus.Done,       Priority.High),
-  Task(2, "Write tests",   TaskStatus.InProgress, Priority.Critical),
-  Task(3, "Update docs",   TaskStatus.Backlog,    Priority.Low),
-  Task(4, "Deploy",        TaskStatus.Backlog,    Priority.Medium),
+let manifest = [
+  Task("Fuel system check",      Status.Complete,    Priority.Critical),
+  Task("Navigation calibration", Status.InProgress,  Priority.High),
+  Task("Crew briefing",          Status.Complete,    Priority.High),
+  Task("Weather window review",  Status.Queued,      Priority.Medium),
+  Task("Launch sequence load",   Status.InProgress,  Priority.Critical),
+  Task("Backup comms test",      Status.Scrubbed,    Priority.Low),
+  Task("Orbital insertion burn", Status.Queued,      Priority.Critical),
 ]
 
-for t in tasks {
-  console.log(badge(t))
-}`,
+console.log("=== MISSION AXON-1 CHECKLIST ===")
+for t in manifest {
+  console.log(format_task(t))
+}
+
+let complete = filter(manifest, t => t.status == Status.Complete)
+console.log("")
+console.log(complete.length + " / " + manifest.length + " tasks complete")`,
 
   numbers: `// Numeric literals (v0.9.5) — separators, hex, binary
 // Underscore separators for readability
@@ -1155,79 +1237,97 @@ console.log("Perms: " + FULL_PERMS.toString(2))
 console.log("Golden ratio: " + golden.toFixed(6))
 console.log("Light speed: " + light_speed.toLocaleString() + " m/s")`,
 
-  compound: `// Compound assignment operators (v0.9.6)
-let mut score = 0
-score += 10    // += add
-score += 25
-score -= 5     // -= subtract
-score *= 2     // *= multiply
-console.log("Score: " + score)   // 60
+  compound: `// Compound Assignment — Road Trip Tracker
+// += -= *= /= ??= — update values in place without restating the variable name.
 
-// Works with strings
-let mut msg = "Hello"
-msg += ", Axon!"
-console.log(msg)
+let mut miles   = 0
+let mut fuel    = 100.0
+let mut songs   = 0
+let mut coffees = 0
 
-// Works in loops
-let mut total = 0
-let mut product = 1
-for n in [1, 2, 3, 4, 5] {
-  total += n
-  product *= n
+let legs = [
+  { drive: 42,  fuel_used: 8.0,  jams: 3, coffee: 1 },
+  { drive: 87,  fuel_used: 15.5, jams: 5, coffee: 2 },
+  { drive: 31,  fuel_used: 6.0,  jams: 2, coffee: 0 },
+  { drive: 120, fuel_used: 22.0, jams: 8, coffee: 3 },
+  { drive: 55,  fuel_used: 10.5, jams: 4, coffee: 1 },
+]
+
+console.log("=== ROAD TRIP LOG ===")
+for leg in legs {
+  miles   += leg.drive
+  fuel    -= leg.fuel_used
+  songs   += leg.jams
+  coffees += leg.coffee
+  console.log("+" + pad_start("" + leg.drive, 3) + " mi  fuel: " + fuel.toFixed(1) + "%  songs: " + songs)
 }
-console.log("Sum: " + total)       // 15
-console.log("Product: " + product) // 120
 
-// Nullish assignment — only assigns if value is null/undefined
-let mut config = null
-config ??= "default"
-console.log(config)  // "default"
+console.log("")
+console.log("Total: " + miles + " miles")
+console.log("Fuel remaining: " + fuel.toFixed(1) + "%")
+console.log("Songs: " + songs + "  Coffees: " + coffees)
+console.log("")
 
-let mut existing = "keep me"
-existing ??= "ignored"
-console.log(existing)  // "keep me"`,
+// Nullish assignment — set a default only if value is null
+let mut playlist = null
+playlist ??= "Road Classics Vol. 3"
+console.log("Now playing: " + playlist)
 
-  stdlib: `// Standard Library Expansion (v0.9.7)
-// ── Strings ──────────────────────────────────────────────────────────────────
-let raw = "  Hello, Axon World!  "
-console.log(trim(raw))                     // "Hello, Axon World!"
-console.log(to_upper("quiet"))             // "QUIET"
-console.log(to_lower("LOUD"))              // "loud"
-console.log(starts_with("axon", "ax"))     // true
-console.log(ends_with("axon", "on"))       // true
-console.log(contains("axon", "xo"))        // true
-console.log(replace_all("1.2.3", ".", "-")) // "1-2-3"
-let words = split("one two three", " ")
-console.log(words)                         // ["one","two","three"]
-console.log(pad_start("7", 3, "0"))        // "007"
+playlist ??= "This would not overwrite"
+console.log("Still playing: " + playlist)
 
-// ── Arrays ────────────────────────────────────────────────────────────────────
-let ns = [3, 1, 4, 1, 5, 9, 2, 6, 5]
-console.log(min(ns))                       // 1
-console.log(max(ns))                       // 9
-console.log(uniq(ns))                      // [3,1,4,5,9,2,6]
-console.log(take(ns, 4))                   // [3,1,4,1]
-console.log(drop(ns, 6))                   // [2,6,5]
-console.log(reverse([1, 2, 3]))            // [3,2,1]
-let rows = chunk([1, 2, 3, 4, 5, 6], 2)
-console.log(rows)                          // [[1,2],[3,4],[5,6]]
+// Compound on strings
+let mut status = "Road trip"
+status += " complete. " + miles + " miles."
+console.log(status)
 
-record Player { name: string, score: int }
-let players = [Player("Alice", 82), Player("Bob", 95), Player("Cara", 71)]
-let best = max_by(players, p => p.score)
-console.log(best.name)                     // "Bob"
-let ranked = sort_by(players, p => p.score)
-console.log(map(ranked, p => p.name))      // ["Cara","Alice","Bob"]
+`,
 
-// ── Math ──────────────────────────────────────────────────────────────────────
-console.log(clamp(150, 0, 100))            // 100
-console.log(clamp(-5, 0, 100))             // 0
-console.log(abs(-42))                      // 42
-console.log(round(3.7))                   // 4
-console.log(floor(3.9))                   // 3
-console.log(ceil(3.1))                    // 4
-console.log(pow(2, 8))                    // 256
-console.log(sqrt(144))                    // 12`,
+  stdlib: `// Standard Library — Mission Log Processor
+// String and array functions working together on real data.
+
+let raw_log = [
+  "  2026-07-04 | LAUNCH    | Axon-1 lifts off from pad 39A  ",
+  "  2026-07-04 | COMMS     | Downlink signal acquired        ",
+  "  2026-07-05 | TELEMETRY | All systems nominal             ",
+  "  2026-07-05 | WARNING   | Solar flare M-class detected    ",
+  "  2026-07-06 | COMMS     | Signal delay increased to +3s   ",
+  "  2026-07-06 | TELEMETRY | Orbit insertion complete        ",
+  "  2026-07-07 | WARNING   | Micrometeorite proximity alert  ",
+  "  2026-07-07 | TELEMETRY | Course correction burn fired    ",
+]
+
+// Parse: trim whitespace, split on " | ", label each field
+let entries =
+  raw_log
+    |> map(line => trim(line))
+    |> map(line => {
+      let parts = split(line, " | ")
+      { date: parts[0], type: trim(parts[1]), msg: trim(parts[2]) }
+    })
+
+// Full log
+console.log("=== MISSION LOG ===")
+for e in entries {
+  let tag = pad_end("[" + e.type + "]", 13)
+  console.log(e.date + "  " + tag + "  " + e.msg)
+}
+
+// Warnings only
+let warnings = filter(entries, e => e.type == "WARNING")
+console.log("")
+console.log("=== WARNINGS (" + warnings.length + ") ===")
+for w in warnings {
+  console.log(to_upper(w.date) + "  " + w.msg)
+}
+
+// Summary stats
+let days    = uniq(map(entries, e => e.date))
+let types   = uniq(map(entries, e => e.type))
+console.log("")
+console.log("Days logged:    " + days.length)
+console.log("Event types:    " + types.join(", "))
+console.log("Total entries:  " + entries.length)`,
 
   while: `// While loops (v0.9.8)
 // ── Basic while ──────────────────────────────────────────────────────────────
@@ -1269,39 +1369,49 @@ while val != 1 {
 }
 console.log("Collatz(27) → " + steps + " steps")`,
 
-  multilambda: `// Multi-line lambdas (v0.9.5) — block bodies in arrow functions
-record User {
-  name:   string
-  score:  int
-  badges: int
+  multilambda: `// Multi-line Lambdas — Recipe Difficulty Ranker
+// Block-body lambdas let you use local variables and multi-step logic inline.
+
+record Recipe {
+  name:       string
+  ingredients: int
+  time_mins:  int
+  skill:      int
 }
 
-let users = [
-  User("Alice",   94, 7),
-  User("Bob",     61, 2),
-  User("Charlie", 88, 5),
-  User("Diana",   73, 4),
-  User("Eve",     99, 12),
+let cookbook = [
+  Recipe("Scrambled Eggs",     3,   8, 1),
+  Recipe("Pasta Carbonara",    5,  25, 2),
+  Recipe("Chicken Tikka",     14,  60, 3),
+  Recipe("Beef Wellington",   12, 180, 5),
+  Recipe("Ramen from Scratch",15, 360, 4),
+  Recipe("Croissants",         6, 240, 5),
+  Recipe("Toast",              1,   3, 1),
 ]
 
-// Multi-line lambda with local bindings
 let ranked =
-  users
-    |> filter(u => {
-      let qualified = u.score >= 70
-      let active    = u.badges >= 3
-      qualified && active
+  cookbook
+    |> filter(r => {
+      let manageable = r.time_mins <= 200
+      let not_trivial = r.skill >= 2
+      manageable && not_trivial
     })
-    |> map(u => {
-      let tier = if u.score >= 90 { "Gold" } else { "Silver" }
-      let label = tier + " — " + u.name
-      { name: u.name, tier: tier, label: label, score: u.score }
+    |> map(r => {
+      let effort = (r.ingredients * 2) + (r.time_mins / 10) + (r.skill * 5)
+      let label  = match r.skill {
+        | 1 => "beginner"
+        | 2 => "easy"
+        | 3 => "medium"
+        | 4 => "hard"
+        | _ => "chef"
+      }
+      { name: r.name, effort: effort, label: label }
     })
-    |> sort_by(.score)
+    |> sort_by(r => r.effort)
 
-console.log("=== Ranked Users ===")
+console.log("=== RECIPES BY EFFORT (max 200 min, skill 2+) ===")
 for r in ranked {
-  console.log(r.score + "  " + r.label)
+  console.log(pad_end(r.name, 22) + pad_end("[" + r.label + "]", 12) + "effort: " + r.effort)
 }`
 }
 
