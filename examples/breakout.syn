@@ -14,7 +14,7 @@ let PADDLE_W    = 100
 let PADDLE_H    = 12
 let BALL_R      = 8
 let PADDLE_Y    = CANVAS_H - 40
-let BALL_SPEED  = 340
+let BALL_SPEED  = 420
 
 // ── Brick colors by row ────────────────────────────────────────────────────────
 
