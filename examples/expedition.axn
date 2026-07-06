@@ -1,0 +1,128 @@
+// ── Expedition Hub — Axon v0.9.9 Demo ────────────────────────────────────────
+// Showcases: spread · object shorthand · stdlib method syntax · do notation
+
+// ── Reactive store ────────────────────────────────────────────────────────────
+
+store Fleet {
+  sector:     string = "All"
+  max_danger: int    = 5
+  sort_key:   string = "distance"
+}
+
+// ── Mission data ──────────────────────────────────────────────────────────────
+
+// Two squadrons...
+let alpha_wing = [
+  { id: 1,  name: "Vanguard",   sector: "Kepler",  danger: 2, distance: 14, ore: 80,  fuel: 60,  data: 40  },
+  { id: 2,  name: "Ironclad",   sector: "Kepler",  danger: 3, distance: 22, ore: 120, fuel: 45,  data: 20  },
+  { id: 3,  name: "Phantom",    sector: "Kepler",  danger: 4, distance: 31, ore: 200, fuel: 30,  data: 90  },
+  { id: 4,  name: "Warden",     sector: "Kepler",  danger: 1, distance: 9,  ore: 35,  fuel: 100, data: 25  },
+]
+
+let beta_wing = [
+  { id: 5,  name: "Horizon",    sector: "Proxima", danger: 1, distance: 8,  ore: 40,  fuel: 90,  data: 70  },
+  { id: 6,  name: "Spectre",    sector: "Proxima", danger: 2, distance: 17, ore: 65,  fuel: 75,  data: 55  },
+  { id: 7,  name: "Nomad",      sector: "Proxima", danger: 5, distance: 44, ore: 310, fuel: 20,  data: 150 },
+  { id: 8,  name: "Relay",      sector: "Helios",  danger: 1, distance: 5,  ore: 20,  fuel: 110, data: 30  },
+  { id: 9,  name: "Tempest",    sector: "Helios",  danger: 3, distance: 28, ore: 90,  fuel: 40,  data: 80  },
+  { id: 10, name: "Nexus",      sector: "Helios",  danger: 4, distance: 37, ore: 175, fuel: 25,  data: 120 },
+  { id: 11, name: "Harbinger",  sector: "Vega",    danger: 2, distance: 19, ore: 55,  fuel: 85,  data: 45  },
+  { id: 12, name: "Pilgrim",    sector: "Vega",    danger: 3, distance: 25, ore: 110, fuel: 50,  data: 65  },
+  { id: 13, name: "Sentinel",   sector: "Vega",    danger: 5, distance: 52, ore: 280, fuel: 15,  data: 200 },
+]
+
+// ...merged into one fleet using spread (v0.9.9)
+let fleet = [...alpha_wing, ...beta_wing]
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+fn danger_label(n: int) -> string =
+  match n { | 1 => "Safe" | 2 => "Low" | 3 => "Moderate" | 4 => "High" | _ => "Critical" }
+
+fn danger_cls(n: int) -> string =
+  match n { | 1 => "safe" | 2 => "low" | 3 => "mod" | 4 => "high" | _ => "crit" }
+
+// Object shorthand: { name, sector, danger } instead of { name: name, ... } (v0.9.9)
+fn mission_summary(name: string, sector: string, danger: int) = { name, sector, danger }
+
+// ── Computed view ─────────────────────────────────────────────────────────────
+
+fn visible_missions() -> any[] {
+  let sector     = Fleet.sector
+  let max_danger = Fleet.max_danger
+  let sort_key   = Fleet.sort_key
+
+  // stdlib method syntax: .filter() and .sort_by() on an array (v0.9.9)
+  let filtered = fleet.filter(m =>
+    (sector == "All" or m.sector == sector) and m.danger <= max_danger
+  )
+
+  match sort_key {
+    | "distance" => filtered.sort_by(m => m.distance)
+    | "danger"   => filtered.sort_by(m => m.danger)
+    | "ore"      => filtered.sort_by_desc(m => m.ore)
+    | "data"     => filtered.sort_by_desc(m => m.data)
+    | _          => filtered
+  }
+}
+
+// do notation: a sequenced computation in expression position (v0.9.9)
+fn fleet_stats(missions: any[]) -> any {
+  do {
+    let n         = count(missions)
+    let ore       = missions.sum_by(m => m.ore)
+    let fuel      = missions.sum_by(m => m.fuel)
+    let data      = missions.sum_by(m => m.data)
+    let sum_d     = missions.sum_by(m => m.danger)
+    let avg_d     = n > 0 ? Math.round(sum_d * 10 / n) / 10 : 0
+    let max_dist  = n > 0 ? missions.max_by(m => m.distance).distance : 0
+    let danger4   = missions.filter(m => m.danger >= 4)
+    let high_risk = count(danger4)
+    { count: n, ore, fuel, data, avg_d, max_dist, high_risk }
+  }
+}
+
+// ── Card renderer ─────────────────────────────────────────────────────────────
+
+fn render_card(m: any) -> string {
+  let cls   = danger_cls(m.danger)
+  let label = danger_label(m.danger)
+  "<div class=\"mc\">" +
+    "<div class=\"mc-top\">" +
+      "<span class=\"mc-name\">" + m.name + "</span>" +
+      "<span class=\"mc-badge " + cls + "\">" + label + "</span>" +
+    "</div>" +
+    "<div class=\"mc-sector\">" + m.sector + " Sector</div>" +
+    "<div class=\"mc-row\">" +
+      "<span class=\"mc-stat s-dist\">📡 " + m.distance + " ly</span>" +
+      "<span class=\"mc-stat s-ore\">⛏ "  + m.ore      + "</span>" +
+      "<span class=\"mc-stat s-fuel\">⚡ " + m.fuel     + "</span>" +
+      "<span class=\"mc-stat s-data\">💾 " + m.data     + "</span>" +
+    "</div>" +
+  "</div>"
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+fn render() {
+  let missions = visible_missions()
+  let s        = fleet_stats(missions)
+
+  document.getElementById("grid").innerHTML =
+    count(missions) > 0
+      ? missions.map(m => render_card(m)).join("")
+      : "<div class=\"empty-state\">No missions match the current filters.</div>"
+
+  document.getElementById("stat-count").textContent = s.count
+  document.getElementById("stat-ore").textContent   = s.ore
+  document.getElementById("stat-fuel").textContent  = s.fuel
+  document.getElementById("stat-data").textContent  = s.data
+  document.getElementById("stat-avgd").textContent  = s.avg_d
+  document.getElementById("stat-dist").textContent  = s.max_dist + " ly"
+  document.getElementById("stat-risk").textContent  = s.high_risk
+  document.getElementById("fleet-total").textContent = s.count + " of " + count(fleet) + " missions"
+}
+
+// ── Reactive binding ──────────────────────────────────────────────────────────
+
+on Fleet.change { render() }
