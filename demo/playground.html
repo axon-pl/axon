@@ -887,11 +887,11 @@ while n > 0 {
 console.log("Liftoff!")
 
 // ── break — exit loop early ───────────────────────────────────────────────────
-let mut search = [3, 7, 1, 9, 4, 6, 2]
+let search = [3, 7, 1, 9, 4, 6, 2]
 let target = 9
 let mut idx = 0
 let mut found = -1
-while idx < length(search) {
+while idx < search.length {
   if search[idx] == target {
     found = idx
     break
