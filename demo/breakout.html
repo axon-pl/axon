@@ -504,11 +504,11 @@ function draw(dt) {
 }
 
 // ── Game loop ──────────────────────────────────────────────────────────────
-let last = performance.now()
+let prevTime = performance.now()
 
 function loop(now) {
-  const dt = Math.min((now - last) / 1000, .05)
-  last = now
+  const dt = Math.min((now - prevTime) / 1000, .05)
+  prevTime = now
   tick(dt)
   draw(dt)
   requestAnimationFrame(loop)
