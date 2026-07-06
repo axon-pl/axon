@@ -1,7 +1,7 @@
 const { Lexer } = require('../dist/lexer.js');
 const { Parser } = require('../dist/parser.js');
 const { Codegen } = require('../dist/codegen.js');
-const { AXON_STDLIB } = require('../dist/stdlib.js');
+const { SYNTH_STDLIB } = require('../dist/stdlib.js');
 const vm = require('vm');
 
 function test(name, src) {
@@ -11,7 +11,7 @@ function test(name, src) {
   const ctx = { console: { log: () => {}, error: () => {}, warn: () => {} },
                 setTimeout: () => {}, Promise, parseInt, parseFloat, isNaN };
   vm.createContext(ctx);
-  vm.runInContext(AXON_STDLIB, ctx);  // inject stdlib once into context
+  vm.runInContext(SYNTH_STDLIB, ctx);  // inject stdlib once into context
   try { vm.runInContext('{\n' + js + '\n}', ctx); console.log(`PASS [${name}]`); return true; }
   catch (e) { console.log(`FAIL [${name}] runtime: ${e.message}\n` + js.split('\n').slice(0,15).join('\n')); return false; }
 }
@@ -46,7 +46,7 @@ fn launch_status(name: MissionName, fuel: FuelLevel, temp: TempCelsius) -> strin
 let missions = [
   { name: "Artemis VII", fuel: 98, temp: 21 },
   { name: "Helios II",   fuel: 45, temp: 18 },
-  { name: "Axon-1",      fuel: 100, temp: 20 },
+  { name: "Synth-1",      fuel: 100, temp: 20 },
 ]
 for m in missions { console.log(launch_status(m.name, m.fuel, m.temp)) }`,
 
@@ -74,7 +74,7 @@ pipeline: `
 record Track { title: string, artist: string, plays: int, genre: string }
 let tracks = [
   Track("Neon Spiral",   "Synth City",  8_420_000, "synthwave"),
-  Track("Binary Sun",    "Axon Sound", 12_750_000, "electronic"),
+  Track("Binary Sun",    "Synth Sound", 12_750_000, "electronic"),
   Track("Gold Coast",    "The Drift",   3_100_000, "indie"),
   Track("Pulse Wave",    "Synth City",  6_330_000, "synthwave"),
   Track("Hollow Road",   "The Drift",   1_980_000, "indie"),
@@ -191,7 +191,7 @@ console.log(status)`,
 
 stdlib: `
 let raw_log = [
-  "  2026-07-04 | LAUNCH    | Axon-1 lifts off  ",
+  "  2026-07-04 | LAUNCH    | Synth-1 lifts off  ",
   "  2026-07-05 | WARNING   | Solar flare detected  ",
   "  2026-07-06 | TELEMETRY | Orbit complete  ",
   "  2026-07-07 | WARNING   | Micrometeorite alert  ",

@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dungeon Map Toolkit — Axon v0.6.0</title>
+  <title>Dungeon Map Toolkit — Synth v0.6.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0 }
 
@@ -360,25 +360,25 @@
 <header class="page-header">
   <div>
     <div class="page-title">Dungeon Map Toolkit</div>
-    <div class="page-subtitle">Multi-file modules — Axon v0.6.0</div>
+    <div class="page-subtitle">Multi-file modules — Synth v0.6.0</div>
   </div>
-  <span class="page-badge">Axon v0.6.0</span>
+  <span class="page-badge">Synth v0.6.0</span>
 </header>
 
 <div class="page-body">
 
   <div class="module-strip">
     <span class="strip-label">Modules</span>
-    <span class="mod-chip">tiles.axn</span>
+    <span class="mod-chip">tiles.syn</span>
     <span class="arrow-sep">→</span>
-    <span class="mod-chip">generator.axn</span>
+    <span class="mod-chip">generator.syn</span>
     <span class="arrow-sep">→</span>
-    <span class="mod-chip">renderer.axn</span>
+    <span class="mod-chip">renderer.syn</span>
     <span class="arrow-sep">→</span>
-    <span class="mod-chip config-chip">config.axn</span>
+    <span class="mod-chip config-chip">config.syn</span>
     <span class="arrow-sep">→</span>
-    <span class="mod-chip">main.axn</span>
-    <span class="bundle-note">bundled to one JS file by <code>axon --bundle</code></span>
+    <span class="mod-chip">main.syn</span>
+    <span class="bundle-note">bundled to one JS file by <code>synth --bundle</code></span>
   </div>
 
   <div class="code-bar">
@@ -404,24 +404,24 @@
     <h3>Source modules — v0.6.0 <code style="color:var(--cyan)">Result</code> · <code style="color:var(--pink)">?</code> · <code style="color:var(--purple)">@throws</code> · <code style="color:var(--gold)">refine</code></h3>
     <div class="source-grid">
       <div class="source-card">
-        <div class="fname">tiles.axn</div>
+        <div class="fname">tiles.syn</div>
         <div class="fdesc"><code>export type Tile</code> tagged union with 7 variants. Glyph, label &amp; passability helpers. 5 <code>@test</code> declarations.</div>
       </div>
       <div class="source-card">
-        <div class="fname">generator.axn</div>
+        <div class="fname">generator.syn</div>
         <div class="fdesc">LCG-seeded procedural map generator. Tile probability scales by level. <code>export fn generate</code> and <code>count_tag</code>. 4 <code>@test</code> declarations.</div>
       </div>
       <div class="source-card">
-        <div class="fname">renderer.axn</div>
+        <div class="fname">renderer.syn</div>
         <div class="fdesc"><code>export fn render_map</code>, <code>render_legend</code>, <code>render_stats</code>. Converts grid to HTML colour spans.</div>
       </div>
       <div class="source-card" style="border-color:rgba(0,255,200,0.25)">
-        <div class="fname" style="color:var(--cyan)">config.axn ✦ v0.6</div>
+        <div class="fname" style="color:var(--cyan)">config.syn ✦ v0.6</div>
         <div class="fdesc">Parses <code>level:seed</code> codes into <code>DungeonConfig</code>. Three <code>@throws</code> functions chain via <code>?</code> — precise error messages at the exact field that fails. <code>refine</code> documents invariants. 9 <code>@test</code> declarations.</div>
       </div>
       <div class="source-card">
-        <div class="fname">main.axn</div>
-        <div class="fdesc">DOM wiring. Imports <code>parse_config</code> from config.axn — matches <code>Result</code> to render the dungeon or display the error inline. Code input auto-syncs to current state.</div>
+        <div class="fname">main.syn</div>
+        <div class="fdesc">DOM wiring. Imports <code>parse_config</code> from config.syn — matches <code>Result</code> to render the dungeon or display the error inline. Code input auto-syncs to current state.</div>
       </div>
     </div>
   </div>
@@ -429,9 +429,9 @@
 </div>
 
 <footer>
-  All dungeon logic written in <strong>Axon v0.6.0</strong> across 4 source files, bundled to a single JS file by <code>axon --bundle</code>.
+  All dungeon logic written in <strong>Synth v0.6.0</strong> across 4 source files, bundled to a single JS file by <code>synth --bundle</code>.
   &nbsp;·&nbsp;
-  <a href="landing.html">About Axon</a>
+  <a href="landing.html">About Synth</a>
   &nbsp;·&nbsp;
   <a href="docs.html">Docs</a>
   &nbsp;·&nbsp;

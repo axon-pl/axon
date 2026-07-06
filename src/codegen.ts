@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.9.5 — JavaScript code generator
+// Synth v0.9.5 — JavaScript code generator
 // Walks the AST and emits clean, idiomatic JS with JSDoc annotations.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -15,7 +15,7 @@ import {
   ObjectProperty, LambdaParam,
   Constraint, PipeAsStep,
 } from './types.js'
-import { AXON_STDLIB } from './stdlib.js'
+import { SYNTH_STDLIB } from './stdlib.js'
 
 const STDLIB_METHODS = new Set([
   'trim', 'split', 'starts_with', 'ends_with', 'contains', 'to_upper', 'to_lower',
@@ -61,7 +61,7 @@ export class Codegen {
       }
     }
 
-    if (emitStdlib) this.out.push(AXON_STDLIB)
+    if (emitStdlib) this.out.push(SYNTH_STDLIB)
 
     for (const decl of program.body) {
       this.emitTopLevel(decl)
@@ -145,11 +145,11 @@ export class Codegen {
   }
 
   // v0.4: emit a test registration call.
-  // Tests are registered in __axon_tests (initialized in stdlib).
+  // Tests are registered in __synth_tests (initialized in stdlib).
   private emitTest(decl: TestDecl): void {
     const desc = JSON.stringify(decl.description)
     const body = this.emitExpr(decl.body)
-    this.emitLine(`__axon_tests.push({ desc: ${desc}, fn: () => ${body} });`)
+    this.emitLine(`__synth_tests.push({ desc: ${desc}, fn: () => ${body} });`)
   }
 
   private emitConstraintValidator(typeName: string, baseType: TypeExpr, constraint: Constraint): void {
@@ -168,7 +168,7 @@ export class Codegen {
       case 'LengthConstraint':
         return `${v}.length ${c.op} ${c.value}`
       case 'MatchesConstraint':
-        return `__axon_presets.${c.preset}.test(${v})`
+        return `__synth_presets.${c.preset}.test(${v})`
       case 'RegexConstraint':
         return `/${c.pattern}/${c.flags}.test(${v})`
       case 'AndConstraint':
@@ -331,7 +331,7 @@ export class Codegen {
       if (typeName && this.validatedTypes.has(typeName)) {
         guards.push(
           `if (!__validate_${typeName}(${p.name})) ` +
-          `throw new Error(\`AxonConstraintError: ${p.name} violates ${typeName} constraint (got \${JSON.stringify(${p.name})})\`);`
+          `throw new Error(\`SynthConstraintError: ${p.name} violates ${typeName} constraint (got \${JSON.stringify(${p.name})})\`);`
         )
       }
     }
@@ -425,7 +425,7 @@ export class Codegen {
         }
         break
         // Note: let mut emits the same JS `let` — JS `let` is already mutable.
-        // The `mutable` flag is used by the checker to enforce Axon's immutability rules.
+        // The `mutable` flag is used by the checker to enforce Synth's immutability rules.
       }
       // v0.4: destructuring let { a, b } = expr  /  let [a, b] = expr
       case 'DestructureStmt': {

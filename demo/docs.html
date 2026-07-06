@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon Language Reference — v0.9.5</title>
+  <title>Synth Language Reference — v0.9.5</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -695,7 +695,7 @@
       ☰ Sections
     </button>
     <span class="top-header-glyph">⬡</span>
-    <span class="top-header-title">Axon</span>
+    <span class="top-header-title">Synth</span>
     <span class="top-header-sub">Language Reference</span>
     <div class="header-badges">
       <span class="hbadge hbadge-ver">v0.9.5</span>
@@ -770,10 +770,10 @@
       <!-- ── Overview ─────────────────────────────────────────────────────── -->
       <section class="doc-section" id="overview">
         <div class="section-eyebrow">Introduction</div>
-        <h1 class="section-title"><span class="t-grad">Axon</span> Language Reference</h1>
+        <h1 class="section-title"><span class="t-grad">Synth</span> Language Reference</h1>
         <div class="section-rule"></div>
         <p class="section-lead">
-          Axon is an AI-native programming language that transpiles to JavaScript. It is designed
+          Synth is an AI-native programming language that transpiles to JavaScript. It is designed
           from the ground up to be written, read, and reasoned about by language models — with
           unambiguous grammar, intent-first declarations, constraint-enforced types, and explicit
           effect tracking.
@@ -781,7 +781,7 @@
 
         <div class="callout callout-ai">
           <div class="callout-head">AI-native design</div>
-          Every Axon feature exists because it makes AI-generated code safer or more legible —
+          Every Synth feature exists because it makes AI-generated code safer or more legible —
           not because it mirrors conventions from human-ergonomic languages. OOP, mutable state,
           and implicit dispatch are absent by design.
         </div>
@@ -800,7 +800,7 @@
         <h3 class="subsection">At a glance</h3>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="glance-code"></pre>
         </div>
       </section>
@@ -811,16 +811,16 @@
         <h2 class="section-title">Quick Start</h2>
         <div class="section-rule"></div>
 
-        <p>Axon ships as a Node.js CLI. Install from source and run the compiler against any <code>.axn</code> file.</p>
+        <p>Synth ships as a Node.js CLI. Install from source and run the compiler against any <code>.syn</code> file.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot dot-js"></span>shell</div>
           <pre id="quickstart-code"></pre>
         </div>
 
-        <h3 class="subsection">Hello, Axon</h3>
+        <h3 class="subsection">Hello, Synth</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>hello.axn</div>
+          <div class="code-label"><span class="dot"></span>hello.syn</div>
           <pre id="hello-code"></pre>
         </div>
       </section>
@@ -840,7 +840,7 @@
             <tr><td>Explicit effects</td><td><code>@pure</code>, <code>@total</code>, <code>@effects</code> are compiler-checked contracts, not documentation.</td></tr>
             <tr><td>Flat, scannable structure</td><td>No class hierarchies. No <code>this</code>. Data is records; behaviour is functions that take records.</td></tr>
             <tr><td>Exhaustive by default</td><td>Pattern matches warn when not exhaustive. Tagged unions are fully covered or the checker complains.</td></tr>
-            <tr><td>AI-first output</td><td>Generated JS embeds JSDoc with all Axon metadata — intent, constraints, effects — so downstream tools can reason about it.</td></tr>
+            <tr><td>AI-first output</td><td>Generated JS embeds JSDoc with all Synth metadata — intent, constraints, effects — so downstream tools can reason about it.</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -851,39 +851,39 @@
         <h2 class="section-title">Functions</h2>
         <div class="section-rule"></div>
 
-        <p>All functions in Axon are declared with <code>fn</code>. The <code>::</code> separator introduces the full type signature. Functions are first-class values and can be passed as arguments or returned from other functions.</p>
+        <p>All functions in Synth are declared with <code>fn</code>. The <code>::</code> separator introduces the full type signature. Functions are first-class values and can be passed as arguments or returned from other functions.</p>
 
         <h3 class="subsection">Full-form function</h3>
         <p>The canonical form uses <code>::</code> to separate the name from the typed signature, with the body in a block.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="fn-full-code"></pre>
         </div>
 
         <h3 class="subsection">Short-form function <span class="badge-new">v0.5 expanded</span></h3>
         <p>When the body is a single expression, use <code>= expr</code> to eliminate the block. An optional return-type annotation is supported with <code>-&gt;</code>. A block body <code>{ ... }</code> is also valid without the <code>::</code> sigil.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="fn-short-code"></pre>
         </div>
 
         <h3 class="subsection">Nested functions <span class="badge-new">v0.5</span></h3>
         <p>A <code>fn</code> declaration inside a block body is emitted as a <code>let</code>-bound lambda — a local helper scoped to the enclosing function.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="fn-nested-code"></pre>
         </div>
 
         <h3 class="subsection">Lambda expressions</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="fn-lambda-code"></pre>
         </div>
 
         <h3 class="subsection"><span class="mono">.field</span> accessor shorthand</h3>
         <p>A bare <code>.fieldName</code> in any expression position is syntactic sugar for a single-argument lambda that accesses that field. Chained access is supported.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="fn-field-code"></pre>
         </div>
       </section>
@@ -894,11 +894,11 @@
         <h2 class="section-title">Types &amp; Constraints</h2>
         <div class="section-rule"></div>
 
-        <p>Axon's primitive types map directly to JavaScript. Type aliases add names; <code>where</code> clauses add runtime-enforced predicates.</p>
+        <p>Synth's primitive types map directly to JavaScript. Type aliases add names; <code>where</code> clauses add runtime-enforced predicates.</p>
 
         <h3 class="subsection">Primitive types</h3>
         <div class="doc-table-wrap"><table class="doc-table">
-          <thead><tr><th>Axon type</th><th>JS equivalent</th><th>Notes</th></tr></thead>
+          <thead><tr><th>Synth type</th><th>JS equivalent</th><th>Notes</th></tr></thead>
           <tbody>
             <tr><td>int</td><td>number (integer)</td><td>No distinct integer runtime; validated by constraint if needed</td></tr>
             <tr><td>float</td><td>number</td><td>–</td></tr>
@@ -911,14 +911,14 @@
 
         <h3 class="subsection">Type aliases</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="type-alias-code"></pre>
         </div>
 
         <h3 class="subsection">Constrained types with <span class="mono">where</span></h3>
         <p>Any type alias can carry a <code>where</code> predicate. Functions parameterised by a constrained type automatically receive injected guard clauses — no manual validation needed.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="type-constrained-code"></pre>
         </div>
 
@@ -938,14 +938,14 @@
         <p>Records are named structured data types — plain objects with known fields. They have no methods and carry no behaviour; that belongs in standalone functions.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="record-code"></pre>
         </div>
 
         <h3 class="subsection">Immutable updates</h3>
         <p>Records are updated functionally. The spread operator returns a new record with changed fields; the original is untouched.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="record-update-code"></pre>
         </div>
       </section>
@@ -960,14 +960,14 @@
         <p>An <code>enum</code> declares a closed set of named string values. It compiles to a frozen, immutable object — safe to use as a constant, in pattern matching, and across module boundaries.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="enum-def-code"></pre>
         </div>
 
         <h3 class="subsection-title">Enum pattern matching</h3>
         <p>Use the <code>Enum.Variant</code> syntax inside a <code>match</code> expression.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="enum-match-code"></pre>
         </div>
 
@@ -986,7 +986,7 @@
         <p>Tagged unions (also called sum types or algebraic data types) express a value that is <em>exactly one</em> of several named variants. They are the preferred replacement for inheritance hierarchies.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="union-def-code"></pre>
         </div>
 
@@ -1013,20 +1013,20 @@
 
         <h3 class="subsection">Basic patterns</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="match-basic-code"></pre>
         </div>
 
         <h3 class="subsection"><span class="mono">when</span> guards</h3>
         <p>Any arm can carry a boolean guard. Guards have full access to names bound by the pattern.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="match-guard-code"></pre>
         </div>
 
         <h3 class="subsection">Tagged union patterns</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="match-union-code"></pre>
         </div>
 
@@ -1055,14 +1055,14 @@
         <p>The pipeline operator <code>|&gt;</code> threads a value through a sequence of transformations. Each step receives the previous step's result as its first argument.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="pipeline-code"></pre>
         </div>
 
         <h3 class="subsection"><span class="mono">|&gt; as name</span> — named intermediate results</h3>
         <p>Any pipeline step can be named with <code>as</code>. When present, the entire pipeline emits as an IIFE block with <code>const</code> bindings, making intermediates available for reuse or debugging.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="pipeline-as-code"></pre>
         </div>
       </section>
@@ -1076,7 +1076,7 @@
         <p>Destructuring <code>let</code> unpacks object and array values into named bindings in a single statement.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="destructure-code"></pre>
         </div>
       </section>
@@ -1090,20 +1090,20 @@
         <h3 class="subsection">String interpolation</h3>
         <p>Any string containing <code>{ident}</code> or <code>{ident.prop}</code> is automatically treated as an interpolated string. No extra syntax required.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="string-interp-code"></pre>
         </div>
 
         <h3 class="subsection">Triple-quote strings <span class="mono">"""..."""</span></h3>
         <p>Multiline string literals that preserve newlines exactly. A leading newline immediately after <code>"""</code> is stripped for idiomatic alignment. Support the same <code>{ident}</code> interpolation as regular strings. Compile to JavaScript template literals.</p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="string-triple-code"></pre>
         </div>
 
         <div class="callout callout-warn">
           <div class="callout-head">Curly braces in strings</div>
-          Axon treats <code>{name}</code> inside any string as interpolation. To emit a literal
+          Synth treats <code>{name}</code> inside any string as interpolation. To emit a literal
           curly brace, avoid bare identifiers inside braces or use a variable name that won't
           collide. This is intentional — it removes the need for a separate template syntax.
         </div>
@@ -1118,7 +1118,7 @@
         <p>Safe navigation through potentially-null values without nested conditionals.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="optional-code"></pre>
         </div>
 
@@ -1140,13 +1140,13 @@
         <div class="section-rule"></div>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="control-code"></pre>
         </div>
 
         <div class="callout callout-note">
           <div class="callout-head">For loops (v0.5.2+)</div>
-          Axon supports <code>for i in lo..hi</code> (exclusive range), <code>for i in lo..=hi</code> (inclusive range),
+          Synth supports <code>for i in lo..hi</code> (exclusive range), <code>for i in lo..=hi</code> (inclusive range),
           and <code>for x in array</code> (forEach). Use <code>break</code> / <code>continue</code> for
           loop control. The standard library also provides <code>map</code>, <code>filter</code>, and <code>fold</code>
           for functional iteration. <code>while</code> loops are not supported — use recursion or <code>for</code>.
@@ -1159,20 +1159,20 @@
         <h2 class="section-title">Result Type &amp; <code>?</code> Propagation</h2>
         <div class="section-rule"></div>
         <p class="section-lead">
-          Axon has a built-in <code>Result&lt;T&gt;</code> tagged union for explicit error handling.
+          Synth has a built-in <code>Result&lt;T&gt;</code> tagged union for explicit error handling.
           Construct values with <code>ok()</code> / <code>err()</code>, consume them with <code>match</code>
           or stdlib helpers, and chain fallible calls cleanly with the <code>?</code> propagation operator.
         </p>
 
         <h3 class="subsection-title">Constructing and consuming Result</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="result-basic-code"></pre>
         </div>
 
         <h3 class="subsection-title"><code>?</code> — early-return on Err</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="result-propagate-code"></pre>
         </div>
 
@@ -1207,7 +1207,7 @@
         <p><code>@total</code> declares that a function is defined for all inputs and will always return a value (no throws, no unbounded recursion).</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="ann-pure-code"></pre>
         </div>
 
@@ -1225,16 +1225,16 @@
         <h2 class="section-title"><code>@intent</code></h2>
         <div class="section-rule"></div>
 
-        <p>The single most important annotation in Axon. <code>@intent</code> is a machine-readable natural language description of what a function is <em>for</em> — not what it does mechanically, but why it exists. It is preserved as a JSDoc <code>@intent</code> tag in generated output.</p>
+        <p>The single most important annotation in Synth. <code>@intent</code> is a machine-readable natural language description of what a function is <em>for</em> — not what it does mechanically, but why it exists. It is preserved as a JSDoc <code>@intent</code> tag in generated output.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="ann-intent-code"></pre>
         </div>
 
         <div class="callout callout-ai">
           <div class="callout-head">Why this matters for AI</div>
-          A language model reading generated Axon output can query <code>@intent</code> tags to
+          A language model reading generated Synth output can query <code>@intent</code> tags to
           understand a function's purpose without executing it or reading its full body.
           This is the foundation for the v1.0 spec-extraction tool.
         </div>
@@ -1249,7 +1249,7 @@
         <p>Declares the set of side effects a function produces. In v0.4 this is a documentation annotation; it becomes a compiler-enforced contract in v0.8 (The Async &amp; Reactive Update).</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="ann-effects-code"></pre>
         </div>
       </section>
@@ -1263,7 +1263,7 @@
         <p>Wraps a <code>@pure @total</code> function in a <code>Map</code>-based memoization cache at compile time. Results are cached after the first call; subsequent calls with the same arguments return instantly.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="ann-memo-code"></pre>
         </div>
 
@@ -1283,7 +1283,7 @@
         <p>Placed on a <code>match</code> expression to opt into strict exhaustiveness checking. The checker verifies that all variants of a tagged union are covered.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="ann-exhaustive-code"></pre>
         </div>
       </section>
@@ -1294,10 +1294,10 @@
         <h2 class="section-title"><code>@test</code></h2>
         <div class="section-rule"></div>
 
-        <p>Top-level inline test declarations. Tests are registered in <code>__axon_tests</code> at runtime and can be run via <code>__runAxonTests()</code> in the browser, or the CLI <code>--test</code> flag.</p>
+        <p>Top-level inline test declarations. Tests are registered in <code>__synth_tests</code> at runtime and can be run via <code>__runSynthTests()</code> in the browser, or the CLI <code>--test</code> flag.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="ann-test-code"></pre>
         </div>
 
@@ -1319,7 +1319,7 @@
           or <code>?</code> operator.
         </p>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="ann-throws-code"></pre>
         </div>
 
@@ -1336,7 +1336,7 @@
         <h2 class="section-title">Standard Library</h2>
         <div class="section-rule"></div>
 
-        <p>The Axon stdlib is a small set of higher-order functions prepended to every generated file. All functions are pure.</p>
+        <p>The Synth stdlib is a small set of higher-order functions prepended to every generated file. All functions are pure.</p>
 
         <div class="doc-table-wrap"><table class="doc-table">
           <thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
@@ -1358,8 +1358,8 @@
             <tr><td>clamp(v, lo, hi)</td><td>number×3 → number</td><td>Constrain to [lo, hi]</td></tr>
             <tr><td>el(tag, attrs, ...)</td><td>string → obj → DOM</td><td>Create DOM element</td></tr>
             <tr><td>mount(el, sel)</td><td>DOM → string → void</td><td>Mount element at CSS selector</td></tr>
-            <tr><td>__axon_tests</td><td>list</td><td>Registered @test declarations</td></tr>
-            <tr><td>__runAxonTests()</td><td>() → void</td><td>Execute all tests, print summary</td></tr>
+            <tr><td>__synth_tests</td><td>list</td><td>Registered @test declarations</td></tr>
+            <tr><td>__runSynthTests()</td><td>() → void</td><td>Execute all tests, print summary</td></tr>
             <tr><td colspan="3" style="padding:6px 12px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--cyan);opacity:0.8;background:rgba(0,255,255,0.04)">Result helpers — v0.6</td></tr>
             <tr><td>ok(v)</td><td>T → Result&lt;T&gt;</td><td>Wrap a success value in <code>Ok</code></td></tr>
             <tr><td>err(msg)</td><td>string → Result</td><td>Wrap an error message in <code>Err</code></td></tr>
@@ -1385,12 +1385,12 @@
         <div class="doc-table-wrap"><table class="doc-table">
           <thead><tr><th>Command</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td><code>axon input.axn output.js</code></td><td>Transpile a single Axon source file to JavaScript</td></tr>
-            <tr><td><code>axon --test input.axn</code></td><td>Run all <code>@test</code> declarations and print pass/fail summary. Exits with code 1 on failure.</td></tr>
-            <tr><td><code>axon --bundle entry.axn out.js</code></td><td><strong>v0.5</strong> Bundle a multi-file project. Resolves all imports recursively, topo-sorts modules, emits one JS file.</td></tr>
-            <tr><td><code>axon --check input.axn</code></td><td><strong>v0.9</strong> Static analysis only — no JS emitted. Reports checker warnings and parse errors.</td></tr>
-            <tr><td><code>axon --fmt input.axn [--write]</code></td><td><strong>v0.9</strong> Format source. Without <code>--write</code>, formatted source goes to stdout. With <code>--write</code>, rewrites file in-place.</td></tr>
-            <tr><td><code>axon --watch input.axn [out.js]</code></td><td><strong>v0.9</strong> Watch file and recompile on every save. Ctrl+C to stop.</td></tr>
+            <tr><td><code>synth input.syn output.js</code></td><td>Transpile a single Synth source file to JavaScript</td></tr>
+            <tr><td><code>synth --test input.syn</code></td><td>Run all <code>@test</code> declarations and print pass/fail summary. Exits with code 1 on failure.</td></tr>
+            <tr><td><code>synth --bundle entry.syn out.js</code></td><td><strong>v0.5</strong> Bundle a multi-file project. Resolves all imports recursively, topo-sorts modules, emits one JS file.</td></tr>
+            <tr><td><code>synth --check input.syn</code></td><td><strong>v0.9</strong> Static analysis only — no JS emitted. Reports checker warnings and parse errors.</td></tr>
+            <tr><td><code>synth --fmt input.syn [--write]</code></td><td><strong>v0.9</strong> Format source. Without <code>--write</code>, formatted source goes to stdout. With <code>--write</code>, rewrites file in-place.</td></tr>
+            <tr><td><code>synth --watch input.syn [out.js]</code></td><td><strong>v0.9</strong> Watch file and recompile on every save. Ctrl+C to stop.</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -1401,10 +1401,10 @@
         <h2 class="section-title">Numeric Literals</h2>
         <div class="section-rule"></div>
 
-        <p>Axon v0.9.5 extends numeric literals with underscore separators, hexadecimal <code>0x…</code>, and binary <code>0b…</code> prefixes. Separators are stripped at compile time; the notation is preserved in generated JS output.</p>
+        <p>Synth v0.9.5 extends numeric literals with underscore separators, hexadecimal <code>0x…</code>, and binary <code>0b…</code> prefixes. Separators are stripped at compile time; the notation is preserved in generated JS output.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="numeric-lit-code"></pre>
         </div>
 
@@ -1427,35 +1427,35 @@
 
         <p class="section-lead">Three new commands ship with v0.9.0, covering static analysis, formatting, and live recompilation.</p>
 
-        <h3 class="subsection-title"><code>axon --check</code></h3>
+        <h3 class="subsection-title"><code>synth --check</code></h3>
         <p>Runs the static checker without emitting any output file. Useful in CI or as a pre-commit hook.</p>
         <div class="code-block">
           <div class="code-label"><span class="dot dot-js"></span>shell</div>
-          <pre>$ axon --check src/main.axn
-✓  main.axn — no issues
+          <pre>$ synth --check src/main.syn
+✓  main.syn — no issues
 
-$ axon --check src/main.axn
+$ synth --check src/main.syn
   WARNING [line 14]: @pure function 'render' accesses effectful global 'console'</pre>
         </div>
 
-        <h3 class="subsection-title"><code>axon --fmt</code></h3>
+        <h3 class="subsection-title"><code>synth --fmt</code></h3>
         <p>Canonical formatter. Normalises 2-space indentation, spacing around operators (<code>=</code>, <code>-&gt;</code>, <code>=&gt;</code>, <code>::</code>, <code>|&gt;</code>, binary arithmetic), brace padding, and trailing whitespace. Does not modify <code>&lt;</code>/<code>&gt;</code> spacing to preserve generic type parameters.</p>
         <div class="code-block">
           <div class="code-label"><span class="dot dot-js"></span>shell</div>
-          <pre>$ axon --fmt src/main.axn           # formatted source → stdout
-$ axon --fmt src/main.axn --write   # rewrite in-place
-✓  main.axn — formatted
-✓  main.axn — already canonical     # if no changes needed</pre>
+          <pre>$ synth --fmt src/main.syn           # formatted source → stdout
+$ synth --fmt src/main.syn --write   # rewrite in-place
+✓  main.syn — formatted
+✓  main.syn — already canonical     # if no changes needed</pre>
         </div>
 
-        <h3 class="subsection-title"><code>axon --watch</code></h3>
+        <h3 class="subsection-title"><code>synth --watch</code></h3>
         <p>Watches a source file with <code>fs.watch</code> and recompiles on every save. Timestamped output for each recompile. Ctrl+C to stop.</p>
         <div class="code-block">
           <div class="code-label"><span class="dot dot-js"></span>shell</div>
-          <pre>$ axon --watch src/main.axn dist/main.js
-[14:02:11]  ✓  main.axn → main.js
-Watching main.axn for changes… (Ctrl+C to stop)
-[14:02:45]  ✓  main.axn → main.js
+          <pre>$ synth --watch src/main.syn dist/main.js
+[14:02:11]  ✓  main.syn → main.js
+Watching main.syn for changes… (Ctrl+C to stop)
+[14:02:45]  ✓  main.syn → main.js
 [14:03:12]  ✗  [line 8:3] Expected } but got EOF</pre>
         </div>
       </section>
@@ -1466,18 +1466,18 @@ Watching main.axn for changes… (Ctrl+C to stop)
         <h2 class="section-title">Browser Compiler API</h2>
         <div class="section-rule"></div>
 
-        <p class="section-lead"><code>axon.compiler.js</code> is a self-contained IIFE bundle that runs the full Axon compiler client-side. Load it in any web page — no server, no build step, no dependencies.</p>
+        <p class="section-lead"><code>synth.compiler.js</code> is a self-contained IIFE bundle that runs the full Synth compiler client-side. Load it in any web page — no server, no build step, no dependencies.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot dot-axn"></span>HTML</div>
-          <pre>&lt;script src="axon.compiler.js"&gt;&lt;/script&gt;
+          <pre>&lt;script src="synth.compiler.js"&gt;&lt;/script&gt;
 &lt;script&gt;
-  const { js, errors, warnings } = AxonCompiler.compile(source);
+  const { js, errors, warnings } = SynthCompiler.compile(source);
 &lt;/script&gt;</pre>
         </div>
 
-        <h3 class="subsection-title"><code>AxonCompiler.compile(source)</code></h3>
-        <p>Transpiles an Axon source string to JavaScript. Always returns an object — never throws.</p>
+        <h3 class="subsection-title"><code>SynthCompiler.compile(source)</code></h3>
+        <p>Transpiles an Synth source string to JavaScript. Always returns an object — never throws.</p>
         <div class="doc-table-wrap"><table class="doc-table">
           <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
           <tbody>
@@ -1498,10 +1498,10 @@ Watching main.axn for changes… (Ctrl+C to stop)
           </tbody>
         </table></div>
 
-        <h3 class="subsection-title"><code>AxonCompiler.check(source)</code></h3>
+        <h3 class="subsection-title"><code>SynthCompiler.check(source)</code></h3>
         <p>Runs only the static checker. Returns <code>{ warnings }</code>. Useful for lightweight lint-on-type without full codegen.</p>
 
-        <h3 class="subsection-title"><code>AxonCompiler.version</code></h3>
+        <h3 class="subsection-title"><code>SynthCompiler.version</code></h3>
         <p>String — the compiler version, e.g. <code>"0.9.0"</code>.</p>
 
         <div class="code-block">
@@ -1516,10 +1516,10 @@ Watching main.axn for changes… (Ctrl+C to stop)
         <h2 class="section-title">Modules</h2>
         <div class="section-rule"></div>
 
-        <p class="section-lead">Split a project across multiple <code>.axn</code> files. Use <code>import</code> to bring names into scope and <code>export</code> to mark declarations as public.</p>
+        <p class="section-lead">Split a project across multiple <code>.syn</code> files. Use <code>import</code> to bring names into scope and <code>export</code> to mark declarations as public.</p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot dot-axn"></span>tiles.axn</div>
+          <div class="code-label"><span class="dot dot-axn"></span>tiles.syn</div>
           <pre>export type Tile = | Floor | Wall | Door | Stairs | Chest
 
 export fn tile_glyph(tag: string) -> string =
@@ -1534,7 +1534,7 @@ export fn tile_glyph(tag: string) -> string =
         </div>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot dot-axn"></span>main.axn</div>
+          <div class="code-label"><span class="dot dot-axn"></span>main.syn</div>
           <pre>import { tile_glyph } from "./tiles"
 import { generate }   from "./generator"
 import { render_map } from "./renderer"
@@ -1551,7 +1551,7 @@ main()</pre>
         <div class="doc-table-wrap"><table class="doc-table">
           <thead><tr><th>Syntax</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td><code>import { a, b } from "./path"</code></td><td>Bring named symbols into scope. Path is relative to the importing file. <code>.axn</code> extension is optional.</td></tr>
+            <tr><td><code>import { a, b } from "./path"</code></td><td>Bring named symbols into scope. Path is relative to the importing file. <code>.syn</code> extension is optional.</td></tr>
             <tr><td><code>export fn name ...</code></td><td>Mark a function as part of the module's public API.</td></tr>
             <tr><td><code>export type T = ...</code></td><td>Export a type alias or tagged union.</td></tr>
             <tr><td><code>export record R { ... }</code></td><td>Export a record type declaration.</td></tr>
@@ -1574,7 +1574,7 @@ main()</pre>
         </p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="refine-code"></pre>
         </div>
 
@@ -1608,25 +1608,25 @@ main()</pre>
 
         <h3 class="subsection-title">Generic records</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="generics-record-code"></pre>
         </div>
 
         <h3 class="subsection-title">Generic functions</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="generics-fn-code"></pre>
         </div>
 
         <h3 class="subsection-title">Generic type aliases</h3>
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="generics-type-code"></pre>
         </div>
 
         <div class="callout callout-note">
           <div class="callout-head">Erasure</div>
-          Generic type parameters exist only in the Axon source. The compiler emits plain JavaScript —
+          Generic type parameters exist only in the Synth source. The compiler emits plain JavaScript —
           no wrappers, no runtime type objects. <code>Pair&lt;int, string&gt;</code> compiles to an ordinary JS object.
         </div>
       </section>
@@ -1643,7 +1643,7 @@ main()</pre>
         </p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="interface-code"></pre>
         </div>
 
@@ -1658,7 +1658,7 @@ main()</pre>
 
         <div class="callout callout-note">
           <div class="callout-head">Structural, not nominal</div>
-          Axon interfaces use structural typing. There is no <code>implements</code> declaration —
+          Synth interfaces use structural typing. There is no <code>implements</code> declaration —
           a record satisfies an interface if its shape matches. This is intentional: it keeps AI-generated
           code composable without requiring explicit trait registration.
         </div>
@@ -1670,12 +1670,12 @@ main()</pre>
         <h2 class="section-title"><code>fn(T) -&gt; U</code> Function Types</h2>
         <div class="section-rule"></div>
         <p class="section-lead">
-          Function types are first-class in Axon. Use <code>fn(A, B) -&gt; C</code> syntax anywhere
+          Function types are first-class in Synth. Use <code>fn(A, B) -&gt; C</code> syntax anywhere
           a type is expected — in record fields, interface definitions, and generic function signatures.
         </p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="fn-types-code"></pre>
         </div>
 
@@ -1702,7 +1702,7 @@ main()</pre>
         </p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="let-infer-code"></pre>
         </div>
 
@@ -1711,7 +1711,7 @@ main()</pre>
           <code>let infer</code> is a signal to language model tooling: "I know this value has a type —
           resolve it from the surrounding context rather than asking me to spell it out." In long pipelines
           or generic chains, the type is often obvious from usage. <code>infer</code> makes that intent explicit
-          and queryable via <code>axon spec</code> (v1.0).
+          and queryable via <code>synth spec</code> (v1.0).
         </div>
       </section>
 
@@ -1727,7 +1727,7 @@ main()</pre>
         </p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="store-code"></pre>
         </div>
 
@@ -1761,7 +1761,7 @@ main()</pre>
         </p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="async-fn-code"></pre>
         </div>
 
@@ -1798,7 +1798,7 @@ main()</pre>
         </p>
 
         <div class="code-block">
-          <div class="code-label"><span class="dot"></span>axon</div>
+          <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="on-change-code"></pre>
         </div>
 
@@ -1829,7 +1829,7 @@ main()</pre>
             <li><strong>Hex &amp; binary literals</strong> — <code>0xFF</code> and <code>0b1010</code> fully supported; notation preserved in generated JS</li>
             <li><strong>Multi-line lambdas</strong> — <code>item =&gt; { let x = f(item)\n x * 2 }</code>; block body with implicit last-expression return</li>
             <li><strong>Multi-error reporting</strong> — parser collects all errors with panic-mode recovery; <code>parse()</code> returns <code>{ ast, errors }</code></li>
-            <li><strong><code>AxonCompiler.compile()</code> updated</strong> — browser bundle uses multi-error parser; <code>errors</code> may contain multiple items; version string is <code>"0.9.5"</code></li>
+            <li><strong><code>SynthCompiler.compile()</code> updated</strong> — browser bundle uses multi-error parser; <code>errors</code> may contain multiple items; version string is <code>"0.9.5"</code></li>
           </ul>
         </div>
 
@@ -1840,12 +1840,12 @@ main()</pre>
             <span class="version-status vs-stable">Stable</span>
           </div>
           <ul class="version-features">
-            <li><strong><code>axon --check &lt;file&gt;</code></strong> — static analysis only; reports checker warnings and parse errors without emitting JS</li>
-            <li><strong><code>axon --fmt &lt;file&gt;</code></strong> — canonical formatter; normalizes indentation, operator spacing, brace padding, and trailing whitespace</li>
-            <li><strong><code>axon --watch &lt;file&gt; [output.js]</code></strong> — file watcher; recompiles automatically on every save</li>
-            <li><strong><code>axon.compiler.js</code></strong> — browser-compatible IIFE bundle; full Axon compiler running client-side via <code>AxonCompiler.compile(src)</code></li>
+            <li><strong><code>synth --check &lt;file&gt;</code></strong> — static analysis only; reports checker warnings and parse errors without emitting JS</li>
+            <li><strong><code>synth --fmt &lt;file&gt;</code></strong> — canonical formatter; normalizes indentation, operator spacing, brace padding, and trailing whitespace</li>
+            <li><strong><code>synth --watch &lt;file&gt; [output.js]</code></strong> — file watcher; recompiles automatically on every save</li>
+            <li><strong><code>synth.compiler.js</code></strong> — browser-compatible IIFE bundle; full Synth compiler running client-side via <code>SynthCompiler.compile(src)</code></li>
             <li><strong>Structured error objects</strong> — <code>compile()</code> returns <code>{ js, errors, warnings }</code> with <code>{ message, line, col, kind }</code> per error</li>
-            <li><strong>Demo: Axon Playground</strong> — live in-browser IDE with split-pane editor, real-time transpilation, live result execution, and 10 preloaded examples</li>
+            <li><strong>Demo: Synth Playground</strong> — live in-browser IDE with split-pane editor, real-time transpilation, live result execution, and 10 preloaded examples</li>
           </ul>
         </div>
 
@@ -1894,7 +1894,7 @@ main()</pre>
             <li><strong><code>@throws</code> annotation</strong> — marks fallible functions; checker warns if <code>ok()</code>/<code>err()</code> are never called</li>
             <li><strong><code>refine x: "claim"</code></strong> — semantic value narrowing; structured comment today, model-checked in v1.0</li>
             <li><strong>Pre-function annotations</strong> — <code>@throws fn foo()</code> syntax now valid</li>
-            <li><strong>Demo: Dungeon Configurator</strong> — <code>config.axn</code> with chained <code>@throws</code> parsers; precise per-field error messages</li>
+            <li><strong>Demo: Dungeon Configurator</strong> — <code>config.syn</code> with chained <code>@throws</code> parsers; precise per-field error messages</li>
           </ul>
         </div>
 
@@ -1934,7 +1934,7 @@ main()</pre>
           <ul class="version-features">
             <li><strong><code>import { x, y } from "./path"</code></strong> — multi-file projects; relative path resolution per-module</li>
             <li><strong><code>export fn / export type / export record</code></strong> — declare public API surface; bundler tracks exported symbols</li>
-            <li><strong><code>axon --bundle &lt;entry&gt; [out.js]</code></strong> — recursive import resolution, topo-sort, stdlib emitted once</li>
+            <li><strong><code>synth --bundle &lt;entry&gt; [out.js]</code></strong> — recursive import resolution, topo-sort, stdlib emitted once</li>
             <li><strong>Auto-bundle in <code>--test</code></strong> — files with imports are auto-bundled before running <code>@test</code> declarations</li>
             <li><strong>Optional <code>if</code> parens</strong> — both <code>if (cond) { }</code> and <code>if cond { }</code> are valid</li>
             <li><strong>Return-type short-form</strong> — <code>fn f(x) -&gt; T = expr</code> and <code>fn f(x) -&gt; T { block }</code> both valid</li>
@@ -1956,7 +1956,7 @@ main()</pre>
             <li><strong>Destructuring <code>let</code></strong> — object (<code>{ a, b }</code>), rename (<code>{ x: ax }</code>), and array (<code>[a, b]</code>) forms</li>
             <li><strong>Triple-quote strings <code>"""..."""</code></strong> — multiline literals with interpolation, compile to template literals</li>
             <li><strong>Tagged union types</strong> — <code>type T = | Variant { fields } | Unit</code>; factory fns + frozen constants</li>
-            <li><strong><code>@test</code> declarations</strong> — inline tests with <code>--test</code> CLI flag; <code>__runAxonTests()</code> for browser</li>
+            <li><strong><code>@test</code> declarations</strong> — inline tests with <code>--test</code> CLI flag; <code>__runSynthTests()</code> for browser</li>
             <li><strong>Pipeline <code>|&gt; as name</code></strong> — bind intermediate pipeline results to names; emits as IIFE block</li>
           </ul>
         </div>
@@ -1985,7 +1985,7 @@ main()</pre>
             <li><strong>Short-form functions</strong> — <code>fn name(args) = expr</code> single-expression shorthand</li>
             <li><strong>Pipeline operator <code>|&gt;</code></strong> — left-to-right functional composition</li>
             <li><strong>Expanded stdlib</strong> — <code>map</code>, <code>filter</code>, <code>reduce</code>, <code>find</code>, <code>sum</code>, <code>range</code>, <code>clamp</code></li>
-            <li><strong>DOM helpers</strong> — <code>el</code> and <code>mount</code> for building UIs in pure Axon</li>
+            <li><strong>DOM helpers</strong> — <code>el</code> and <code>mount</code> for building UIs in pure Synth</li>
           </ul>
         </div>
 
@@ -2022,7 +2022,7 @@ main()</pre>
             <ul class="roadmap-features">
               <li>✓ <code>import { fn, type } from "./path"</code></li>
               <li>✓ <code>export fn name ...</code> declarations</li>
-              <li>✓ <code>axon --bundle</code> — topo-sort multi-file bundle</li>
+              <li>✓ <code>synth --bundle</code> — topo-sort multi-file bundle</li>
               <li>✓ Auto-bundle in <code>--test</code> mode</li>
               <li>✓ Demo: Dungeon Map Toolkit (4 modules)</li>
             </ul>
@@ -2037,7 +2037,7 @@ main()</pre>
               <li>✓ <code>?</code> propagation operator — early-return on <code>Err</code></li>
               <li>✓ <code>@throws</code> annotation for explicit failure contracts</li>
               <li>✓ <code>refine x: "prose claim"</code> — semantic value narrowing</li>
-              <li>✓ Demo: Dungeon Configurator with <code>config.axn</code></li>
+              <li>✓ Demo: Dungeon Configurator with <code>config.syn</code></li>
             </ul>
           </div>
 
@@ -2073,12 +2073,12 @@ main()</pre>
           <div class="roadmap-card">
             <div class="roadmap-ver">v0.9</div>
             <div class="roadmap-title">The Tooling Update</div>
-            <div class="roadmap-desc">The experience of working in Axon becomes as good as the language itself.</div>
+            <div class="roadmap-desc">The experience of working in Synth becomes as good as the language itself.</div>
             <ul class="roadmap-features">
               <li>Language Server Protocol (LSP) implementation</li>
-              <li>Source maps — debug Axon in browser DevTools</li>
-              <li><code>axon fmt</code> — canonical formatter</li>
-              <li><code>axon check</code> — standalone lint step</li>
+              <li>Source maps — debug Synth in browser DevTools</li>
+              <li><code>synth fmt</code> — canonical formatter</li>
+              <li><code>synth check</code> — standalone lint step</li>
               <li>VS Code: go-to-definition, hover types</li>
               <li>Rich error messages with source context</li>
               <li><code>explain { prose }</code> blocks — structured semantic context in the AST; surfaced as IDE hover tooltips and model-queryable documentation</li>
@@ -2093,7 +2093,7 @@ main()</pre>
               <li>Frozen language specification</li>
               <li>Semver stability — no breaking changes without major bump</li>
               <li>Comprehensive stdlib with full type signatures</li>
-              <li><code>axon spec</code> — extract <code>@intent</code>, <code>refine</code>, and <code>explain</code> blocks as structured JSON for LLM consumption</li>
+              <li><code>synth spec</code> — extract <code>@intent</code>, <code>refine</code>, and <code>explain</code> blocks as structured JSON for LLM consumption</li>
               <li>Documentation site</li>
               <li>Package registry</li>
             </ul>
@@ -2117,7 +2117,7 @@ main()</pre>
   </div>
 
   <footer class="page-footer">
-    Axon v0.9.5 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
+    Synth v0.9.5 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
   </footer>
 
   <script>
@@ -2224,27 +2224,27 @@ fn top_heroes :: (party: list<Hero>) -> list<string> =
 
     setCode('quickstart-code', `
 # Clone and build
-git clone https://github.com/your-org/axon
-cd axon
+git clone https://github.com/your-org/synth
+cd synth
 npm install
 npx tsc
 
 # Transpile a source file
-node dist/cli.js examples/rpg.axn demo/rpg.axon.js
+node dist/cli.js examples/rpg.syn demo/rpg.synth.js
 
 # Run @test declarations
-node dist/cli.js --test examples/rpg.axn
+node dist/cli.js --test examples/rpg.syn
 `);
 
     setCode('hello-code', `
-// hello.axn
+// hello.syn
 fn greet :: (name: string) -> string {
   @pure @total
   @intent "Produce a greeting string for the given name"
   "Hello, {name}!"
 }
 
-let msg = greet("Axon")
+let msg = greet("Synth")
 `);
 
     setCode('fn-full-code', `
@@ -2403,7 +2403,7 @@ console.log(badge(Priority.Critical))    // → "🔴 CRITICAL"
 `);
 
     setCode('enum-js-code', `
-// Generated by Axon v0.9.5 transpiler
+// Generated by Synth v0.9.5 transpiler
 /** @enum {string} Status */
 const Status = Object.freeze({ Backlog: 'Backlog', Active: 'Active', Done: 'Done', Cancelled: 'Cancelled' });
 
@@ -2661,7 +2661,7 @@ fn element_bonus :: (class: string, element: string) -> int {
 fn save_game :: (state: GameState) -> void {
   @effects ["storage"]
   @intent "Persist game state to localStorage"
-  localStorage.setItem("axon_save", JSON.stringify(state))
+  localStorage.setItem("synth_save", JSON.stringify(state))
 }
 
 fn fetch_scores :: (url: string) -> void {
@@ -2712,7 +2712,7 @@ fn opposite :: (d: Direction) -> Direction =
 `);
 
     setCode('ann-test-output', `
-  Axon tests — rpg.axn
+  Synth tests — rpg.syn
   ─────────────────────────────────────
   ✓ mage lv1 title
   ✓ mage lv10 title
@@ -2725,35 +2725,35 @@ fn opposite :: (d: Direction) -> Direction =
 
     setCode('cli-code', `
 # Single-file transpile
-axon examples/rpg.axn demo/rpg.axon.js
-#   ✓ Transpiled rpg.axn → rpg.axon.js
-#     1576 lines Axon → 2436 lines JS
+synth examples/rpg.syn demo/rpg.synth.js
+#   ✓ Transpiled rpg.syn → rpg.synth.js
+#     1576 lines Synth → 2436 lines JS
 
 # Run @test declarations  (auto-bundles if file has imports)
-axon --test examples/rpg.axn
-#   Axon tests — rpg.axn
+synth --test examples/rpg.syn
+#   Synth tests — rpg.syn
 #   ────────────────────────────────────────
 #   ✓ level_title: mage lv10 = Archmage
 #   ✓ hp_status_label: 0 = DEAD
 #   15 passed, 0 failed, 15 total
 
 # Bundle a multi-file project  (v0.5)
-axon --bundle examples/dungeon/main.axn demo/dungeon.sources.js
-#   ✓ Bundled tiles.axn + generator.axn + renderer.axn + main.axn → dungeon.sources.js
+synth --bundle examples/dungeon/main.syn demo/dungeon.sources.js
+#   ✓ Bundled tiles.syn + generator.syn + renderer.syn + main.syn → dungeon.sources.js
 #     4 modules → 407 lines JS
 
 # Static analysis only — no JS emitted  (v0.9)
-axon --check src/main.axn
-#   ✓  main.axn — no issues
+synth --check src/main.syn
+#   ✓  main.syn — no issues
 
 # Format source  (v0.9)
-axon --fmt src/main.axn --write
-#   ✓  main.axn — formatted
+synth --fmt src/main.syn --write
+#   ✓  main.syn — formatted
 
 # Watch and recompile on save  (v0.9)
-axon --watch src/main.axn dist/main.js
-#   [14:02:11]  ✓  main.axn → main.js
-#   Watching main.axn for changes… (Ctrl+C to stop)
+synth --watch src/main.syn dist/main.js
+#   [14:02:11]  ✓  main.syn → main.js
+#   Watching main.syn for changes… (Ctrl+C to stop)
 `);
 
   // ── v0.6 — Result type ───────────────────────────────────────────────────
@@ -3077,16 +3077,16 @@ on Game.change { check_game_over() }
 
   setCode('browser-api-code', `
 // Load the bundle in your HTML:
-// &lt;script src="axon.compiler.js"&gt;&lt;/script&gt;
+// &lt;script src="synth.compiler.js"&gt;&lt;/script&gt;
 
-// Compile Axon source to JavaScript
+// Compile Synth source to JavaScript
 let source = \`
 fn greet(name: string) = "Hello, {name}!"
 let msg = greet("world")
 console.log(msg)
 \`
 
-let result = AxonCompiler.compile(source)
+let result = SynthCompiler.compile(source)
 
 if result.errors.length > 0 {
   // Each error: { message, line, col, kind }
@@ -3099,10 +3099,10 @@ if result.errors.length > 0 {
 }
 
 // Static check only (no codegen)
-let { warnings } = AxonCompiler.check(source)
+let { warnings } = SynthCompiler.check(source)
 
 // Version string
-console.log(AxonCompiler.version)   // "0.9.0"
+console.log(SynthCompiler.version)   // "0.9.0"
 `);
 
   </script>

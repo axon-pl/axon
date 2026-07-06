@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0d0221" />
-  <title>Axon RPG — 50-Battle Marathon</title>
+  <title>Synth RPG — 50-Battle Marathon</title>
   <style>
     /* ── Synthwave palette ───────────────────────────────────────────────── */
     :root {
@@ -1321,7 +1321,7 @@
 
   <header class="page-header">
     <div>
-      <div class="page-title">AXON RPG</div>
+      <div class="page-title">SYNTH RPG</div>
       <div class="page-sub" id="page-sub">50-battle marathon · equipment stash · all game logic in pure functions</div>
     </div>
     <div class="page-badge">v0.6.0</div>
@@ -1340,18 +1340,18 @@
   <div class="source-section">
     <div class="source-heading">SOURCE CODE</div>
     <div class="source-tabs">
-      <button class="source-tab active" id="tab-btn-axn" onclick="showTab('axn')">rpg.axn</button>
-      <button class="source-tab"        id="tab-btn-js"  onclick="showTab('js')">rpg.axon.js</button>
+      <button class="source-tab active" id="tab-btn-axn" onclick="showTab('axn')">rpg.syn</button>
+      <button class="source-tab"        id="tab-btn-js"  onclick="showTab('js')">rpg.synth.js</button>
     </div>
     <div id="tab-axn" class="source-content active"><pre id="axn-src" class="src">Loading…</pre></div>
     <div id="tab-js"  class="source-content"><pre id="js-src" class="src">Loading…</pre></div>
   </div>
 
   <footer class="footer">
-    AXON v0.6.0 · 50-BATTLE MARATHON DEMO · AI-NATIVE LANGUAGE · TRANSPILES TO JAVASCRIPT
+    SYNTH v0.6.0 · 50-BATTLE MARATHON DEMO · AI-NATIVE LANGUAGE · TRANSPILES TO JAVASCRIPT
   </footer>
 
-  <script src="rpg.axon.js"></script>
+  <script src="rpg.synth.js"></script>
   <script src="rpg.sources.js"></script>
   <script>
     render_game('game');
@@ -1374,18 +1374,18 @@
       const sub = document.getElementById('page-sub');
       if (sub) {
         sub.textContent =
-          axnLines + ' lines Axon · ' + jsLines + ' lines JS · 50-battle marathon · pure game logic';
+          axnLines + ' lines Synth · ' + jsLines + ' lines JS · 50-battle marathon · pure game logic';
       }
       const axnBtn = document.getElementById('tab-btn-axn');
       const jsBtn  = document.getElementById('tab-btn-js');
-      if (axnBtn) axnBtn.textContent = 'rpg.axn (' + axnLines + ' lines)';
-      if (jsBtn)  jsBtn.textContent  = 'rpg.axon.js (' + jsLines + ' lines)';
+      if (axnBtn) axnBtn.textContent = 'rpg.syn (' + axnLines + ' lines)';
+      if (jsBtn)  jsBtn.textContent  = 'rpg.synth.js (' + jsLines + ' lines)';
     }
 
     if (window.RPG_SOURCES) {
-      document.getElementById('axn-src').textContent = RPG_SOURCES.axn;
+      document.getElementById('axn-src').textContent = RPG_SOURCES.syn;
       document.getElementById('js-src').textContent  = RPG_SOURCES.js;
-      updateChrome(lineCount(RPG_SOURCES.axn), lineCount(RPG_SOURCES.js));
+      updateChrome(lineCount(RPG_SOURCES.syn), lineCount(RPG_SOURCES.js));
     }
   </script>
 

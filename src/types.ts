@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.9.5 — Token and AST type definitions
+// Synth v0.9.5 — Token and AST type definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type TokenType =

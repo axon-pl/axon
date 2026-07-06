@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.5.0 — dungeon/renderer.axn
+// Synth v0.5.0 — dungeon/renderer.syn
 // HTML renderer for dungeon maps.
 // Converts a DungeonMap into HTML strings for display in the browser.
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-# Axon Changelog
+# Synth Changelog
 
 ## v0.9.9 — Ergonomics & DX
 
@@ -8,7 +8,7 @@
 
 `...` works in array literals, object literals, and function arguments:
 
-```axon
+```synth
 let a = [1, 2, 3]
 let b = [0, ...a, 4]          // [0, 1, 2, 3, 4]
 
@@ -24,7 +24,7 @@ Rest parameters (`...name`) in short-form functions now work identically to the 
 
 When a property name matches a local variable name, the `: value` may be omitted:
 
-```axon
+```synth
 let x = 10
 let y = 20
 let pt = { x, y }   // same as { x: x, y: y }
@@ -32,9 +32,9 @@ let pt = { x, y }   // same as { x: x, y: y }
 
 **Stdlib as method syntax**
 
-All Axon stdlib functions whose first argument is a value can be called with dot syntax. The compiler rewrites `value.fn(args)` to `fn(value, args)`:
+All Synth stdlib functions whose first argument is a value can be called with dot syntax. The compiler rewrites `value.fn(args)` to `fn(value, args)`:
 
-```axon
+```synth
 "  hello  ".trim()                  // trim("  hello  ")
 "a,b,c".split(",")                  // split("a,b,c", ",")
 "hello".to_upper()                  // to_upper("hello")
@@ -51,7 +51,7 @@ All string, array, and Result stdlib functions are supported as method calls. Na
 
 `do { }` is a block expression — a sequenced computation in expression position. The last expression in the block is the result:
 
-```axon
+```synth
 let total = do {
   let a = compute_base()
   let b = get_bonus()
@@ -61,7 +61,7 @@ let total = do {
 
 When the block contains `await`, it automatically becomes an async IIFE:
 
-```axon
+```synth
 let data = do {
   let raw = await fetch_data(url)
   let parsed = await parse(raw)
@@ -73,7 +73,7 @@ let data = do {
 ### Compiler & tooling
 
 - **`print()` is now a compiler intrinsic** — `print(x)` compiles directly to `console.log(x)`. No stdlib dependency.
-- **Stdlib separated** — `axon.stdlib.js` is a standalone file loaded once; compiled output contains only user code (84% fewer output tokens for small programs).
+- **Stdlib separated** — `synth.stdlib.js` is a standalone file loaded once; compiled output contains only user code (84% fewer output tokens for small programs).
 - **Compiled output is clean** — no JSDoc comments, no wrapper blocks; the transpiled JS pane shows exactly what was written.
 - **CI: self-retrying deploy** — GitHub Pages deploy retries up to 3× automatically, eliminating transient failures.
 
@@ -85,9 +85,9 @@ let data = do {
 
 **`while` loops**
 
-Axon now supports `while` loops for condition-driven iteration:
+Synth now supports `while` loops for condition-driven iteration:
 
-```axon
+```synth
 let mut n = 1
 while n <= 5 {
   console.log(n)
@@ -97,7 +97,7 @@ while n <= 5 {
 
 **`break` and `continue`** already existed for `for` loops and now work identically inside `while` loops:
 
-```axon
+```synth
 let mut i = 0
 while true {
   i += 1
@@ -168,7 +168,7 @@ while true {
 ### New language features
 
 - **Compound assignment operators** — `+=`, `-=`, `*=`, `/=`, `%=`, `??=` are now fully supported for `let mut` variables, object fields, and array elements.
-  ```axon
+  ```synth
   let mut score = 0
   score += 10
   score *= 2
@@ -183,7 +183,7 @@ while true {
 ### Keyword aliases
 
 - **`and` / `or` / `not`** — English-word aliases for `&&`, `||`, `!` are now recognised everywhere, including constraint expressions.
-  ```axon
+  ```synth
   type Score = int where value >= 0 and value <= 100
   fn valid(x: int) = x > 0 and x < 1000
   ```
@@ -203,7 +203,7 @@ while true {
 ### New language features
 
 - **`enum` type** — concise value-set declarations that compile to frozen, string-keyed objects.
-  ```axon
+  ```synth
   enum Status = Active | Paused | Done
   enum Priority = Low | Medium | High | Critical
 
@@ -211,7 +211,7 @@ while true {
   // const Status = Object.freeze({ Active: 'Active', Paused: 'Paused', Done: 'Done' });
   ```
   Enum variants can be pattern-matched with the `Enum.Variant` syntax:
-  ```axon
+  ```synth
   fn describe(s: Status) = match s {
     | Status.Active => "running"
     | Status.Paused => "paused"
@@ -220,7 +220,7 @@ while true {
   ```
 
 - **Numeric separators** — `_` may appear anywhere inside a decimal, hex, or binary literal for readability. Separators are stripped at compile time; the output value is unaffected.
-  ```axon
+  ```synth
   let population  = 8_000_000_000
   let red_channel = 0xFF_00_00
   let flags       = 0b1010_1010
@@ -230,7 +230,7 @@ while true {
 - **Hex and binary literals** — `0x…` and `0b…` prefix literals are now fully supported in the lexer and preserve their notation in generated JS output.
 
 - **Multi-line lambdas** — lambda bodies may be a block expression `{ … }` with multiple statements. The last expression is implicitly returned.
-  ```axon
+  ```synth
   let active =
     items
       |> filter(item => {
@@ -246,16 +246,16 @@ while true {
 
 ### Improved error reporting
 
-- **Multi-error reporting** — the parser now collects all errors with panic-mode recovery instead of stopping at the first error. `parse()` returns `{ ast, errors }`. The browser bundle's `AxonCompiler.compile()` API is updated accordingly.
+- **Multi-error reporting** — the parser now collects all errors with panic-mode recovery instead of stopping at the first error. `parse()` returns `{ ast, errors }`. The browser bundle's `SynthCompiler.compile()` API is updated accordingly.
   ```js
-  const { js, errors, warnings } = AxonCompiler.compile(source)
+  const { js, errors, warnings } = SynthCompiler.compile(source)
   // errors — array of { message, line, col, kind } — may contain multiple items
   ```
 
 ### Tooling
 
 - All v0.9 CLI commands (`--check`, `--fmt`, `--watch`) are included and stable.
-- `axon.compiler.js` browser bundle updated to v0.9.5; version string is `"0.9.5"`.
+- `synth.compiler.js` browser bundle updated to v0.9.5; version string is `"0.9.5"`.
 
 ---
 
@@ -263,35 +263,35 @@ while true {
 
 ### New tooling
 
-- **`axon --check <file>`** — static analysis only; no JS emitted. Reports checker warnings and parse errors without writing any output file.
+- **`synth --check <file>`** — static analysis only; no JS emitted. Reports checker warnings and parse errors without writing any output file.
   ```
-  axon --check src/main.axn
-  ✓  main.axn — no issues
+  synth --check src/main.syn
+  ✓  main.syn — no issues
   ```
 
-- **`axon --fmt <file> [--write]`** — canonical formatter. Normalizes indentation (2 spaces), spacing around operators, brace padding, and trailing whitespace. `--write` rewrites the file in-place; without it, the formatted source is written to stdout.
+- **`synth --fmt <file> [--write]`** — canonical formatter. Normalizes indentation (2 spaces), spacing around operators, brace padding, and trailing whitespace. `--write` rewrites the file in-place; without it, the formatted source is written to stdout.
   ```
-  axon --fmt src/main.axn --write
-  ✓  main.axn — formatted
+  synth --fmt src/main.syn --write
+  ✓  main.syn — formatted
   ```
   **Known limitation (v0.9.0):** `<` and `>` are left without spaces to preserve generic type parameters such as `List<T>`. Comparison operators like `x > 0` are unaffected but not space-normalized.
 
-- **`axon --watch <file> [output.js]`** — file watcher. Recompiles automatically whenever the source file changes. Ctrl+C to stop.
+- **`synth --watch <file> [output.js]`** — file watcher. Recompiles automatically whenever the source file changes. Ctrl+C to stop.
   ```
-  axon --watch src/main.axn dist/main.js
-  [12:34:01]  ✓  main.axn → main.js
-  Watching main.axn for changes… (Ctrl+C to stop)
+  synth --watch src/main.syn dist/main.js
+  [12:34:01]  ✓  main.syn → main.js
+  Watching main.syn for changes… (Ctrl+C to stop)
   ```
 
 ### New compiler API
 
 - **Structured error objects** — `compile()` in the browser bundle returns `{ js, errors, warnings }` instead of throwing. Errors carry `{ message, line, col, kind }`.
 
-- **`axon.compiler.js`** — browser-compatible IIFE bundle (`demo/axon.compiler.js`). Load it in any web page to get the full Axon compiler running client-side:
+- **`synth.compiler.js`** — browser-compatible IIFE bundle (`demo/synth.compiler.js`). Load it in any web page to get the full Synth compiler running client-side:
   ```html
-  <script src="axon.compiler.js"></script>
+  <script src="synth.compiler.js"></script>
   <script>
-    const { js, errors, warnings } = AxonCompiler.compile(source);
+    const { js, errors, warnings } = SynthCompiler.compile(source);
     // errors[] → [{ message, line, col, kind }]
     // warnings[] → [{ severity, message, line, col }]
   </script>
@@ -299,7 +299,7 @@ while true {
 
 ### New demo
 
-- **Axon Playground** (`playground.html`) — live in-browser IDE featuring:
+- **Synth Playground** (`playground.html`) — live in-browser IDE featuring:
   - Split-pane editor with line numbers and cursor position tracking
   - Real-time transpilation (auto-compile as you type)
   - Transpiled JS tab with basic syntax highlighting
@@ -315,7 +315,7 @@ while true {
 ### New language features
 
 - **`async fn`** — asynchronous function declarations that transpile to `async` arrow functions
-  ```axon
+  ```synth
   @effects ["timer"]
   async fn fetch_data(url: string) -> Result<string> {
     let r = await delay(0)
@@ -324,7 +324,7 @@ while true {
   ```
 
 - **`await expr`** — resolves a Promise inside an `async fn`; valid at statement or expression level
-  ```axon
+  ```synth
   async fn tick() {
     await delay(500)          // stdlib helper: delay(ms) returns Promise<void>
     await fetch_quests()      // any Promise expression
@@ -332,7 +332,7 @@ while true {
   ```
 
 - **`store Name { field: Type = default }`** — reactive mutable state as an explicit effects boundary. Compiles to a self-contained IIFE with getters, `set(patch)`, and `subscribe(fn)`.
-  ```axon
+  ```synth
   store Kingdom {
     day:    int    = 1
     season: string = "spring"
@@ -343,7 +343,7 @@ while true {
   ```
 
 - **`on StoreName.change { body }`** — reactive subscription sugar. Desugars to `StoreName.subscribe(() => { body })`. The callback fires once immediately on subscribe, then after every `.set()` call.
-  ```axon
+  ```synth
   on Kingdom.change { render() }
   // equivalent to: Kingdom.subscribe(() => { render() })
   ```
@@ -360,7 +360,7 @@ while true {
 
 ### Demo
 
-- **Chronicle** — a reactive fantasy kingdom event log. Uses `store`, `async fn tick()`, `await delay()`, and `on Kingdom.change { render() }` to drive a live-updating UI entirely from Axon source.
+- **Chronicle** — a reactive fantasy kingdom event log. Uses `store`, `async fn tick()`, `await delay()`, and `on Kingdom.change { render() }` to drive a live-updating UI entirely from Synth source.
 
 ---
 
@@ -369,14 +369,14 @@ while true {
 ### New language features
 
 - **Generic type parameters** on `fn`, `record`, and `type` declarations
-  ```axon
+  ```synth
   record Pair<A, B> { first: A; second: B }
   fn map<T, U>(items: T[], f: fn(T) -> U) -> U[] = items.map(f)
   type Maybe<T> = | Some { value: T } | None
   ```
 
 - **`interface` declarations** — structural type contracts (type-level only, erased to JSDoc)
-  ```axon
+  ```synth
   interface Tradeable {
     name:     string
     price:    int
@@ -385,12 +385,12 @@ while true {
   ```
 
 - **`fn(T) -> U` type expressions** — first-class function types in signatures and interfaces
-  ```axon
+  ```synth
   fn apply<T, U>(value: T, f: fn(T) -> U) -> U = f(value)
   ```
 
 - **`let infer`** — model-resolved type annotation; signals to AI tooling that the type should be inferred from context rather than explicitly declared
-  ```axon
+  ```synth
   fn compute(names: string[]) -> int[] {
     let infer scores = map(names, s => s.length)
     scores
@@ -421,9 +421,9 @@ New fully interactive RPG item shop demo (`demo/bazaar.html`) showcasing all v0.
 
 - **`Result` type + stdlib helpers**
   `ok(value)` / `err(message)` constructors. `is_ok`, `is_err`, `unwrap`, `unwrap_or`
-  available in every Axon program.
+  available in every Synth program.
 
-  ```axon
+  ```synth
   let r = ok(42)         // { tag: "Ok", value: 42 }
   let e = err("oops")    // { tag: "Err", message: "oops" }
   ```
@@ -434,7 +434,7 @@ New fully interactive RPG item shop demo (`demo/bazaar.html`) showcasing all v0.
   Line-aware disambiguation from ternary `?:` — `?` on its own line is always
   propagation.
 
-  ```axon
+  ```synth
   @throws
   fn process(input: string) -> any {
     let n = parse_int(input)?   // propagates Err, unwraps Ok
@@ -449,9 +449,9 @@ New fully interactive RPG item shop demo (`demo/bazaar.html`) showcasing all v0.
 
 - **`refine x: "semantic claim"`**
   Documents an invariant about a value inline. Emitted as a structured comment
-  in JS today; becomes model-checkable in v1.0 via `axon spec`.
+  in JS today; becomes model-checkable in v1.0 via `synth spec`.
 
-  ```axon
+  ```synth
   let seed = Math.abs(n) % 2147483648
   refine seed: "a non-negative dungeon seed in [0, 2^31)"
   ```
@@ -459,7 +459,7 @@ New fully interactive RPG item shop demo (`demo/bazaar.html`) showcasing all v0.
 - **Pattern matching on `Result`**
   `Ok` and `Err` work as tagged union patterns in `match` out of the box.
 
-  ```axon
+  ```synth
   match parse_config(input) {
     | Ok  { value }   => render(value)
     | Err { message } => show_error(message)
@@ -468,15 +468,15 @@ New fully interactive RPG item shop demo (`demo/bazaar.html`) showcasing all v0.
 
 ### Demo: Dungeon Configurator
 
-New `config.axn` module — parses `level:seed` codes with three chained
+New `config.syn` module — parses `level:seed` codes with three chained
 `@throws` functions. Every field failure produces a precise error message
 rather than a generic crash. The seed code input in the dungeon demo
 auto-syncs to the current state and validates on Enter or button click.
 
 ### Tests
 
-17 new `@test` cases in `examples/v06_features.axn`.
-9 new `@test` cases in `examples/dungeon/config.axn`.
+17 new `@test` cases in `examples/v06_features.syn`.
+9 new `@test` cases in `examples/dungeon/config.syn`.
 85 total tests across all example files, all passing.
 
 ---
@@ -498,7 +498,7 @@ auto-syncs to the current state and validates on Enter or button click.
 - **`break` and `continue`**
   Exit or skip iterations inside any `for` body. Work across nested loops.
 
-  ```axon
+  ```synth
   for i in 0..100 {
     if i == 5 { break }    // exit loop
   }
@@ -512,7 +512,7 @@ auto-syncs to the current state and validates on Enter or button click.
   Plain `let` signals immutable intent. `let mut` opts into reassignment.
   The compiler distinction prepares for full enforcement in v0.6.
 
-  ```axon
+  ```synth
   let     x = 5        // immutable by intent
   let mut n = 0        // explicitly mutable
   n = n + 1            // valid — n is mut
@@ -530,13 +530,13 @@ auto-syncs to the current state and validates on Enter or button click.
 
 ### Demo rewrite
 
-- **`generator.axn`** — all `Array.from().forEach` patterns replaced with
+- **`generator.syn`** — all `Array.from().forEach` patterns replaced with
   `for` loops; all accumulator variables use `let mut`; `count_tag` uses
   `for row in grid { for cell in row { } }`.
 
 ### Tests
 
-- **`examples/v052_features.axn`** — 8 new `@test` declarations covering all
+- **`examples/v052_features.syn`** — 8 new `@test` declarations covering all
   new constructs: exclusive range, inclusive range, `for...in`, `break`,
   `continue`, `let mut`, nested loops, and object iteration.
 
@@ -554,14 +554,14 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
   `let state = {…}` declaration.
 - **`TopLevelExpr` AST node** — bare expression statements at top level (e.g. `mount()`)
   now parse and emit correctly. Previously also silently dropped.
-- **Bundler output path fix** — `axon --bundle` now correctly treats the second positional
+- **Bundler output path fix** — `synth --bundle` now correctly treats the second positional
   argument as the output path; previously the output could be written to a literal file
   named `-o`.
 - **Stdlib emitted once in bundles** — added `emitStdlib` flag to codegen so multi-module
   bundles never duplicate the stdlib header, eliminating
   `SyntaxError: Identifier 'map' has already been declared`.
 
-### Dungeon demo — generator (`generator.axn`)
+### Dungeon demo — generator (`generator.syn`)
 
 - **Room-based generator** — rewrote from scatter noise to a room-and-corridor
   approach: randomly placed rectangular rooms carved from an all-wall grid, connected
@@ -581,14 +581,14 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
   the entrance. A `@test` enforces the invariant: every torch must be diagonally adjacent
   to a door.
 
-### Dungeon demo — state pattern (`main.axn`)
+### Dungeon demo — state pattern (`main.syn`)
 
 - **Immutable `AppState` record** — replaced the mutable JS object `state` with an
   `AppState` record. `render(s: AppState)` draws the dungeon and re-wires every button
   `onclick` with a fresh closure over the *next* state value. No variable is ever mutated;
-  state flows through the call chain as data. This is the idiomatic Axon pattern until
+  state flows through the call chain as data. This is the idiomatic Synth pattern until
   v0.8 ships `store`:
-  ```axon
+  ```synth
   store AppState { level: int = 1, seed: int = 7777 }
   on AppState.change { render(AppState) }
   ```
@@ -600,10 +600,10 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 ### New features
 
 - **`import { ... } from "./path"` — multi-file modules**
-  Split a project across multiple `.axn` files. Named imports resolve relative
+  Split a project across multiple `.syn` files. Named imports resolve relative
   to the importing file and are bundled by the CLI:
 
-  ```axon
+  ```synth
   import { generate, count_tag } from "./generator"
   import { render_map, render_legend } from "./renderer"
   ```
@@ -612,19 +612,19 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
   Mark any top-level declaration as exported. The bundler treats all exported
   symbols as part of the module's public interface:
 
-  ```axon
+  ```synth
   export type Tile = | Floor | Wall | Door | Stairs | Chest | Water | Torch
   export fn generate(rows: int, cols: int, level: int, seed: int) -> DungeonMap = ...
   ```
 
-- **`axon --bundle <entry.axn> [out.js]` — multi-file bundler**
+- **`synth --bundle <entry.syn> [out.js]` — multi-file bundler**
   Recursively resolves all imports starting from an entry file, topologically
   sorts modules (dependencies before dependents), and concatenates to a single
   JS output. The stdlib is emitted once at the top of the bundle.
 
   ```bash
-  axon --bundle examples/dungeon/main.axn demo/dungeon.sources.js
-  # ✓ Bundled tiles.axn + generator.axn + renderer.axn + main.axn → dungeon.sources.js
+  synth --bundle examples/dungeon/main.syn demo/dungeon.sources.js
+  # ✓ Bundled tiles.syn + generator.syn + renderer.syn + main.syn → dungeon.sources.js
   #   4 modules → 407 lines JS
   ```
 
@@ -649,11 +649,11 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 
 ### Demo
 
-- **Dungeon Map Toolkit** — four-file demo introducing Axon modules:
-  - `tiles.axn` — `export type Tile` tagged union, glyph/label helpers, 5 `@test`s
-  - `generator.axn` — procedural map generator, `@test`s
-  - `renderer.axn` — HTML colour-span renderer, legend and stats bar
-  - `main.axn` — imports from all three, DOM wiring, level names with `when` guards
+- **Dungeon Map Toolkit** — four-file demo introducing Synth modules:
+  - `tiles.syn` — `export type Tile` tagged union, glyph/label helpers, 5 `@test`s
+  - `generator.syn` — procedural map generator, `@test`s
+  - `renderer.syn` — HTML colour-span renderer, legend and stats bar
+  - `main.syn` — imports from all three, DOM wiring, level names with `when` guards
 
 ---
 
@@ -663,7 +663,7 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 
 - **`when` guards in `match`** — any match arm can carry a boolean guard clause. Guards have full
   access to binding names introduced by the pattern:
-  ```axon
+  ```synth
   match score {
     | n when n >= 90 => "A"
     | n when n >= 80 => "B"
@@ -672,13 +672,13 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
   // Emits: ((_m) => ((n) => n >= 90 ? "A" : ((n) => n >= 80 ? "B" : "F")(_m))(_m))(score)
   ```
   Tagged union patterns with guards destructure fields before running the guard:
-  ```axon
+  ```synth
   | Circle { r } when r > 10 => "big circle"
   ```
 
 - **`?.` optional chaining** — safe member access, index, and call on potentially-null values.
   Compiles to JS optional chaining directly:
-  ```axon
+  ```synth
   hero.weapon?.name ?? "bare hands"
   hero.guild?.rank ?? hero.guild?.name ?? "freelancer"
   arr?.[0]
@@ -687,28 +687,28 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 
 - **`??` nullish coalescing** — returns the left side unless it is `null` or `undefined`, then
   returns the right side. Precedence: lower than `||`, higher than ternary:
-  ```axon
+  ```synth
   config.timeout ?? 5000
   user.displayName ?? user.email ?? "Guest"
   ```
 
 - **Destructuring `let`** — unpack object and array values directly into named bindings. Supports
   rename syntax for objects:
-  ```axon
+  ```synth
   let { w, h }       = rect           // object destructure
   let { x: ax, y: ay } = pointA       // with rename
   let [first, second] = items         // array destructure
   let [_, second]    = pair           // skip first with _
   ```
   Particularly useful when consuming record-returning functions like `damage_breakdown`:
-  ```axon
+  ```synth
   let { atk, bonus, mitigation, isCrit, finalDmg } = damage_breakdown(str, def, eb, roll)
   ```
 
 - **Triple-quote strings `"""..."""`** — multiline string literals that preserve literal newlines.
   Support the same `{ident}` interpolation as regular strings. A leading newline after `"""` is
   automatically stripped (idiomatic alignment):
-  ```axon
+  ```synth
   let msg = """
   In a land of eternal fog,
   welcome {name}!
@@ -718,7 +718,7 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 
 - **Tagged union types** — declare algebraic data types with named variants. Unit variants are
   frozen constants; payload variants are factory functions:
-  ```axon
+  ```synth
   type Shape =
     | Circle { r: float }
     | Rect   { w: float, h: float }
@@ -731,7 +731,7 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
   const Point  = Object.freeze({ tag: "Point" })
   ```
   Pattern-match with `TagPat` (variant name + braces) or bare capitalized identifier:
-  ```axon
+  ```synth
   match shape {
     | Circle { r }   => 3.14159 * r * r
     | Rect { w, h }  => w * h
@@ -741,18 +741,18 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
   The `@exhaustive` checker verifies all variants are covered.
 
 - **`@test` declarations** — top-level inline test definitions. Assertions are registered in
-  `__axon_tests` at runtime and runnable via `__runAxonTests()` in the browser, or the new
+  `__synth_tests` at runtime and runnable via `__runSynthTests()` in the browser, or the new
   `--test` CLI flag in Node:
-  ```axon
+  ```synth
   @test "mage lv10 title"   { level_title("mage", 10) === "Archmage" }
   @test "element bonus"     { element_bonus("mage", "arcane") === 9 }
   ```
-  CLI: `node dist/cli.js --test examples/rpg.axn` — runs all tests and exits with code 1 on failure.
+  CLI: `node dist/cli.js --test examples/rpg.syn` — runs all tests and exits with code 1 on failure.
 
 - **Pipeline `|> as name`** — bind the current pipeline value to a named variable and continue the
   pipeline. When any `as` step appears, the pipeline emits as an IIFE block with `const` bindings,
   making intermediate results available for debugging or reuse:
-  ```axon
+  ```synth
   party
     |> filter(.alive) |> as alive
     |> map(.hp)
@@ -779,7 +779,7 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 
 - `Codegen.generate` version header updated to `v0.4.0`
 - `Checker` updated to walk `when` guards, `DestructureStmt`, and `TaggedUnionDecl` variants
-- `Stdlib` includes `__axon_tests` array and `__runAxonTests()` runner exposed on `globalThis`
+- `Stdlib` includes `__synth_tests` array and `__runSynthTests()` runner exposed on `globalThis`
 - CLI `--test` flag executes tests via Node `vm` module and prints pass/fail summary
 
 ## v0.3.0
@@ -792,14 +792,14 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 
 - **`.field` accessor shorthand** — `.fieldName` in any expression position creates an implicit
   lambda `__x => __x.fieldName`. Makes pipelines dramatically more concise:
-  ```axon
+  ```synth
   users |> filter(.active) |> map(.score) |> sum
   ```
   Chained access works too: `.user.name`.
 
 - **Param validation injection** — functions whose parameters are typed with constrained types
   (types declared with `where`) now automatically emit guard clauses at function entry:
-  ```axon
+  ```synth
   fn send_welcome :: (email: EmailAddress) -> void { ... }
   // → if (!__validate_EmailAddress(email)) throw new Error(...)
   ```
@@ -808,7 +808,7 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 - **`@memo` annotation** — `@pure @total` functions annotated with `@memo` are wrapped in a
   `Map`-based memoization cache at compile time. Recursive functions like `fib` become
   automatically memoized with zero runtime overhead per call after the first:
-  ```axon
+  ```synth
   fn fib :: (n: int) -> int {
     @pure @total @memo
     match n { | 0 => 0 | 1 => 1 | _ => fib(n-1) + fib(n-2) }
@@ -817,7 +817,7 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 
 ### Improvements
 
-- Transpiler now emits `// Axon v0.3.0` header
+- Transpiler now emits `// Synth v0.3.0` header
 - `getParamValidations` is now fully implemented (was stubbed in v0.2)
 
 ---
@@ -834,11 +834,11 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
   `localStorage`, `Math.random`) produce a compile-time warning.
 - **`@exhaustive` checker** — `match` expressions inside `@exhaustive` functions are checked
   for coverage. Missing wildcard or missing boolean cases produce a warning.
-- **Axon stdlib** — `axon:std` is auto-injected as a preamble. Provides: `map`, `filter`,
+- **Synth stdlib** — `synth:std` is auto-injected as a preamble. Provides: `map`, `filter`,
   `fold`, `pipe`, `zip`, `range`, `first`, `last`, `sum`, `count`, `any`, `all`, `flat`.
   All functions carry `@intent` and `@pure @total` annotations.
 - **Short-form functions** — Single-expression functions no longer require a block body:
-  ```axon
+  ```synth
   fn double(x: int) = x * 2
   fn greet(name: string) = "Hello, " + name
   ```
@@ -846,7 +846,7 @@ plus a major overhaul of the Dungeon Map Toolkit demo and a new torch placement 
 
 ### Improvements
 
-- Transpiler now emits `// Axon v0.2.0` header
+- Transpiler now emits `// Synth v0.2.0` header
 - `@effects` annotation value is now joined as dot-notation strings (e.g. `dom.write`)
   rather than space-separated tokens
 - Cleaner JSDoc output for record types

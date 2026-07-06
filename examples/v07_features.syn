@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────────────────────
-// Axon v0.7 — Type System Update: feature tests
+// Synth v0.7 — Type System Update: feature tests
 // Generic types, interfaces, fn(T)->U type expr, let infer
 // ──────────────────────────────────────────────────────────────
 

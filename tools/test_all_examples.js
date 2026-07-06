@@ -1,11 +1,11 @@
 const { Lexer } = require('../dist/lexer.js')
 const { Parser } = require('../dist/parser.js')
 const { Codegen } = require('../dist/codegen.js')
-const { AXON_STDLIB } = require('../dist/stdlib.js')
+const { SYNTH_STDLIB } = require('../dist/stdlib.js')
 const vm = require('vm')
 
 const examples = {
-  hello: `console.log("Hello, Axon!")
+  hello: `console.log("Hello, Synth!")
 let greeting = fn(name: string) -> string = "Hello, " + name + "!"
 console.log(greeting("World"))`,
 
@@ -121,14 +121,14 @@ score *= 2
 score /= 4
 console.log(score)
 let mut msg = "Hello"
-msg += ", Axon!"
+msg += ", Synth!"
 console.log(msg)
 let mut cfg = null
 cfg ??= "production"
 console.log(cfg)`,
 
   stdlib: `let words = split("one,two,three", ",")
-console.log(to_upper(trim("  axon  ")))
+console.log(to_upper(trim("  synth  ")))
 console.log(min([3,1,4,1,5]))
 console.log(max([3,1,4,1,5]))
 console.log(uniq([1,2,2,3,3]))
@@ -150,7 +150,7 @@ for (const [name, src] of Object.entries(examples)) {
     const js = new Codegen().generate(ast)
     const ctx = { console: { log: () => {}, error: () => {}, warn: () => {} }, setTimeout: () => {}, Promise }
     vm.createContext(ctx)
-    vm.runInContext(AXON_STDLIB, ctx)
+    vm.runInContext(SYNTH_STDLIB, ctx)
     vm.runInContext('{\n' + js + '\n}', ctx)
     console.log(`PASS           [${name}]`)
     passed++

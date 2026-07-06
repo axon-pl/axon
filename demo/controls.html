@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon v0.3 — Web Controls Demo</title>
+  <title>Synth v0.3 — Web Controls Demo</title>
   <style>
     /* ── Palette ─────────────────────────────────────────────────────────── */
     :root {
@@ -421,7 +421,7 @@
   <div class="header-glyph">🕹️</div>
   <div class="header-text">
     <div class="page-title">Web Controls
-      <span class="badge badge-ver" style="font-size:11px;vertical-align:middle;margin-left:8px;">Axon v0.3</span>
+      <span class="badge badge-ver" style="font-size:11px;vertical-align:middle;margin-left:8px;">Synth v0.3</span>
     </div>
     <div class="page-subtitle">Interactive UI widgets — string interpolation · constrained types · @memo · .field shorthand · param validation</div>
   </div>
@@ -430,13 +430,13 @@
     <span class="badge badge-feat">@memo</span>
     <span class="badge badge-feat">.field</span>
   </div>
-  <a href="landing.html" class="header-back">← Back to Axon</a>
+  <a href="landing.html" class="header-back">← Back to Synth</a>
 </header>
 
 <!-- ── Page body ─────────────────────────────────────────────────────────── -->
 <div class="page-body">
 
-  <div class="section-label">Live demos — built with Axon, running in your browser</div>
+  <div class="section-label">Live demos — built with Synth, running in your browser</div>
 
   <div class="widgets-grid">
 
@@ -522,12 +522,12 @@
 
   <!-- ── Source code ──────────────────────────────────────────────────────── -->
   <details class="source-panel">
-    <summary>📄 View Axon source — v0.3 feature showcase</summary>
+    <summary>📄 View Synth source — v0.3 feature showcase</summary>
     <div class="source-tabs">
-      <button class="source-tab active" onclick="showTab('axn')">controls.axn</button>
-      <button class="source-tab" onclick="showTab('js')">controls.axon.js (transpiled)</button>
+      <button class="source-tab active" onclick="showTab('axn')">controls.syn</button>
+      <button class="source-tab" onclick="showTab('js')">controls.synth.js (transpiled)</button>
     </div>
-    <div class="source-pane active" id="pane-axn"><pre><span class="cmt">// Axon v0.3 — Web Controls Demo</span>
+    <div class="source-pane active" id="pane-axn"><pre><span class="cmt">// Synth v0.3 — Web Controls Demo</span>
 
 <span class="cmt">// ── Constrained types ────────────────────────────────────────────────</span>
 <span class="kw">type</span> <span class="ty">NonEmptyString</span> = <span class="ty">string</span> <span class="kw">where</span> length &gt; 0
@@ -580,7 +580,7 @@
 
 </div><!-- .page-body -->
 
-<script src="controls.axon.js"></script>
+<script src="controls.synth.js"></script>
 <script>
   // ── Mount widgets ──────────────────────────────────────────────────────
   render_counter("counter-root");
@@ -615,7 +615,7 @@
     document.getElementById("pane-" + id).classList.add("active");
 
     if (id === "js" && document.getElementById("js-source").textContent === "Loading…") {
-      fetch("controls.axon.js").then(r => r.text()).then(t => {
+      fetch("controls.synth.js").then(r => r.text()).then(t => {
         document.getElementById("js-source").textContent = t;
       });
     }

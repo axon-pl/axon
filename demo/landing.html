@@ -5,8 +5,8 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon — AI-native programming language</title>
-  <meta name="description" content="Axon is an AI-native programming language that transpiles to JavaScript. Unambiguous grammar, intent-first declarations, constraint-enforced types." />
+  <title>Synth — AI-native programming language</title>
+  <meta name="description" content="Synth is an AI-native programming language that transpiles to JavaScript. Unambiguous grammar, intent-first declarations, constraint-enforced types." />
   <style>
     :root {
       --bg:          #0d0221;
@@ -510,7 +510,7 @@
       border-radius: 4px;
     }
 
-    .bench-bar.axon { background: linear-gradient(90deg, var(--pink), var(--purple)); }
+    .bench-bar.synth { background: linear-gradient(90deg, var(--pink), var(--purple)); }
     .bench-bar.ts   { background: rgba(96,165,250,0.6); }
     .bench-bar.py   { background: rgba(250,204,21,0.5); }
 
@@ -919,11 +919,11 @@
 <body>
 
   <nav>
-    <a class="nav-logo" href="/"><span class="nav-glyph">⬡</span> Axon</a>
+    <a class="nav-logo" href="/"><span class="nav-glyph">⬡</span> Synth</a>
     <div class="nav-links">
       <a class="nav-link" href="docs.html">Docs</a>
       <a class="nav-link" href="rpg.standalone.html">Demo</a>
-      <a class="nav-link" href="https://github.com/axon-pl/axon">GitHub</a>
+      <a class="nav-link" href="https://github.com/synth-lang/synth">GitHub</a>
       <a class="nav-link nav-cta" href="docs.html#quick-start">Get Started</a>
     </div>
   </nav>
@@ -935,18 +935,18 @@
       <span class="grad">A programming language<br>built for AI.</span>
     </h1>
     <p class="hero-subtitle">
-      Axon transpiles to JavaScript with unambiguous grammar, intent-first declarations,
+      Synth transpiles to JavaScript with unambiguous grammar, intent-first declarations,
       constraint-enforced types, and explicit effect tracking.
       Designed to be written <em>and reasoned about</em> by language models.
     </p>
     <div class="hero-ctas">
       <a class="btn-primary" href="docs.html#quick-start">Get Started</a>
       <a class="btn-secondary" href="rpg.standalone.html">Live Demo</a>
-      <a class="btn-secondary" href="https://github.com/axon-pl/axon">GitHub</a>
+      <a class="btn-secondary" href="https://github.com/synth-lang/synth">GitHub</a>
     </div>
     <div class="hero-install">
       <span class="install-label">Install</span>
-      <code id="install-cmd">npm install -g axon-lang</code>
+      <code id="install-cmd">npm install -g synth-lang</code>
       <button class="install-copy" onclick="copyInstall()">copy</button>
     </div>
   </section>
@@ -1000,7 +1000,7 @@
     <div class="section-label">Context Efficiency</div>
     <h2 class="section-title">Less boilerplate.<br>More code in context.</h2>
     <p style="text-align:center;color:var(--text-dim);font-size:15px;max-width:560px;margin:0 auto 40px;line-height:1.6;">
-      Axon programs use fewer tokens than equivalent TypeScript or Python — meaning AI models
+      Synth programs use fewer tokens than equivalent TypeScript or Python — meaning AI models
       can reason about more of your codebase in a single prompt.
     </p>
 
@@ -1010,8 +1010,8 @@
       <div class="bench-card">
         <div class="bench-card-title">Data Pipeline</div>
         <div class="bench-bar-row">
-          <div class="bench-lang">Axon</div>
-          <div class="bench-bar-wrap"><div class="bench-bar axon" style="width:75%"></div></div>
+          <div class="bench-lang">Synth</div>
+          <div class="bench-bar-wrap"><div class="bench-bar synth" style="width:75%"></div></div>
           <div class="bench-tokens">296 tok</div>
         </div>
         <div class="bench-bar-row">
@@ -1030,8 +1030,8 @@
       <div class="bench-card">
         <div class="bench-card-title">Pattern Matching</div>
         <div class="bench-bar-row">
-          <div class="bench-lang">Axon</div>
-          <div class="bench-bar-wrap"><div class="bench-bar axon" style="width:88%"></div></div>
+          <div class="bench-lang">Synth</div>
+          <div class="bench-bar-wrap"><div class="bench-bar synth" style="width:88%"></div></div>
           <div class="bench-tokens">267 tok</div>
         </div>
         <div class="bench-bar-row">
@@ -1050,8 +1050,8 @@
       <div class="bench-card">
         <div class="bench-card-title">Error Handling</div>
         <div class="bench-bar-row">
-          <div class="bench-lang">Axon</div>
-          <div class="bench-bar-wrap"><div class="bench-bar axon" style="width:76%"></div></div>
+          <div class="bench-lang">Synth</div>
+          <div class="bench-bar-wrap"><div class="bench-bar synth" style="width:76%"></div></div>
           <div class="bench-tokens">261 tok</div>
         </div>
         <div class="bench-bar-row">
@@ -1090,13 +1090,13 @@
       Methodology: same task, three languages, token-counted with
       <a href="https://github.com/nicolo-ribaudo/gpt-tokenizer" target="_blank">gpt-tokenizer</a>
       (cl100k_base). Comments included — they consume context too.
-      <a href="https://github.com/axon-pl/axon/tree/main/tools/benchmarks" target="_blank">Source →</a>
+      <a href="https://github.com/synth-lang/synth/tree/main/tools/benchmarks" target="_blank">Source →</a>
     </p>
   </section>
 
   <!-- ── Pillars ───────────────────────────────────────────────────────────── -->
   <section class="pillars">
-    <div class="section-label">Why Axon</div>
+    <div class="section-label">Why Synth</div>
     <h2 class="section-title">Built different, on purpose.</h2>
     <div class="pillar-grid">
       <div class="pillar-card">
@@ -1117,7 +1117,7 @@
       <div class="pillar-card">
         <div class="pillar-icon">🌿</div>
         <div class="pillar-title">No classes, no this, no mutation</div>
-        <div class="pillar-body">OOP exists to manage human working memory. AI doesn't have that problem. Axon is records + pure functions. Flat, scannable, provably safe.</div>
+        <div class="pillar-body">OOP exists to manage human working memory. AI doesn't have that problem. Synth is records + pure functions. Flat, scannable, provably safe.</div>
       </div>
       <div class="pillar-card">
         <div class="pillar-icon">✦</div>
@@ -1127,12 +1127,12 @@
       <div class="pillar-card">
         <div class="pillar-icon">🧪</div>
         <div class="pillar-title">Tests live next to code</div>
-        <div class="pillar-body"><code>@test "description" { expr }</code> registers inline assertions. Run them with <code>axon --test file.axn</code>. No test framework, no config, no boilerplate.</div>
+        <div class="pillar-body"><code>@test "description" { expr }</code> registers inline assertions. Run them with <code>synth --test file.syn</code>. No test framework, no config, no boilerplate.</div>
       </div>
       <div class="pillar-card">
         <div class="pillar-icon">📦</div>
         <div class="pillar-title">Multi-file modules, single output</div>
-        <div class="pillar-body"><code>import { fn } from "./module"</code> and <code>export fn</code> split projects across files. <code>axon --bundle</code> resolves imports, topo-sorts modules, and emits one clean JS file. Zero runtime overhead.</div>
+        <div class="pillar-body"><code>import { fn } from "./module"</code> and <code>export fn</code> split projects across files. <code>synth --bundle</code> resolves imports, topo-sorts modules, and emits one clean JS file. Zero runtime overhead.</div>
       </div>
     </div>
   </section>
@@ -1150,14 +1150,14 @@
       </a>
       <a class="demo-card" href="dashboard.html" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(176,96,255,0.1),rgba(0,232,208,0.05))">
         <div class="demo-card-icon">📊</div>
-        <div class="demo-card-title">Axon Dashboard <span style="font-size:0.7rem;opacity:0.7;font-weight:400">New</span></div>
+        <div class="demo-card-title">Synth Dashboard <span style="font-size:0.7rem;opacity:0.7;font-weight:400">New</span></div>
         <div class="demo-card-desc">Live sprint tracker showcasing v0.9.5 features: <code>enum</code> status/priority, numeric separators, multi-line lambdas, and reactive tick simulation.</div>
         <div class="demo-card-meta"><span>v0.9.5</span> enum · numeric literals · multi-line lambdas</div>
       </a>
       <a class="demo-card" href="playground.html" style="border-color:var(--pink);background:linear-gradient(135deg,rgba(255,45,120,0.07),rgba(176,96,255,0.07))">
         <div class="demo-card-icon">▶</div>
-        <div class="demo-card-title">Axon Playground</div>
-        <div class="demo-card-desc">Live in-browser IDE — type Axon, see transpiled JS and live output instantly. 13 preloaded examples covering all language features.</div>
+        <div class="demo-card-title">Synth Playground</div>
+        <div class="demo-card-desc">Live in-browser IDE — type Synth, see transpiled JS and live output instantly. 13 preloaded examples covering all language features.</div>
         <div class="demo-card-meta"><span>v0.9</span> browser compiler · live eval · formatter</div>
       </a>
       <a class="demo-card" href="chronicle.html">
@@ -1175,14 +1175,14 @@
       <a class="demo-card" href="dungeon.html">
         <div class="demo-card-icon">🗺️</div>
         <div class="demo-card-title">Dungeon Toolkit</div>
-        <div class="demo-card-desc">Multi-file module demo. 4 .axn files bundled with <code>axon --bundle</code>. Procedural map generation.</div>
+        <div class="demo-card-desc">Multi-file module demo. 4 .syn files bundled with <code>synth --bundle</code>. Procedural map generation.</div>
         <div class="demo-card-meta"><span>v0.5</span> import · export · bundler</div>
       </a>
       <a class="demo-card" href="rpg.standalone.html">
         <div class="demo-card-icon">⚔️</div>
         <div class="demo-card-title">RPG Adventure</div>
         <div class="demo-card-desc">50-battle dungeon crawl. Party management, equipment, 5 chapters, 4 tiers of gear.</div>
-        <div class="demo-card-meta"><span>1576</span> lines Axon · fully self-contained</div>
+        <div class="demo-card-meta"><span>1576</span> lines Synth · fully self-contained</div>
       </a>
       <a class="demo-card" href="combat.html">
         <div class="demo-card-icon">🗡️</div>
@@ -1193,7 +1193,7 @@
       <a class="demo-card" href="music.html">
         <div class="demo-card-icon">🎛️</div>
         <div class="demo-card-title">Music Library</div>
-        <div class="demo-card-desc">Synthwave track browser with filtering and dynamic UI — built entirely in Axon.</div>
+        <div class="demo-card-desc">Synthwave track browser with filtering and dynamic UI — built entirely in Synth.</div>
         <div class="demo-card-meta">Pipelines · .field shorthand · @memo</div>
       </a>
       <a class="demo-card" href="controls.html">
@@ -1209,7 +1209,7 @@
   <section style="max-width:860px;margin:0 auto 24px;padding:0 32px;">
     <div class="section-label">Roadmap</div>
     <h2 class="section-title" style="margin-bottom:8px;">Almost there.</h2>
-    <p style="color:var(--text-dim);font-size:15px;margin-bottom:40px;">3 milestones stand between Axon and v1.0.</p>
+    <p style="color:var(--text-dim);font-size:15px;margin-bottom:40px;">3 milestones stand between Synth and v1.0.</p>
   </section>
   <div class="roadmap-v2">
 
@@ -1250,7 +1250,7 @@
         <div class="rm-card-badge rm-badge-now">★ Now</div>
         <div class="rm-card-ver rm-ver-now">v0.9.8</div>
         <div class="rm-card-title">Control Flow</div>
-        <div class="rm-card-desc"><code>while</code> loops with <code>break</code> and <code>continue</code> — completing Axon's iteration model.</div>
+        <div class="rm-card-desc"><code>while</code> loops with <code>break</code> and <code>continue</code> — completing Synth's iteration model.</div>
         <div class="rm-card-features">
           <span class="rm-feat">while</span>
           <span class="rm-feat">break</span>
@@ -1274,7 +1274,7 @@
         <div class="rm-card-badge rm-badge-goal">🎯 Goal</div>
         <div class="rm-card-ver rm-ver-goal">v1.0</div>
         <div class="rm-card-title">Stable Release</div>
-        <div class="rm-card-desc">Stable API, full test suite, production-ready tooling. Axon ships.</div>
+        <div class="rm-card-desc">Stable API, full test suite, production-ready tooling. Synth ships.</div>
         <div class="rm-card-features">
           <span class="rm-feat">stable API</span>
           <span class="rm-feat">npm publish</span>
@@ -1287,14 +1287,14 @@
 
   <!-- ── Footer ────────────────────────────────────────────────────────────── -->
   <footer>
-    <div class="footer-logo">⬡ Axon</div>
+    <div class="footer-logo">⬡ Synth</div>
     <div class="footer-links">
       <a class="footer-link" href="docs.html">Docs</a>
-      <a class="footer-link" href="https://github.com/axon-pl/axon">GitHub</a>
-      <a class="footer-link" href="https://github.com/axon-pl/axon/issues">Issues</a>
-      <a class="footer-link" href="https://www.npmjs.com/package/axon-lang">npm</a>
+      <a class="footer-link" href="https://github.com/synth-lang/synth">GitHub</a>
+      <a class="footer-link" href="https://github.com/synth-lang/synth/issues">Issues</a>
+      <a class="footer-link" href="https://www.npmjs.com/package/synth-lang">npm</a>
     </div>
-    <div class="footer-copy">MIT License · © 2026 axon-pl</div>
+    <div class="footer-copy">MIT License · © 2026 synth-pl</div>
   </footer>
 
   <script>
@@ -1336,13 +1336,13 @@
     })();
 
     function copyInstall() {
-      navigator.clipboard.writeText('npm install -g axon-lang');
+      navigator.clipboard.writeText('npm install -g synth-lang');
       const btn = document.querySelector('.install-copy');
       btn.textContent = 'copied!';
       setTimeout(() => btn.textContent = 'copy', 2000);
     }
 
-    // Single-pass Axon syntax highlighter — each character matched at most once,
+    // Single-pass Synth syntax highlighter — each character matched at most once,
     // so generated span tags are never fed back into subsequent patterns.
     function highlight(src) {
       const sp = (c, t) => `<span class='${c}'>${t}</span>`;
@@ -1437,7 +1437,7 @@ let { atk, bonus, isCrit, finalDmg } = damage_breakdown(str, def, 0, roll)
 `);
 
     setCode('code-modules', `
-// tiles.axn — define and export a tagged union
+// tiles.syn — define and export a tagged union
 export type Tile = | Floor | Wall | Door | Stairs | Chest | Water | Torch
 
 export fn tile_glyph(tag: string) -> string =
@@ -1450,7 +1450,7 @@ export fn tile_glyph(tag: string) -> string =
 
 @test "stairs glyph" { tile_glyph("Stairs") == "≋" }
 
-// main.axn — import from other modules and wire it together
+// main.syn — import from other modules and wire it together
 import { tile_glyph }  from "./tiles"
 import { generate }    from "./generator"
 import { render_map }  from "./renderer"
@@ -1463,8 +1463,8 @@ fn mount() {
 mount()
 
 // Bundle all 4 files into one JS output:
-// axon --bundle main.axn dungeon.js
-//   ✓ Bundled tiles.axn + generator.axn + renderer.axn + main.axn
+// synth --bundle main.syn dungeon.js
+//   ✓ Bundled tiles.syn + generator.syn + renderer.syn + main.syn
 //     4 modules → 407 lines JS
 `);
 
@@ -1479,7 +1479,7 @@ mount()
   heal(h, 20).hp === 100
 }
 
-// Run with: axon --test shapes.axn
+// Run with: synth --test shapes.syn
 //   ✓ classify A
 //   ✓ classify F
 //   ✓ circle area r=1
@@ -1519,7 +1519,7 @@ fn load(input: string) {
   }
 }
 
-// axon --test config.axn
+// synth --test config.syn
 //   ✓ valid code parses correctly
 //   ✓ non-numeric level returns Err
 //   ✓ level 0 returns Err
@@ -1563,7 +1563,7 @@ fn apply_filters(state: AppState) -> Item[] {
   sorted
 }
 
-// axon --test items.axn
+// synth --test items.syn
 //   ✓ keep_if filters by predicate
 //   ✓ transform applies function
 //   ✓ order_by sorts ascending
@@ -1604,18 +1604,18 @@ on Kingdom.change { render() }
 `);
 
     setCode('code-tooling', `
-// axon --check src/game.axn          static analysis, no JS emitted   (v0.9)
-// axon --fmt   src/game.axn --write  reformat in-place                (v0.9)
-// axon --watch src/game.axn out.js   recompile on every save          (v0.9)
+// synth --check src/game.syn          static analysis, no JS emitted   (v0.9)
+// synth --fmt   src/game.syn --write  reformat in-place                (v0.9)
+// synth --watch src/game.syn out.js   recompile on every save          (v0.9)
 
 // ── Browser compiler bundle — runs the full compiler client-side (v0.9) ──────
-// &lt;script src="axon.compiler.js"&gt;&lt;/script&gt;
+// &lt;script src="synth.compiler.js"&gt;&lt;/script&gt;
 
 fn greet(name: string) -> string = "Hello, {name}!"
 
 fn run_demo() {
   let source = "fn add(x: int, y: int) = x + y"
-  let result = AxonCompiler.compile(source)
+  let result = SynthCompiler.compile(source)
 
   match result.errors.length {
     | 0 => console.log("Compiled: " + result.js)
@@ -1625,7 +1625,7 @@ fn run_demo() {
   // result.js         — transpiled JavaScript string
   // result.errors     — [{ message, line, col, kind }]   multi-error (v0.9.5)
   // result.warnings   — [{ severity, message, line, col }]
-  // AxonCompiler.version   — "0.9.7"
+  // SynthCompiler.version   — "0.9.7"
 }
 
 run_demo()
@@ -1687,7 +1687,7 @@ console.log(score)   // 15
 
 // Works anywhere a value is mutable
 let mut msg = "Hello"
-msg += ", Axon {score}!"
+msg += ", Synth {score}!"
 console.log(msg)
 
 // Nullish assignment — only writes if null or undefined
@@ -1791,10 +1791,10 @@ print("Class grade: " + grade)
 // ── Standard Library v0.9.7 ───────────────────────────────────────────────────
 
 // String helpers
-let name = "  Axon Language  "
-console.log(trim(name))               // "Axon Language"
+let name = "  Synth Language  "
+console.log(trim(name))               // "Synth Language"
 console.log(to_upper("hello"))        // "HELLO"
-console.log(starts_with("axon", "ax")) // true
+console.log(starts_with("synth", "ax")) // true
 console.log(replace_all("a.b.c", ".", "/")) // "a/b/c"
 let parts = split("one,two,three", ",")
 console.log(parts)                    // ["one","two","three"]

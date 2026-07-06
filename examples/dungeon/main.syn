@@ -1,12 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.6 — dungeon/main.axn
+// Synth v0.6 — dungeon/main.syn
 // Entry point for the dungeon map toolkit demo.
 //
 // State pattern: AppState is an immutable record. render(s) draws the dungeon
 // AND re-wires every button so it calls render() with a fresh state value.
 // No variable is ever mutated — state flows through the call chain as data.
 //
-// v0.6: config.axn provides parse_config() which returns Result. The code
+// v0.6: config.syn provides parse_config() which returns Result. The code
 // input in the page header chains @throws parsers via ? to produce precise
 // error messages on invalid codes.
 // ─────────────────────────────────────────────────────────────────────────────

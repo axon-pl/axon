@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon Dashboard — v0.9.5 Demo</title>
-  <script src="axon.compiler.js?v=0.9.8-249476e"></script>
+  <title>Synth Dashboard — v0.9.5 Demo</title>
+  <script src="synth.compiler.js?v=0.9.8-249476e"></script>
   <style>
     :root {
       --bg:         #0d0120;
@@ -215,12 +215,12 @@
 <body>
 
 <header>
-  <div class="logo">⬡ Axon<span class="logo-sub">Dashboard</span></div>
+  <div class="logo">⬡ Synth<span class="logo-sub">Dashboard</span></div>
   <div class="badge">v0.9.5</div>
   <div class="spacer"></div>
   <button class="tick-btn" id="auto-tick-btn" onclick="toggleAutoTick()">▶ Auto-tick</button>
   <button class="tick-btn" onclick="manualTick()">⟳ Tick</button>
-  <a class="back-link" href="landing.html">← Axon</a>
+  <a class="back-link" href="landing.html">← Synth</a>
 </header>
 
 <div class="container">
@@ -278,7 +278,7 @@
 
   <!-- Source panel -->
   <div class="card src-panel">
-    <div class="card-title">Source — Axon v0.9.5</div>
+    <div class="card-title">Source — Synth v0.9.5</div>
     <div class="src-tabs">
       <button class="src-tab active" onclick="showSrc('types')">Types &amp; Enums</button>
       <button class="src-tab" onclick="showSrc('logic')">Business Logic</button>
@@ -290,7 +290,7 @@
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.9.5 Dashboard Demo — compiled at page load via AxonCompiler
+// Synth v0.9.5 Dashboard Demo — compiled at page load via SynthCompiler
 // Shows: enum, numeric separators, multi-line lambdas, multi-error reporting
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -399,10 +399,10 @@ function logEvent(type, msg) {
   while (feed.children.length > 40) feed.removeChild(feed.lastChild);
 }
 
-// ── Compile Axon source at load time ─────────────────────────────────────────
+// ── Compile Synth source at load time ─────────────────────────────────────────
 function compileAll() {
   const full = Object.values(SOURCES).join('\n\n');
-  const { js, errors, warnings } = AxonCompiler.compile(full);
+  const { js, errors, warnings } = SynthCompiler.compile(full);
   if (errors.length > 0) {
     logEvent('error', `Compile errors: ${errors.map(e => e.message).join(' | ')}`);
     return null;
@@ -577,8 +577,8 @@ if (compiledJS) {
       { id: 10, title: 'Performance profiling',   status: T.Backlog, priority: P.Medium,   points: 13 },
     ];
     render();
-    logEvent('success', 'Dashboard ready — Axon v0.9.5 compiled successfully');
-    logEvent('info', `Compiler: ${AxonCompiler.version} · TaskStatus.Active = "${sim.TaskStatus.Active}"`);
+    logEvent('success', 'Dashboard ready — Synth v0.9.5 compiled successfully');
+    logEvent('info', `Compiler: ${SynthCompiler.version} · TaskStatus.Active = "${sim.TaskStatus.Active}"`);
   }
 }
 

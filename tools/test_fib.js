@@ -1,13 +1,13 @@
 const fs = require('fs')
 const vm = require('vm')
 
-const bundleSrc = fs.readFileSync('demo/axon.compiler.js', 'utf8')
+const bundleSrc = fs.readFileSync('demo/synth.compiler.js', 'utf8')
 const ctx = { globalThis: {}, console }
 ctx.window = ctx
 vm.createContext(ctx)
 vm.runInContext(bundleSrc, ctx)
 
-const { AxonCompiler } = ctx
+const { SynthCompiler } = ctx
 
 // Exact source from playground.html
 const src = `// Fibonacci with @memo caching
@@ -24,7 +24,7 @@ for i in 0..10 {
   console.log("fib(" + i + ") = " + fib(i))
 }`
 
-const { js, errors, warnings } = AxonCompiler.compile(src)
+const { js, errors, warnings } = SynthCompiler.compile(src)
 if (errors.length) {
   console.log('ERRORS:')
   errors.forEach(e => console.log(' ', e))

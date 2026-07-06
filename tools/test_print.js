@@ -1,7 +1,7 @@
 const { Lexer } = require('../dist/lexer.js');
 const { Parser } = require('../dist/parser.js');
 const { Codegen } = require('../dist/codegen.js');
-const { AXON_STDLIB } = require('../dist/stdlib.js');
+const { SYNTH_STDLIB } = require('../dist/stdlib.js');
 const vm = require('vm');
 
 const src = `
@@ -16,6 +16,6 @@ if (errors.length) { console.error('PARSE ERROR:', errors[0].message); process.e
 const js = new Codegen().generate(ast);
 const ctx = { console };
 vm.createContext(ctx);
-vm.runInContext(AXON_STDLIB, ctx);
+vm.runInContext(SYNTH_STDLIB, ctx);
 vm.runInContext('{\n' + js + '\n}', ctx);
 console.log('\nPASS');

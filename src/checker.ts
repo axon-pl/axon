@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.5.0 — Static checker
+// Synth v0.5.0 — Static checker
 // Runs after parsing, before codegen. Produces warnings for:
 //   • @pure functions that call known side-effectful globals
 //   • @exhaustive matches missing wildcard/boolean/union coverage

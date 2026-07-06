@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon v0.4.0 — Combat Engine</title>
+  <title>Synth v0.4.0 — Combat Engine</title>
   <style>
     /* ── Synthwave palette ───────────────────────────────────────────────── */
     :root {
@@ -324,7 +324,7 @@
 
   <header class="page-header">
     <div class="page-title">
-      Axon Combat Engine
+      Synth Combat Engine
       <span class="badge">v0.4.0</span>
     </div>
     <div class="page-subtitle">
@@ -364,8 +364,8 @@
     <div class="source-inner">
       <div class="source-heading">Source Code</div>
       <div class="source-tabs">
-        <button class="source-tab active" onclick="showTab('axn')">combat.axn</button>
-        <button class="source-tab"        onclick="showTab('js')">combat.axon.js (transpiled)</button>
+        <button class="source-tab active" onclick="showTab('axn')">combat.syn</button>
+        <button class="source-tab"        onclick="showTab('js')">combat.synth.js (transpiled)</button>
       </div>
       <div id="tab-axn" class="source-content active"><pre id="axn-src">Loading…</pre></div>
       <div id="tab-js"  class="source-content"><pre id="js-src">Loading…</pre></div>
@@ -373,10 +373,10 @@
   </section>
 
   <footer class="footer">
-    AXON v0.4.0 · AI-NATIVE LANGUAGE · TRANSPILES TO JAVASCRIPT
+    SYNTH v0.4.0 · AI-NATIVE LANGUAGE · TRANSPILES TO JAVASCRIPT
   </footer>
 
-  <script src="combat.axon.js"></script>
+  <script src="combat.synth.js"></script>
   <script src="combat.sources.js"></script>
   <script>
     render_combat('combat');
@@ -390,7 +390,7 @@
     }
 
     if (window.COMBAT_SOURCES) {
-      document.getElementById('axn-src').textContent = COMBAT_SOURCES.axn;
+      document.getElementById('axn-src').textContent = COMBAT_SOURCES.syn;
       document.getElementById('js-src').textContent  = COMBAT_SOURCES.js;
     }
   </script>

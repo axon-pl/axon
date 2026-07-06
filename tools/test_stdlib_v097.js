@@ -28,11 +28,11 @@ function test(name, src) { total++; if (run(name, src)) ok++; }
 
 // String
 test('trim',        'console.log(trim("  hello  "))');
-test('to_upper',    'console.log(to_upper("axon"))');
-test('to_lower',    'console.log(to_lower("AXON"))');
-test('starts_with', 'console.log(starts_with("axon", "ax"))');
-test('ends_with',   'console.log(ends_with("axon", "on"))');
-test('contains',    'console.log(contains("axon", "xo"))');
+test('to_upper',    'console.log(to_upper("synth"))');
+test('to_lower',    'console.log(to_lower("SYNTH"))');
+test('starts_with', 'console.log(starts_with("synth", "ax"))');
+test('ends_with',   'console.log(ends_with("synth", "on"))');
+test('contains',    'console.log(contains("synth", "xo"))');
 test('replace_all', 'console.log(replace_all("1.2.3", ".", "-"))');
 test('split',       'console.log(split("a,b,c", ","))');
 test('pad_start',   'console.log(pad_start("7", 3, "0"))');
