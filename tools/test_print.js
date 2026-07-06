@@ -17,5 +17,5 @@ const js = new Codegen().generate(ast);
 const ctx = { console };
 vm.createContext(ctx);
 vm.runInContext(AXON_STDLIB, ctx);
-vm.runInContext(js, ctx);
+vm.runInContext('{\n' + js + '\n}', ctx);
 console.log('\nPASS');

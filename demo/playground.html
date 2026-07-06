@@ -1551,7 +1551,7 @@ function runCode() {
   }
 
   try {
-    const execJs = (AxonCompiler.stdlib || '') + lastJs
+    const execJs = (AxonCompiler.stdlib || '') + '{\n' + lastJs + '\n}'
     const fn = new Function('console', 'Math', 'JSON', 'Array', 'Object', 'Map', 'Set',
       'String', 'Number', 'Boolean', 'Promise', 'parseInt', 'parseFloat', 'isNaN',
       execJs

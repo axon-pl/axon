@@ -227,7 +227,7 @@ function main(): void {
       const ctx: any = { console, process, Math, JSON, Array, Object, Map, Set, String, Number, Boolean }
       vm.createContext(ctx)
       vm.runInContext(AXON_STDLIB, ctx)
-      vm.runInContext(js, ctx)
+      vm.runInContext('{\n' + js + '\n}', ctx)
       const result = ctx.__runAxonTests?.() ?? { passed: 0, failed: 0, total: 0, results: [] }
       console.log(`\n  Axon tests — ${path.basename(inputPath)}`)
       console.log(`  ${'─'.repeat(40)}`)

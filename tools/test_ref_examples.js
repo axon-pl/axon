@@ -12,7 +12,7 @@ function test(name, src) {
                 setTimeout: () => {}, Promise, parseInt, parseFloat, isNaN };
   vm.createContext(ctx);
   vm.runInContext(AXON_STDLIB, ctx);  // inject stdlib once into context
-  try { vm.runInContext(js, ctx); console.log(`PASS [${name}]`); return true; }
+  try { vm.runInContext('{\n' + js + '\n}', ctx); console.log(`PASS [${name}]`); return true; }
   catch (e) { console.log(`FAIL [${name}] runtime: ${e.message}\n` + js.split('\n').slice(0,15).join('\n')); return false; }
 }
 

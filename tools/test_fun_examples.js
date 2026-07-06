@@ -15,7 +15,7 @@ function test(name, src) {
   vm.createContext(ctx);
   vm.runInContext(AXON_STDLIB, ctx);
   try {
-    vm.runInContext(js, ctx);
+    vm.runInContext('{\n' + js + '\n}', ctx);
     console.log(`PASS [${name}]`);
     return true;
   } catch (e) {

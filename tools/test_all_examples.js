@@ -151,7 +151,7 @@ for (const [name, src] of Object.entries(examples)) {
     const ctx = { console: { log: () => {}, error: () => {}, warn: () => {} }, setTimeout: () => {}, Promise }
     vm.createContext(ctx)
     vm.runInContext(AXON_STDLIB, ctx)
-    vm.runInContext(js, ctx)
+    vm.runInContext('{\n' + js + '\n}', ctx)
     console.log(`PASS           [${name}]`)
     passed++
   } catch (e) {
