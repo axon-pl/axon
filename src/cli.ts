@@ -12,6 +12,7 @@ import { Lexer } from './lexer.js'
 import { Parser, ParseError } from './parser.js'
 import { Checker } from './checker.js'
 import { Codegen } from './codegen.js'
+import { AXON_STDLIB } from './stdlib.js'
 import { format } from './formatter.js'
 import { Program } from './types.js'
 
@@ -225,6 +226,7 @@ function main(): void {
       const vm = require('vm') as typeof import('vm')
       const ctx: any = { console, process, Math, JSON, Array, Object, Map, Set, String, Number, Boolean }
       vm.createContext(ctx)
+      vm.runInContext(AXON_STDLIB, ctx)
       vm.runInContext(js, ctx)
       const result = ctx.__runAxonTests?.() ?? { passed: 0, failed: 0, total: 0, results: [] }
       console.log(`\n  Axon tests — ${path.basename(inputPath)}`)
