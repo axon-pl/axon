@@ -24,10 +24,10 @@
   "homepage": "https://synth-lang.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/synth-lang/synth.git"
+    "url": "https://github.com/synth-pl/synth.git"
   },
   "bugs": {
-    "url": "https://github.com/synth-lang/synth/issues"
+    "url": "https://github.com/synth-pl/synth/issues"
   },
   "license": "MIT",
   "engines": {

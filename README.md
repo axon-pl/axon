@@ -63,7 +63,7 @@ npm install -g synth-lang
 Or run from source:
 
 ```bash
-git clone https://github.com/synth-lang/synth
+git clone https://github.com/synth-pl/synth
 cd synth
 npm install
 npx tsc
