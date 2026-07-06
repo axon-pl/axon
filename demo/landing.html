@@ -829,6 +829,7 @@
         <button class="showcase-tab" onclick="showPane('ergonomics', this)" style="color:var(--accent)">Ergonomics <span style="font-size:0.65rem;opacity:0.8">v0.9.5</span></button>
         <button class="showcase-tab" onclick="showPane('compound', this)" style="color:var(--green)">Compound Ops <span style="font-size:0.65rem;opacity:0.8">v0.9.6</span></button>
         <button class="showcase-tab" onclick="showPane('stdlib', this)" style="color:var(--cyan)">Stdlib <span style="font-size:0.65rem;opacity:0.8">v0.9.7</span></button>
+        <button class="showcase-tab" onclick="showPane('while', this)" style="color:var(--pink)">While Loops <span style="font-size:0.65rem;opacity:0.8">v0.9.8</span></button>
       </div>
     </div>
     <div class="showcase-pane active" id="pane-types"><pre id="code-types"></pre></div>
@@ -843,6 +844,7 @@
     <div class="showcase-pane" id="pane-ergonomics"><pre id="code-ergonomics"></pre></div>
     <div class="showcase-pane" id="pane-compound"><pre id="code-compound"></pre></div>
     <div class="showcase-pane" id="pane-stdlib"><pre id="code-stdlib"></pre></div>
+    <div class="showcase-pane" id="pane-while"><pre id="code-while"></pre></div>
   </section>
 
   <!-- ── Stats ─────────────────────────────────────────────────────────────── -->
@@ -970,17 +972,17 @@
     <div class="rm-progress-wrap">
       <div class="rm-progress-meta">
         <span class="rm-progress-label">v0.1 ───────────────────── v1.0</span>
-        <span class="rm-progress-pct">82% complete</span>
+        <span class="rm-progress-pct">88% complete</span>
       </div>
       <div class="rm-bar-track">
-        <div class="rm-bar-fill"></div>
+        <div class="rm-bar-fill" style="width:88%"></div>
       </div>
     </div>
 
     <!-- History chip -->
     <div class="rm-history">
       <div class="rm-history-check">✓</div>
-      <div class="rm-history-text"><strong>10 milestones shipped</strong> · v0.1 through v0.9.7</div>
+      <div class="rm-history-text"><strong>11 milestones shipped</strong> · v0.1 through v0.9.8</div>
       <div class="rm-history-chips">
         <span class="rm-chip">Foundation</span>
         <span class="rm-chip">Guards</span>
@@ -992,6 +994,7 @@
         <span class="rm-chip">Ergonomics</span>
         <span class="rm-chip">Compound Ops</span>
         <span class="rm-chip">Stdlib</span>
+        <span class="rm-chip">While Loops</span>
       </div>
     </div>
 
@@ -1002,7 +1005,7 @@
         <div class="rm-card-badge rm-badge-now">★ Now</div>
         <div class="rm-card-ver rm-ver-now">v0.9.8</div>
         <div class="rm-card-title">Control Flow</div>
-        <div class="rm-card-desc">while loops, break, and continue — completing Axon's iteration model.</div>
+        <div class="rm-card-desc"><code>while</code> loops with <code>break</code> and <code>continue</code> — completing Axon's iteration model.</div>
         <div class="rm-card-features">
           <span class="rm-feat">while</span>
           <span class="rm-feat">break</span>
@@ -1457,6 +1460,43 @@ console.log("Total: " + total)   // 100
 // English-word logical aliases (v0.9.6)
 type Score = int where value >= 0 and value <= 100
 fn valid(s: Score) -> bool = s > 0 and s <= 100
+`);
+
+    setCode('code-while', `
+// ── while loops (v0.9.8) ──────────────────────────────────────────────────────
+
+// Basic countdown
+let mut n = 5
+while n > 0 {
+  console.log("T-minus " + n)
+  n -= 1
+}
+console.log("Liftoff!")
+
+// break — exit early when condition is met
+let mut i = 0
+while true {
+  i += 1
+  if i > 3 { break }
+  console.log("tick " + i)
+}
+
+// continue — skip even numbers
+let mut x = 0
+while x < 10 {
+  x += 1
+  if x % 2 == 0 { continue }
+  console.log(x)   // 1 3 5 7 9
+}
+
+// Collatz sequence
+let mut val = 27
+let mut steps = 0
+while val != 1 {
+  val = if val % 2 == 0 { val / 2 } else { val * 3 + 1 }
+  steps += 1
+}
+console.log("Collatz(27) converges in " + steps + " steps")
 `);
 
     setCode('code-stdlib', `

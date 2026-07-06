@@ -116,6 +116,12 @@ export class Parser {
       const stmt = this.parseForStmt()
       return { kind: 'TopLevelStmt', stmt, line }
     }
+    // v0.9.8: top-level while loop
+    if (tok.type === 'KW_WHILE') {
+      const { line } = this.peek()
+      const stmt = this.parseWhileStmt()
+      return { kind: 'TopLevelStmt', stmt, line }
+    }
     // v0.6: pre-fn annotations — @throws fn foo(...) / @pure fn bar(...)
     // Collect the annotations, then expect fn/record/type/async fn to follow.
     if (tok.type === 'AT' && tok.value !== '@test') {
@@ -713,6 +719,12 @@ export class Parser {
         continue
       }
 
+      // v0.9.8: while loop — while condition { body }
+      if (this.check('KW_WHILE')) {
+        stmts.push(this.parseWhileStmt())
+        continue
+      }
+
       // Let binding — including v0.4 destructuring forms and v0.5.2 let mut
       if (this.check('KW_LET')) {
         this.advance()
@@ -896,6 +908,19 @@ export class Parser {
       ? rawBody
       : { kind: 'BlockExpr', stmts: [{ kind: 'ExprStmt', value: rawBody }] }
     return { kind: 'ForInStmt', varName, iter: lo, body }
+  }
+
+  // v0.9.8: while condition { body }
+  private parseWhileStmt(): BlockStmt {
+    this.expect('KW_WHILE')
+    const test = this.parseExpr()
+    this.expect('LBRACE')
+    const rawBody = this.parseBlockBody(true)   // stmtMode — no implicit return
+    this.expect('RBRACE')
+    const body: BlockExpr = rawBody.kind === 'BlockExpr'
+      ? rawBody
+      : { kind: 'BlockExpr', stmts: [{ kind: 'ExprStmt', value: rawBody }] }
+    return { kind: 'WhileStmt', test, body }
   }
 
   // ── Expression parsing (precedence climbing) ─────────────────────────────────

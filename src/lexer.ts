@@ -27,8 +27,9 @@ const KEYWORDS: Record<string, TokenType> = {
   from:       'KW_FROM',     // v0.5:   from "path"
   for:        'KW_FOR',      // v0.5.2: for i in lo..hi / for x in array
   in:         'KW_IN',       // v0.5.2: for loop iteration keyword
-  break:      'KW_BREAK',    // v0.5.2: break out of for loop
+  break:      'KW_BREAK',    // v0.5.2: break out of for/while loop
   continue:   'KW_CONTINUE', // v0.5.2: continue to next iteration
+  while:      'KW_WHILE',    // v0.9.8: while condition { body }
   mut:        'KW_MUT',      // v0.5.2: let mut — mutable binding
   refine:     'KW_REFINE',     // v0.6:   refine x: "semantic claim"
   interface:  'KW_INTERFACE',  // v0.7:   interface Name { field: Type }

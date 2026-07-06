@@ -18,6 +18,7 @@ export type TokenType =
   | 'KW_IN'             // v0.5.2: for...in keyword
   | 'KW_BREAK'          // v0.5.2: break statement
   | 'KW_CONTINUE'       // v0.5.2: continue statement
+  | 'KW_WHILE'          // v0.9.8: while loop
   | 'KW_MUT'            // v0.5.2: mutable binding
   | 'KW_REFINE'         // v0.6:   refine x: "semantic claim"
   | 'KW_INTERFACE'      // v0.7:   interface Name { field: Type }
@@ -437,6 +438,7 @@ export type BlockStmt =
   | { kind: 'IfStmt'; test: Expr; then: BlockExpr; else_?: BlockExpr }
   | { kind: 'ForRangeStmt'; varName: string; lo: Expr; hi: Expr; inclusive: boolean; body: BlockExpr }  // v0.5.2
   | { kind: 'ForInStmt';    varName: string; iter: Expr; body: BlockExpr }                              // v0.5.2
+  | { kind: 'WhileStmt';    test: Expr; body: BlockExpr }                                               // v0.9.8
   | { kind: 'BreakStmt' }    // v0.5.2
   | { kind: 'ContinueStmt' } // v0.5.2
   | { kind: 'RefineStmt'; name: string; claim: string }  // v0.6: refine x: "claim"

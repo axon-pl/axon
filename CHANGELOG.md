@@ -1,5 +1,37 @@
 # Axon Changelog
 
+## v0.9.8 — Control Flow
+
+### New language features
+
+**`while` loops**
+
+Axon now supports `while` loops for condition-driven iteration:
+
+```axon
+let mut n = 1
+while n <= 5 {
+  console.log(n)
+  n += 1
+}
+```
+
+**`break` and `continue`** already existed for `for` loops and now work identically inside `while` loops:
+
+```axon
+let mut i = 0
+while true {
+  i += 1
+  if i % 2 == 0 { continue }
+  if i > 9 { break }
+  console.log(i)   // 1 3 5 7 9
+}
+```
+
+`break` exits the loop immediately. `continue` skips to the next iteration check.
+
+---
+
 ## v0.9.7 — Standard Library Expansion
 
 ### New stdlib functions
