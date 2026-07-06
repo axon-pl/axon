@@ -1,0 +1,152 @@
+// ── NEON LIFE — Conway's Game of Life ────────────────────────────────────────
+// Showcases: store · match · pipeline · do notation · flat_map · set_at
+
+let CANVAS_W  = 800
+let CANVAS_H  = 520
+let CELL_SIZE = 10
+let COLS      = 80
+let ROWS      = 52
+
+store Life {
+  gen:     int  = 0
+  pop:     int  = 0
+  running: bool = false
+  speed:   int  = 4
+}
+
+let cells = range(0, ROWS * COLS).map(i => false)
+
+// ── Grid helpers ──────────────────────────────────────────────────────────────
+
+fn idx(c, r)   = r * COLS + c
+
+fn at(c, r)    =
+  c >= 0 and c < COLS and r >= 0 and r < ROWS
+    ? cells[idx(c, r)]
+    : false
+
+fn nbr(c, r) =
+  (at(c-1, r-1) ? 1 : 0) + (at(c, r-1) ? 1 : 0) + (at(c+1, r-1) ? 1 : 0) +
+  (at(c-1, r  ) ? 1 : 0) +                          (at(c+1, r  ) ? 1 : 0) +
+  (at(c-1, r+1) ? 1 : 0) + (at(c, r+1) ? 1 : 0) + (at(c+1, r+1) ? 1 : 0)
+
+// Conway rules expressed as a match
+fn next_state(c, r) =
+  do {
+    let alive = at(c, r)
+    let n     = nbr(c, r)
+    match n {
+      | 3 => true
+      | 2 => alive
+      | _ => false
+    }
+  }
+
+// ── Simulation ────────────────────────────────────────────────────────────────
+
+fn step() {
+  cells = range(0, ROWS).flat_map(r =>
+    range(0, COLS).map(c => next_state(c, r))
+  )
+  let pop = cells.count(v => v)
+  Life.set({ gen: Life.gen + 1, pop })
+}
+
+fn clear_grid() {
+  cells = range(0, ROWS * COLS).map(i => false)
+  Life.set({ gen: 0, pop: 0 })
+}
+
+fn randomize() {
+  cells = range(0, ROWS * COLS).map(i => random() < 0.28 ? true : false)
+  let pop = cells.count(v => v)
+  Life.set({ gen: 0, pop })
+}
+
+// ── Cell editing ──────────────────────────────────────────────────────────────
+
+fn paint(c, r, v) {
+  if c >= 0 and c < COLS and r >= 0 and r < ROWS {
+    cells = set_at(cells, idx(c, r), v)
+    let pop = cells.count(a => a)
+    Life.set({ pop })
+  }
+}
+
+fn toggle(c, r) {
+  if c >= 0 and c < COLS and r >= 0 and r < ROWS {
+    let i   = idx(c, r)
+    let was = cells[i]
+    cells   = set_at(cells, i, was ? false : true)
+    let pop = cells.count(a => a)
+    Life.set({ pop })
+  }
+}
+
+// ── Presets ───────────────────────────────────────────────────────────────────
+
+fn place(pts) {
+  pts.map(p => paint(p.c, p.r, true))
+}
+
+fn load_glider() {
+  let cx = 10
+  let cy = 10
+  place([
+    { c: cx,   r: cy-1 },
+    { c: cx+1, r: cy   },
+    { c: cx-1, r: cy+1 },
+    { c: cx,   r: cy+1 },
+    { c: cx+1, r: cy+1 }
+  ])
+}
+
+fn load_pulsar() {
+  let cx      = COLS / 2
+  let cy      = ROWS / 2
+  let offsets = [2, 3, 4, 8, 9, 10]
+  offsets.map(o => do {
+    paint(cx-o, cy-1, true)
+    paint(cx+o, cy-1, true)
+    paint(cx-o, cy+1, true)
+    paint(cx+o, cy+1, true)
+    paint(cx-1, cy-o, true)
+    paint(cx+1, cy-o, true)
+    paint(cx-1, cy+o, true)
+    paint(cx+1, cy+o, true)
+  })
+}
+
+fn load_glider_gun() {
+  let ox = 3
+  let oy = 5
+  place([
+    {c:ox+24,r:oy+0},
+    {c:ox+22,r:oy+1},{c:ox+24,r:oy+1},
+    {c:ox+12,r:oy+2},{c:ox+13,r:oy+2},{c:ox+20,r:oy+2},{c:ox+21,r:oy+2},{c:ox+34,r:oy+2},{c:ox+35,r:oy+2},
+    {c:ox+11,r:oy+3},{c:ox+15,r:oy+3},{c:ox+20,r:oy+3},{c:ox+21,r:oy+3},{c:ox+34,r:oy+3},{c:ox+35,r:oy+3},
+    {c:ox+0, r:oy+4},{c:ox+1, r:oy+4},{c:ox+10,r:oy+4},{c:ox+16,r:oy+4},{c:ox+20,r:oy+4},{c:ox+21,r:oy+4},
+    {c:ox+0, r:oy+5},{c:ox+1, r:oy+5},{c:ox+10,r:oy+5},{c:ox+14,r:oy+5},{c:ox+16,r:oy+5},{c:ox+17,r:oy+5},{c:ox+22,r:oy+5},{c:ox+24,r:oy+5},
+    {c:ox+10,r:oy+6},{c:ox+16,r:oy+6},{c:ox+24,r:oy+6},
+    {c:ox+11,r:oy+7},{c:ox+15,r:oy+7},
+    {c:ox+12,r:oy+8},{c:ox+13,r:oy+8}
+  ])
+}
+
+fn load_preset(name) {
+  clear_grid()
+  match name {
+    | "random" => randomize()
+    | "glider" => load_glider()
+    | "pulsar" => load_pulsar()
+    | "gun"    => load_glider_gun()
+    | _        => 0
+  }
+}
+
+// ── Accessors ─────────────────────────────────────────────────────────────────
+
+fn get_cells()    = cells
+fn get_cols()     = COLS
+fn get_rows()     = ROWS
+fn get_cellsize() = CELL_SIZE

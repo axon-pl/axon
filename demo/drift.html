@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DRIFT — Synth Language Demo</title>
+<style>
+  :root {
+    --bg:     #07070f;
+    --surf:   #0e0e1c;
+    --pink:   #ff2d78;
+    --cyan:   #00e5ff;
+    --purple: #b84fff;
+    --gold:   #ffd166;
+    --text:   #e0e0f0;
+    --muted:  #5050a0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Courier New', monospace;
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,.025) 1px, transparent 1px);
+    background-size: 40px 40px; animation: gs 24s linear infinite;
+    pointer-events: none; z-index: 0;
+  }
+  @keyframes gs { from { background-position: 0 0; } to { background-position: 0 40px; } }
+  .wrap {
+    position: relative; z-index: 1; width: 100%; max-width: 840px;
+    padding: 16px 20px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .hdr { width: 100%; display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #1e1e3a; }
+  .logo { font-size: 1rem; font-weight: bold; letter-spacing: .2em; color: var(--cyan); text-shadow: 0 0 12px #00e5ff99; }
+  .logo span { color: var(--gold); }
+  .hdr-right { font-size: .62rem; color: var(--muted); letter-spacing: .08em; text-align: right; line-height: 1.5; }
+  .hdr-right a { color: var(--cyan); text-decoration: none; }
+  .score-bar { width: 800px; display: flex; gap: 8px; }
+  .score-pill { flex: 1; background: var(--surf); border: 1px solid #1e1e3a; border-radius: 6px; padding: 7px 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .pill-label { font-size: .55rem; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+  .pill-val { font-size: 1rem; font-weight: bold; }
+  .pink   { color: var(--pink);   text-shadow: 0 0 8px #ff2d7866; }
+  .cyan   { color: var(--cyan);   text-shadow: 0 0 8px #00e5ff66; }
+  .purple { color: var(--purple); text-shadow: 0 0 8px #b84fff66; }
+  .gold   { color: var(--gold); }
+  .lives-pips { display: flex; gap: 5px; align-items: center; height: 18px; }
+  .pip { width: 10px; height: 10px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+  .pip.dead { background: #1a1a2e; box-shadow: none; opacity: .4; }
+  .canvas-wrap {
+    position: relative; width: 800px; height: 520px;
+    border: 1px solid #2a2a4a; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 0 40px #00e5ff1a, 0 0 80px #b84fff0d;
+  }
+  .canvas-wrap::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.06) 3px, rgba(0,0,0,.06) 4px);
+    pointer-events: none; z-index: 2;
+  }
+  canvas { display: block; cursor: none; }
+  .footer { font-size: .6rem; color: var(--muted); letter-spacing: .06em; text-align: center; line-height: 1.8; }
+  .footer a { color: var(--cyan); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hdr">
+    <div class="logo">NEON<span>DRIFT</span></div>
+    <div class="hdr-right">
+      Built with <a href="landing.html">Synth</a> · AI-native language<br>
+      <a href="https://github.com/synth-pl/synth" target="_blank">github.com/synth-pl/synth</a>
+    </div>
+  </header>
+  <div class="score-bar">
+    <div class="score-pill"><div class="pill-label">Score</div><div class="pill-val pink" id="score">0</div></div>
+    <div class="score-pill"><div class="pill-label">Hi Score</div><div class="pill-val gold" id="hi">0</div></div>
+    <div class="score-pill"><div class="pill-label">Speed</div><div class="pill-val cyan" id="speed">0</div></div>
+    <div class="score-pill"><div class="pill-label">Lives</div>
+      <div class="lives-pips" id="lives">
+        <div class="pip" id="pip0"></div>
+        <div class="pip" id="pip1"></div>
+        <div class="pip" id="pip2"></div>
+      </div>
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="c" width="800" height="520"></canvas>
+  </div>
+  <div class="footer">
+    ← → Arrow keys or A/D to change lanes · Built with <a href="playground.html">Synth</a>
+  </div>
+</div>
+
+<script src="synth.stdlib.js"></script>
+<script src="drift.sources.js"></script>
+<script>
+const canvas = document.getElementById('c')
+const ctx    = canvas.getContext('2d')
+const W = 800, H = 520
+
+// ── Draw helpers ──────────────────────────────────────────────────────────────
+function drawCar(x, y, w, h, color, isPlayer, invuln) {
+  if (isPlayer && invuln && Math.floor(Date.now()/80) % 2 === 0) return
+
+  ctx.shadowColor = color; ctx.shadowBlur = isPlayer ? 20 : 10
+
+  // Body gradient
+  const grad = ctx.createLinearGradient(x, y, x+w, y)
+  if (isPlayer) {
+    grad.addColorStop(0, '#b84fff'); grad.addColorStop(.5, '#00e5ff'); grad.addColorStop(1, '#b84fff')
+  } else {
+    grad.addColorStop(0, color + 'cc'); grad.addColorStop(1, color + '88')
+  }
+  ctx.fillStyle = grad
+
+  // Car body
+  ctx.beginPath()
+  ctx.roundRect(x + w*.1, y, w*.8, h, 6)
+  ctx.fill()
+
+  // Roof
+  ctx.fillStyle = isPlayer ? '#00e5ffaa' : color + '55'
+  ctx.beginPath()
+  ctx.roundRect(x + w*.2, y + h*.2, w*.6, h*.35, 4)
+  ctx.fill()
+
+  // Headlights / taillights
+  const lightColor = isPlayer ? '#00e5ff' : '#ffffff'
+  ctx.fillStyle = lightColor
+  ctx.shadowColor = lightColor; ctx.shadowBlur = 8
+  ctx.fillRect(x + w*.12, isPlayer ? y+h-6 : y+2, w*.16, 4)
+  ctx.fillRect(x + w*.72, isPlayer ? y+h-6 : y+2, w*.16, 4)
+
+  ctx.shadowBlur = 0
+}
+
+// ── Road drawing ──────────────────────────────────────────────────────────────
+function drawRoad(road, scroll) {
+  const rx = road.x, rw = road.w, lw = road.lane_w
+
+  // Road surface
+  ctx.fillStyle = '#0d0d1a'
+  ctx.fillRect(rx, 0, rw, H)
+
+  // Road edges glow
+  ctx.shadowColor = '#b84fff'; ctx.shadowBlur = 20
+  ctx.strokeStyle = '#b84fff99'; ctx.lineWidth = 3
+  ctx.beginPath(); ctx.moveTo(rx, 0); ctx.lineTo(rx, H); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(rx+rw, 0); ctx.lineTo(rx+rw, H); ctx.stroke()
+  ctx.shadowBlur = 0
+
+  // Lane dividers (dashed, scrolling)
+  const dashH = 40, gapH = 30
+  const period = dashH + gapH
+  const offset = scroll % period
+  ctx.strokeStyle = '#2a2a5a'; ctx.lineWidth = 2
+  for (let lane = 1; lane < road.lanes; lane++) {
+    const lx = rx + lane * lw
+    ctx.setLineDash([dashH, gapH])
+    ctx.lineDashOffset = -offset
+    ctx.beginPath(); ctx.moveTo(lx, 0); ctx.lineTo(lx, H); ctx.stroke()
+  }
+  ctx.setLineDash([])
+}
+
+// ── Particles ─────────────────────────────────────────────────────────────────
+const sparks = []
+function spawnSparks(x, y) {
+  for (let i = 0; i < 20; i++) {
+    const a = Math.PI*2*i/20+(Math.random()-.5)*.6
+    sparks.push({ x, y, vx: Math.cos(a)*(80+Math.random()*120), vy: Math.sin(a)*(80+Math.random()*120), life: 1 })
+  }
+}
+function updateSparks(dt) {
+  for (let i=sparks.length-1; i>=0; i--) {
+    const p=sparks[i]; p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt*2
+    if (p.life<=0) sparks.splice(i,1)
+  }
+}
+function drawSparks() {
+  for (const p of sparks) {
+    ctx.globalAlpha=p.life; ctx.fillStyle='#ffd166'
+    ctx.shadowColor='#ffd166'; ctx.shadowBlur=6
+    ctx.fillRect(p.x, p.y, 3*p.life, 3*p.life)
+  }
+  ctx.globalAlpha=1; ctx.shadowBlur=0
+}
+
+let prevLives = 3
+let flashAlpha = 0
+
+// ── Main draw ─────────────────────────────────────────────────────────────────
+function draw(dt) {
+  ctx.fillStyle = '#07070f'; ctx.fillRect(0, 0, W, H)
+
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0, 0, 0, H)
+  sky.addColorStop(0, '#0a0015'); sky.addColorStop(1, '#07070f')
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H)
+
+  const road   = get_road()
+  const scroll = get_road_scroll()
+  drawRoad(road, scroll)
+
+  // Traffic
+  const CAR_W = 54, CAR_H = 90
+  for (const car of get_traffic()) {
+    drawCar(car.x, car.y, CAR_W, CAR_H, car.color, false, false)
+  }
+
+  // Player
+  const p       = get_player()
+  const invuln  = get_invuln()
+  drawCar(p.x, p.y, p.w, p.h, '#00e5ff', true, invuln)
+
+  // Speed lines (sidebars)
+  if (Game.phase === 'playing') {
+    const speed = Game.speed
+    const alpha = Math.min(0.5, (speed - 220) / 600)
+    if (alpha > 0) {
+      ctx.globalAlpha = alpha
+      for (let i = 0; i < 12; i++) {
+        const lx = (i < 6) ? (i * 35) : (W - 6 + (i-6)*35 - road.w/2 - 35*6)
+        const sx = i < 6 ? lx : road.x + road.w + (i-6)*35
+        const len = 20 + Math.random() * 40
+        const sy  = (scroll * 2 + i * 80) % H
+        ctx.strokeStyle = '#b84fff'; ctx.lineWidth = 1
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, sy+len); ctx.stroke()
+      }
+      ctx.globalAlpha = 1
+    }
+  }
+
+  updateSparks(dt); drawSparks()
+
+  // Flash on hit
+  if (Game.lives < prevLives) { spawnSparks(p.x + p.w/2, p.y + p.h/2); flashAlpha = .35 }
+  prevLives = Game.lives
+  if (flashAlpha > 0) {
+    ctx.globalAlpha = flashAlpha; ctx.fillStyle = '#ff2d78'
+    ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1
+    flashAlpha = Math.max(0, flashAlpha - dt*3)
+  }
+
+  const phase = Game.phase
+  if (phase !== 'playing') {
+    ctx.fillStyle = 'rgba(4,4,12,.78)'; ctx.fillRect(0, 0, W, H)
+    ctx.textAlign = 'center'
+    if (phase === 'title') {
+      ctx.font = 'bold 52px "Courier New"'
+      const nw = ctx.measureText('NEON ').width
+      const dw = ctx.measureText('DRIFT').width
+      const tx = W/2 - (nw+dw)/2
+      ctx.textAlign = 'left'
+      ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 28; ctx.fillStyle = '#00e5ff'
+      ctx.fillText('NEON ', tx, H/2 - 20)
+      ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 28; ctx.fillStyle = '#ffd166'
+      ctx.fillText('DRIFT', tx + nw, H/2 - 20)
+      ctx.shadowBlur = 0; ctx.textAlign = 'center'
+      ctx.font = '13px "Courier New"'; ctx.fillStyle = '#b84fff'
+      ctx.fillText('A SYNTH LANGUAGE DEMO', W/2, H/2 + 14)
+    } else if (phase === 'gameover') {
+      ctx.font = 'bold 44px "Courier New"'
+      ctx.shadowColor = '#ff2d78'; ctx.shadowBlur = 24; ctx.fillStyle = '#ff2d78'
+      ctx.fillText('GAME OVER', W/2, H/2 - 18); ctx.shadowBlur = 0
+      ctx.font = '13px "Courier New"'; ctx.fillStyle = '#ffd166'
+      ctx.fillText('SCORE: ' + Game.score + '  ·  HI: ' + Game.hi, W/2, H/2 + 16)
+    }
+    if (Math.floor(Date.now()/500) % 2 === 0) {
+      ctx.font = '12px "Courier New"'; ctx.fillStyle = '#6060a0'
+      ctx.fillText('CLICK OR PRESS SPACE TO START', W/2, H/2 + 54)
+    }
+    ctx.textAlign = 'left'
+  }
+
+  document.getElementById('score').textContent = Game.score
+  document.getElementById('hi').textContent    = Game.hi
+  document.getElementById('speed').textContent = Math.floor(Game.speed)
+  for (let i=0;i<3;i++) document.getElementById('pip'+i).className='pip'+(i<Game.lives?'':' dead')
+}
+
+// ── Loop ──────────────────────────────────────────────────────────────────────
+let prevTime = performance.now()
+function loop(now) {
+  const dt = Math.min((now - prevTime)/1000, .05)
+  prevTime = now; tick(dt); draw(dt)
+  requestAnimationFrame(loop)
+}
+requestAnimationFrame(loop)
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+canvas.addEventListener('click', () => {
+  if (Game.phase === 'title' || Game.phase === 'gameover') start_game()
+})
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') {
+    e.preventDefault()
+    if (Game.phase === 'title' || Game.phase === 'gameover') start_game()
+  }
+})
+
+let leftPressed = false, rightPressed = false, lastLeft = 0, lastRight = 0
+document.addEventListener('keydown', e => {
+  if ((e.code === 'ArrowLeft'  || e.code === 'KeyA') && !leftPressed) {
+    leftPressed = true; if (Game.phase === 'playing') move_left()
+  }
+  if ((e.code === 'ArrowRight' || e.code === 'KeyD') && !rightPressed) {
+    rightPressed = true; if (Game.phase === 'playing') move_right()
+  }
+})
+document.addEventListener('keyup', e => {
+  if (e.code === 'ArrowLeft'  || e.code === 'KeyA') leftPressed = false
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') rightPressed = false
+})
+</script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEON LIFE — Synth Language Demo</title>
+<style>
+  :root {
+    --bg:     #07070f;
+    --surf:   #0e0e1c;
+    --pink:   #ff2d78;
+    --cyan:   #00e5ff;
+    --purple: #b84fff;
+    --gold:   #ffd166;
+    --green:  #06d6a0;
+    --text:   #e0e0f0;
+    --muted:  #5050a0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: grid-scroll 24s linear infinite;
+    pointer-events: none; z-index: 0;
+  }
+  @keyframes grid-scroll { from { background-position: 0 0; } to { background-position: 0 40px; } }
+
+  .wrap {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 840px;
+    padding: 16px 20px 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+
+  .hdr {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 10px; border-bottom: 1px solid #1e1e3a;
+  }
+  .logo { font-size: 1rem; font-weight: bold; letter-spacing: .2em; color: var(--cyan); text-shadow: 0 0 12px #00e5ff99; }
+  .logo span { color: var(--green); text-shadow: 0 0 12px #06d6a099; }
+  .hdr-right { font-size: .62rem; color: var(--muted); letter-spacing: .08em; text-align: right; line-height: 1.5; }
+  .hdr-right a { color: var(--cyan); text-decoration: none; }
+
+  .stat-bar {
+    width: 800px; display: flex; gap: 8px;
+  }
+  .stat-pill {
+    flex: 1; background: var(--surf); border: 1px solid #1e1e3a; border-radius: 6px;
+    padding: 7px 12px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .pill-label { font-size: .55rem; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+  .pill-val   { font-size: 1rem; font-weight: bold; }
+  .cyan   { color: var(--cyan);   text-shadow: 0 0 8px #00e5ff66; }
+  .green  { color: var(--green);  text-shadow: 0 0 8px #06d6a066; }
+  .gold   { color: var(--gold); }
+  .purple { color: var(--purple); text-shadow: 0 0 8px #b84fff66; }
+
+  .canvas-wrap {
+    position: relative; width: 800px; height: 520px;
+    border: 1px solid #2a2a4a; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 0 40px #00e5ff1a, 0 0 80px #b84fff0d;
+    cursor: crosshair;
+  }
+  .canvas-wrap::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.05) 3px, rgba(0,0,0,.05) 4px);
+    pointer-events: none; z-index: 2;
+  }
+  canvas { display: block; }
+
+  .controls {
+    width: 800px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .btn {
+    background: var(--surf); border: 1px solid #2a2a4a; border-radius: 6px;
+    color: var(--text); font-family: 'Courier New', monospace; font-size: .7rem;
+    letter-spacing: .08em; padding: 7px 14px; cursor: pointer; transition: border-color .15s, color .15s;
+  }
+  .btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .btn.active { border-color: var(--green); color: var(--green); }
+  .btn.danger { border-color: #3a1a1a; }
+  .btn.danger:hover { border-color: var(--pink); color: var(--pink); }
+
+  .speed-wrap {
+    display: flex; align-items: center; gap: 8px; margin-left: auto;
+    font-size: .65rem; color: var(--muted); letter-spacing: .06em;
+  }
+  input[type=range] {
+    appearance: none; width: 100px; height: 4px;
+    background: #2a2a4a; border-radius: 2px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    appearance: none; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--cyan); box-shadow: 0 0 6px var(--cyan); cursor: pointer;
+  }
+
+  .footer { font-size: .6rem; color: var(--muted); letter-spacing: .06em; text-align: center; line-height: 1.8; }
+  .footer a { color: var(--cyan); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hdr">
+    <div class="logo">NEON<span>LIFE</span></div>
+    <div class="hdr-right">
+      Built with <a href="landing.html">Synth</a> · AI-native language<br>
+      <a href="https://github.com/synth-pl/synth" target="_blank">github.com/synth-pl/synth</a>
+    </div>
+  </header>
+
+  <div class="stat-bar">
+    <div class="stat-pill"><div class="pill-label">Generation</div><div class="pill-val cyan" id="gen">0</div></div>
+    <div class="stat-pill"><div class="pill-label">Population</div><div class="pill-val green" id="pop">0</div></div>
+    <div class="stat-pill"><div class="pill-label">Status</div><div class="pill-val purple" id="status">PAUSED</div></div>
+    <div class="stat-pill"><div class="pill-label">Rules</div><div class="pill-val gold">B3/S23</div></div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="c" width="800" height="520"></canvas>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="btn-play" onclick="toggleRun()">▶ PLAY</button>
+    <button class="btn danger" onclick="doClear()">✕ CLEAR</button>
+    <button class="btn" onclick="doPreset('random')">RANDOM</button>
+    <button class="btn" onclick="doPreset('glider')">GLIDER</button>
+    <button class="btn" onclick="doPreset('pulsar')">PULSAR</button>
+    <button class="btn" onclick="doPreset('gun')">GLIDER GUN</button>
+    <div class="speed-wrap">
+      SPEED <input type="range" id="speed" min="1" max="10" value="4">
+    </div>
+  </div>
+
+  <div class="footer">
+    Click or drag to draw · Space to play/pause · Built with <a href="playground.html">Synth</a>
+  </div>
+
+</div>
+
+<script src="synth.stdlib.js"></script>
+<script src="neon_life.sources.js"></script>
+<script>
+const canvas = document.getElementById('c')
+const ctx    = canvas.getContext('2d')
+const W = 800, H = 520
+
+// ── Cell colours (gradient by density) ────────────────────────────────────────
+const LIVE_COLORS = ['#00e5ff','#06d6a0','#b84fff','#ff2d78','#ffd166']
+
+function cellColor(c, r) {
+  const key = (c * 7 + r * 13) % LIVE_COLORS.length
+  return LIVE_COLORS[key]
+}
+
+// ── Draw ──────────────────────────────────────────────────────────────────────
+function draw() {
+  ctx.fillStyle = '#07070f'
+  ctx.fillRect(0, 0, W, H)
+
+  const cells    = get_cells()
+  const COLS     = get_cols()
+  const ROWS     = get_rows()
+  const CS       = get_cellsize()
+
+  // Batch cells by color bucket for fewer state changes
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (cells[r * COLS + c]) {
+        const col = LIVE_COLORS[(c * 3 + r * 7) % LIVE_COLORS.length]
+        ctx.shadowColor = col
+        ctx.shadowBlur  = 4
+        ctx.fillStyle   = col
+        ctx.fillRect(c * CS, r * CS, CS - 1, CS - 1)
+      }
+    }
+  }
+  ctx.shadowBlur = 0
+
+  // HUD
+  document.getElementById('gen').textContent = Life.gen
+  document.getElementById('pop').textContent = Life.pop
+  document.getElementById('status').textContent = Life.running ? 'RUNNING' : 'PAUSED'
+  document.getElementById('btn-play').textContent = Life.running ? '⏸ PAUSE' : '▶ PLAY'
+  document.getElementById('btn-play').className = 'btn' + (Life.running ? ' active' : '')
+}
+
+// ── Sim loop ──────────────────────────────────────────────────────────────────
+let stepAcc = 0
+
+const SPEED_MS = [0, 2000, 800, 400, 200, 100, 60, 40, 25, 16, 8]
+
+function loop() {
+  const spd = parseInt(document.getElementById('speed').value)
+  if (Life.running) {
+    stepAcc += 1
+    if (stepAcc >= Math.ceil(SPEED_MS[1] / SPEED_MS[spd])) {
+      const steps = spd >= 8 ? spd - 6 : 1
+      for (let i = 0; i < steps; i++) step()
+      stepAcc = 0
+    }
+  }
+  draw()
+  requestAnimationFrame(loop)
+}
+requestAnimationFrame(loop)
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+function toggleRun() { Life.set({ running: !Life.running }) }
+function doClear()   { Life.set({ running: false }); clear_grid() }
+function doPreset(n) { Life.set({ running: false }); load_preset(n) }
+
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); toggleRun() }
+})
+
+// Draw on canvas
+let painting = false
+let paintVal = true
+
+canvas.addEventListener('mousedown', e => {
+  painting = true
+  const CS = get_cellsize()
+  const rect = canvas.getBoundingClientRect()
+  const sx = W / rect.width
+  const sy = H / rect.height
+  const c = Math.floor((e.clientX - rect.left) * sx / CS)
+  const r = Math.floor((e.clientY - rect.top)  * sy / CS)
+  const cells = get_cells()
+  const COLS  = get_cols()
+  paintVal = !(cells[r * COLS + c])
+  paint(c, r, paintVal)
+})
+canvas.addEventListener('mousemove', e => {
+  if (!painting) return
+  const CS = get_cellsize()
+  const rect = canvas.getBoundingClientRect()
+  const sx = W / rect.width
+  const sy = H / rect.height
+  const c = Math.floor((e.clientX - rect.left) * sx / CS)
+  const r = Math.floor((e.clientY - rect.top)  * sy / CS)
+  paint(c, r, paintVal)
+})
+window.addEventListener('mouseup', () => { painting = false })
+</script>
+</body>
+</html>

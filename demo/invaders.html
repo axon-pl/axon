@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNTH INVADERS — Synth Language Demo</title>
+<style>
+  :root {
+    --bg:     #07070f;
+    --surf:   #0e0e1c;
+    --pink:   #ff2d78;
+    --cyan:   #00e5ff;
+    --purple: #b84fff;
+    --gold:   #ffd166;
+    --text:   #e0e0f0;
+    --muted:  #5050a0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Courier New', monospace;
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gs 24s linear infinite;
+    pointer-events: none; z-index: 0;
+  }
+  @keyframes gs { from { background-position: 0 0; } to { background-position: 0 40px; } }
+  .wrap {
+    position: relative; z-index: 1; width: 100%; max-width: 840px;
+    padding: 16px 20px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .hdr { width: 100%; display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #1e1e3a; }
+  .logo { font-size: 1rem; font-weight: bold; letter-spacing: .2em; color: var(--cyan); text-shadow: 0 0 12px #00e5ff99; }
+  .logo span { color: var(--pink); text-shadow: 0 0 12px #ff2d7899; }
+  .hdr-right { font-size: .62rem; color: var(--muted); letter-spacing: .08em; text-align: right; line-height: 1.5; }
+  .hdr-right a { color: var(--cyan); text-decoration: none; }
+  .score-bar { width: 800px; display: flex; gap: 8px; }
+  .score-pill { flex: 1; background: var(--surf); border: 1px solid #1e1e3a; border-radius: 6px; padding: 7px 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .pill-label { font-size: .55rem; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+  .pill-val { font-size: 1rem; font-weight: bold; }
+  .pink   { color: var(--pink);   text-shadow: 0 0 8px #ff2d7866; }
+  .cyan   { color: var(--cyan);   text-shadow: 0 0 8px #00e5ff66; }
+  .purple { color: var(--purple); text-shadow: 0 0 8px #b84fff66; }
+  .gold   { color: var(--gold); }
+  .lives-pips { display: flex; gap: 5px; align-items: center; height: 18px; }
+  .pip { width: 10px; height: 10px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 6px var(--pink); transition: opacity .3s; }
+  .pip.dead { background: #2a1530; box-shadow: none; opacity: .4; }
+  .canvas-wrap {
+    position: relative; width: 800px; height: 520px;
+    border: 1px solid #2a2a4a; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 0 40px #00e5ff1a, 0 0 80px #b84fff0d;
+  }
+  .canvas-wrap::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.06) 3px, rgba(0,0,0,.06) 4px);
+    pointer-events: none; z-index: 2;
+  }
+  canvas { display: block; cursor: none; }
+  .footer { font-size: .6rem; color: var(--muted); letter-spacing: .06em; text-align: center; line-height: 1.8; }
+  .footer a { color: var(--cyan); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hdr">
+    <div class="logo">SYNTH<span>INVADERS</span></div>
+    <div class="hdr-right">
+      Built with <a href="landing.html">Synth</a> · AI-native language<br>
+      <a href="https://github.com/synth-pl/synth" target="_blank">github.com/synth-pl/synth</a>
+    </div>
+  </header>
+  <div class="score-bar">
+    <div class="score-pill"><div class="pill-label">Score</div><div class="pill-val pink" id="score">0</div></div>
+    <div class="score-pill"><div class="pill-label">Hi Score</div><div class="pill-val gold" id="hi">0</div></div>
+    <div class="score-pill"><div class="pill-label">Wave</div><div class="pill-val cyan" id="wave">1</div></div>
+    <div class="score-pill"><div class="pill-label">Lives</div>
+      <div class="lives-pips" id="lives">
+        <div class="pip" id="pip0"></div>
+        <div class="pip" id="pip1"></div>
+        <div class="pip" id="pip2"></div>
+      </div>
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="c" width="800" height="520"></canvas>
+  </div>
+  <div class="footer">
+    Mouse to aim · Click or Space to fire · Arrow keys to move · Built with <a href="playground.html">Synth</a>
+  </div>
+</div>
+
+<script src="synth.stdlib.js"></script>
+<script src="invaders.sources.js"></script>
+<script>
+const canvas = document.getElementById('c')
+const ctx    = canvas.getContext('2d')
+const W = 800, H = 520
+
+// ── Particles ─────────────────────────────────────────────────────────────────
+const particles = []
+function spawnBurst(x, y, color, n = 10) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.PI * 2 * i / n + (Math.random()-.5)*.5
+    const s = 60 + Math.random() * 120
+    particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 1, color, r: 2+Math.random()*2 })
+  }
+}
+function tickParticles(dt) {
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i]; p.x += p.vx*dt; p.y += p.vy*dt; p.life -= dt*2.5
+    if (p.life <= 0) particles.splice(i, 1)
+  }
+}
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life; ctx.fillStyle = p.color
+    ctx.shadowColor = p.color; ctx.shadowBlur = 5
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r*p.life, 0, Math.PI*2); ctx.fill()
+  }
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0
+}
+
+let prevAlienCount = 55
+let flashAlpha = 0, flashColor = '#ff2d78'
+function triggerFlash(c) { flashAlpha = .3; flashColor = c }
+
+// ── Draw alien (pixel art style) ──────────────────────────────────────────────
+function drawAlien(x, y, w, h, color, row) {
+  ctx.shadowColor = color; ctx.shadowBlur = 12
+  ctx.fillStyle = color
+  // Simple blocky alien shape
+  const px = w / 8
+  // Row-specific patterns
+  const patterns = [
+    [[1,0,1,1,0,1,1],[0,1,1,1,1,1,0],[1,1,1,1,1,1,1],[0,1,0,1,0,1,0]],
+    [[0,1,0,0,0,1,0],[1,1,1,1,1,1,1],[1,1,0,1,0,1,1],[1,0,1,0,1,0,1]],
+    [[0,0,1,1,1,0,0],[0,1,1,1,1,1,0],[1,1,0,1,0,1,1],[0,1,1,0,1,1,0]],
+    [[1,1,0,1,0,1,1],[1,1,1,1,1,1,1],[0,1,0,1,0,1,0],[1,0,0,0,0,0,1]],
+    [[0,1,1,1,1,1,0],[1,0,1,1,1,0,1],[1,1,1,1,1,1,1],[0,1,0,1,0,1,0]]
+  ]
+  const pat = patterns[row % patterns.length]
+  const rh  = h / (pat.length + 1)
+  for (let ri = 0; ri < pat.length; ri++) {
+    const row_pat = pat[ri]
+    const cw = w / row_pat.length
+    for (let ci = 0; ci < row_pat.length; ci++) {
+      if (row_pat[ci]) ctx.fillRect(x + ci*cw, y + (ri+.5)*rh, cw-1, rh-1)
+    }
+  }
+  ctx.shadowBlur = 0
+}
+
+// ── Draw player ship ──────────────────────────────────────────────────────────
+function drawShip(x, y, w, h, flash) {
+  if (flash && Math.floor(Date.now()/80) % 2 === 0) return
+  const grad = ctx.createLinearGradient(x, y, x+w, y)
+  grad.addColorStop(0, '#b84fff'); grad.addColorStop(.5, '#00e5ff'); grad.addColorStop(1, '#b84fff')
+  ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 18
+  ctx.fillStyle = grad
+  // Ship body
+  ctx.beginPath()
+  ctx.moveTo(x + w/2, y)
+  ctx.lineTo(x + w,   y + h * .6)
+  ctx.lineTo(x + w*.75, y + h)
+  ctx.lineTo(x + w*.25, y + h)
+  ctx.lineTo(x,         y + h * .6)
+  ctx.closePath(); ctx.fill()
+  ctx.shadowBlur = 0
+  // Cockpit
+  ctx.fillStyle = '#00e5ff88'
+  ctx.beginPath(); ctx.ellipse(x+w/2, y+h*.35, w*.15, h*.2, 0, 0, Math.PI*2); ctx.fill()
+}
+
+// ── Main draw ─────────────────────────────────────────────────────────────────
+function draw(dt) {
+  ctx.fillStyle = '#07070f'; ctx.fillRect(0, 0, W, H)
+
+  // Vignette
+  const vig = ctx.createRadialGradient(W/2, H/2, H*.3, W/2, H/2, H*.85)
+  vig.addColorStop(0, 'transparent'); vig.addColorStop(1, 'rgba(0,0,0,.5)')
+  ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H)
+
+  const phase = Game.phase
+
+  // Aliens
+  const aliens = get_aliens()
+  if (aliens.length < prevAlienCount && phase === 'playing') {
+    const a = get_aliens()
+    const col = a.length > 0 ? a[0].color : '#ff2d78'
+    spawnBurst(W/2, H/3, col, 8)
+    triggerFlash(col)
+  }
+  prevAlienCount = aliens.length
+
+  for (const a of aliens) {
+    const row = Math.round((a.y - 60) / 38)
+    drawAlien(a.x, a.y, a.w, a.h, a.color, row)
+  }
+
+  // Ground line
+  ctx.strokeStyle = '#2a2a4a'; ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(0, H-30); ctx.lineTo(W, H-30); ctx.stroke()
+
+  // Player
+  const p = get_player()
+  const invuln = false
+  drawShip(p.x, p.y, p.w, p.h, false)
+
+  // Player bullets
+  for (const b of get_pbullets()) {
+    ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 10
+    ctx.fillStyle = '#00e5ff'
+    ctx.fillRect(b.x - 1.5, b.y, 3, 14)
+    ctx.shadowBlur = 0
+  }
+
+  // Alien bullets
+  for (const b of get_abullets()) {
+    ctx.shadowColor = '#ff2d78'; ctx.shadowBlur = 8
+    ctx.fillStyle = '#ff2d78'
+    ctx.fillRect(b.x - 2, b.y, 4, 10)
+    ctx.shadowBlur = 0
+  }
+
+  // Particles
+  tickParticles(dt); drawParticles()
+
+  // Flash
+  if (flashAlpha > 0) {
+    ctx.globalAlpha = flashAlpha; ctx.fillStyle = flashColor
+    ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1
+    flashAlpha = Math.max(0, flashAlpha - dt*4)
+  }
+
+  // Phase overlays
+  if (phase !== 'playing') {
+    ctx.fillStyle = 'rgba(4,4,12,.75)'; ctx.fillRect(0, 0, W, H)
+    ctx.textAlign = 'center'
+
+    if (phase === 'title') {
+      ctx.font = 'bold 52px "Courier New"'
+      const nw = ctx.measureText('SYNTH ').width
+      const iw = ctx.measureText('INVADERS').width
+      const tx = W/2 - (nw+iw)/2
+      ctx.textAlign = 'left'
+      ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 28; ctx.fillStyle = '#00e5ff'
+      ctx.fillText('SYNTH ', tx, H/2 - 20)
+      ctx.shadowColor = '#ff2d78'; ctx.shadowBlur = 28; ctx.fillStyle = '#ff2d78'
+      ctx.fillText('INVADERS', tx + nw, H/2 - 20)
+      ctx.shadowBlur = 0; ctx.textAlign = 'center'
+      ctx.font = '13px "Courier New"'; ctx.fillStyle = '#b84fff'
+      ctx.fillText('A SYNTH LANGUAGE DEMO', W/2, H/2 + 14)
+    } else if (phase === 'gameover') {
+      ctx.font = 'bold 44px "Courier New"'
+      ctx.shadowColor = '#ff2d78'; ctx.shadowBlur = 24; ctx.fillStyle = '#ff2d78'
+      ctx.fillText('GAME OVER', W/2, H/2 - 18)
+      ctx.shadowBlur = 0; ctx.font = '13px "Courier New"'; ctx.fillStyle = '#ffd166'
+      ctx.fillText('SCORE: ' + Game.score + '  ·  HI: ' + Game.hi, W/2, H/2 + 16)
+    } else if (phase === 'waveclear') {
+      ctx.font = 'bold 44px "Courier New"'
+      ctx.shadowColor = '#06d6a0'; ctx.shadowBlur = 24; ctx.fillStyle = '#06d6a0'
+      ctx.fillText('WAVE CLEAR!', W/2, H/2 - 18)
+      ctx.shadowBlur = 0; ctx.font = '13px "Courier New"'; ctx.fillStyle = '#00e5ff'
+      ctx.fillText('WAVE ' + (Game.wave+1) + ' INCOMING', W/2, H/2 + 16)
+    }
+
+    if (Math.floor(Date.now()/500) % 2 === 0) {
+      ctx.font = '12px "Courier New"'; ctx.fillStyle = '#6060a0'
+      const msg = phase==='title'||phase==='gameover' ? 'CLICK OR PRESS SPACE TO START' :
+                  phase==='waveclear' ? 'PRESS SPACE TO CONTINUE' : ''
+      ctx.fillText(msg, W/2, H/2 + 54)
+    }
+    ctx.textAlign = 'left'
+  }
+
+  // HUD
+  document.getElementById('score').textContent = Game.score
+  document.getElementById('hi').textContent    = Game.hi
+  document.getElementById('wave').textContent  = Game.wave
+  for (let i=0;i<3;i++) document.getElementById('pip'+i).className='pip'+(i<Game.lives?'':' dead')
+}
+
+// ── Game loop ──────────────────────────────────────────────────────────────────
+let prevTime = performance.now()
+function loop(now) {
+  const dt = Math.min((now - prevTime) / 1000, .05)
+  prevTime = now
+  tick(dt); draw(dt)
+  requestAnimationFrame(loop)
+}
+requestAnimationFrame(loop)
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect()
+  move_player((e.clientX - rect.left) * W / rect.width)
+})
+canvas.addEventListener('click', e => {
+  const p = Game.phase
+  if (p === 'title' || p === 'gameover') start_game()
+  else if (p === 'waveclear') next_wave()
+  else fire()
+})
+document.addEventListener('keydown', e => {
+  const p = Game.phase
+  if (e.code === 'Space') {
+    e.preventDefault()
+    if (p === 'title' || p === 'gameover') start_game()
+    else if (p === 'waveclear') next_wave()
+    else fire()
+  }
+})
+
+const keys = {}
+document.addEventListener('keydown', e => keys[e.code] = true)
+document.addEventListener('keyup',   e => keys[e.code] = false)
+setInterval(() => {
+  if (Game.phase !== 'playing') return
+  const pad = get_player()
+  if (keys['ArrowLeft'])  move_player(pad.x + 10)
+  if (keys['ArrowRight']) move_player(pad.x + pad.w + 42)
+  if (keys['KeyZ'] || keys['KeyX']) fire()
+}, 16)
+</script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+// ── SYNTH INVADERS ────────────────────────────────────────────────────────────
+// Showcases: store · match · @memo · pipeline · flat_map
+
+let CANVAS_W    = 800
+let CANVAS_H    = 520
+let ALIEN_COLS  = 11
+let ALIEN_ROWS  = 5
+let ALIEN_W     = 36
+let ALIEN_H     = 24
+let ALIEN_GAP_X = 16
+let ALIEN_GAP_Y = 14
+let GRID_W      = ALIEN_COLS * ALIEN_W + (ALIEN_COLS - 1) * ALIEN_GAP_X
+let ALIEN_OX    = (CANVAS_W - GRID_W) / 2
+let ALIEN_OY    = 60
+let PLAYER_W    = 52
+let PLAYER_H    = 26
+let PLAYER_Y    = CANVAS_H - 55
+let BULLET_W    = 3
+let BULLET_H    = 14
+let PBULLET_SPD = 440
+let ABULLET_SPD = 160
+let MARCH_BASE  = 36
+
+store Game {
+  score: int    = 0
+  hi:    int    = 0
+  lives: int    = 3
+  wave:  int    = 1
+  phase: string = "title"
+}
+
+// Alien grid: flat bool array (alive = true)
+let aliens = range(0, ALIEN_ROWS * ALIEN_COLS).map(i => true)
+
+// Grid offset — marches left/right, drops when hitting walls
+let alien_dx  = 0.0
+let alien_dy  = 0.0
+let alien_dir = 1
+
+// Player
+let player_x = (CANVAS_W - PLAYER_W) / 2
+
+// Bullets
+let p_bullets = []   // {x, y}
+let a_bullets = []   // {x, y}
+
+let fire_cd         = 0.0
+let alien_fire_timer = 1.5
+
+// ── Alien helpers ─────────────────────────────────────────────────────────────
+
+fn alien_row(i) = floor(i / ALIEN_COLS)
+fn alien_col(i) = i - floor(i / ALIEN_COLS) * ALIEN_COLS
+
+@memo
+fn row_color(row) =
+  match row {
+    | 0 => "#ff2d78"
+    | 1 => "#ff6e3a"
+    | 2 => "#ffd166"
+    | 3 => "#06d6a0"
+    | _ => "#00e5ff"
+  }
+
+@memo
+fn row_pts(row) =
+  match row {
+    | 0 => 30
+    | 1 => 25
+    | 2 => 20
+    | 3 => 15
+    | _ => 10
+  }
+
+fn alien_x(i) = ALIEN_OX + alien_col(i) * (ALIEN_W + ALIEN_GAP_X) + alien_dx
+fn alien_y(i) = ALIEN_OY + alien_row(i) * (ALIEN_H + ALIEN_GAP_Y) + alien_dy
+
+fn alive_count() = aliens.count(a => a)
+
+// ── Game control ─────────────────────────────────────────────────────────────
+
+fn reset_wave(wave) {
+  aliens      = range(0, ALIEN_ROWS * ALIEN_COLS).map(i => true)
+  alien_dx    = 0.0
+  alien_dy    = 0.0
+  alien_dir   = 1
+  p_bullets   = []
+  a_bullets   = []
+  fire_cd     = 0.0
+  alien_fire_timer = 1.5
+}
+
+fn start_game() {
+  reset_wave(1)
+  player_x = (CANVAS_W - PLAYER_W) / 2
+  Game.set({ score: 0, lives: 3, wave: 1, phase: "playing" })
+}
+
+fn move_player(x) {
+  player_x = clamp(x - PLAYER_W / 2, 0, CANVAS_W - PLAYER_W)
+}
+
+fn fire() {
+  if fire_cd <= 0 {
+    let bx = player_x + PLAYER_W / 2
+    let by = PLAYER_Y
+    p_bullets = [...p_bullets, { x: bx, y: by }]
+    fire_cd = 0.32
+  }
+}
+
+// ── Physics tick ──────────────────────────────────────────────────────────────
+
+fn tick(dt) {
+  if Game.phase != "playing" { 0 } else {
+    let speed_mult = 1.0 + (Game.wave - 1) * 0.18
+
+    // Cooldowns
+    fire_cd          = fire_cd - dt
+    alien_fire_timer = alien_fire_timer - dt
+
+    // March aliens
+    alien_dx = alien_dx + MARCH_BASE * alien_dir * dt * speed_mult
+
+    // Wall check — find leftmost and rightmost alive alien x
+    let n = alive_count()
+    if n > 0 {
+      let xs_left = range(0, ALIEN_ROWS * ALIEN_COLS)
+        .filter(i => aliens[i])
+        .map(i => alien_x(i))
+      let xs_right = range(0, ALIEN_ROWS * ALIEN_COLS)
+        .filter(i => aliens[i])
+        .map(i => alien_x(i) + ALIEN_W)
+      let min_x = xs_left  |> min
+      let max_x = xs_right |> max
+      if min_x <= 0 or max_x >= CANVAS_W {
+        alien_dir = 0 - alien_dir
+        alien_dy  = alien_dy + 18
+      }
+    }
+
+    // Move player bullets up
+    p_bullets = p_bullets
+      .map(b => do { { x: b.x, y: b.y - PBULLET_SPD * dt } })
+      .filter(b => b.y > 0)
+
+    // Move alien bullets down
+    a_bullets = a_bullets
+      .map(b => do { { x: b.x, y: b.y + ABULLET_SPD * dt } })
+      .filter(b => b.y < CANVAS_H)
+
+    // Player bullet vs alien collision
+    let i = 0
+    while i < p_bullets.count(x => true) {
+      let b    = p_bullets[i]
+      let j    = 0
+      let hit  = 0 - 1
+      while j < ALIEN_ROWS * ALIEN_COLS and hit < 0 {
+        if aliens[j] {
+          let ax = alien_x(j)
+          let ay = alien_y(j)
+          if b.x > ax and b.x < ax + ALIEN_W and b.y > ay and b.y < ay + ALIEN_H {
+            hit = j
+          }
+        }
+        j += 1
+      }
+      if hit >= 0 {
+        aliens    = set_at(aliens, hit, false)
+        let pts   = row_pts(alien_row(hit))
+        let ns    = Game.score + pts
+        let nhi   = ns > Game.hi ? ns : Game.hi
+        Game.set({ score: ns, hi: nhi })
+        let bx    = b.x
+        let by    = b.y
+        p_bullets = p_bullets.filter(pb => pb.x != bx or pb.y != by)
+      } else {
+        i += 1
+      }
+    }
+
+    // Alien fires
+    if alien_fire_timer <= 0 and alive_count() > 0 {
+      // Pick a random alive alien in the bottom row of each column
+      let col = floor(random() * ALIEN_COLS)
+      // Find lowest alive alien in that column
+      let bot = 0 - 1
+      let k   = 0
+      while k < ALIEN_ROWS * ALIEN_COLS {
+        if aliens[k] and alien_col(k) == col {
+          bot = k
+        }
+        k += 1
+      }
+      if bot >= 0 {
+        a_bullets = [...a_bullets, { x: alien_x(bot) + ALIEN_W / 2, y: alien_y(bot) + ALIEN_H }]
+      }
+      alien_fire_timer = clamp(2.0 - Game.wave * 0.2, 0.5, 2.0)
+    }
+
+    // Alien bullet vs player
+    let px = player_x
+    let py = PLAYER_Y
+    let hit_player = a_bullets.any(b =>
+      b.x > px and b.x < px + PLAYER_W and b.y > py and b.y < py + PLAYER_H
+    )
+    if hit_player {
+      a_bullets = a_bullets.filter(b =>
+        b.x <= px or b.x >= px + PLAYER_W or b.y <= py or b.y >= py + PLAYER_H
+      )
+      let nl = Game.lives - 1
+      if nl <= 0 {
+        Game.set({ lives: 0, phase: "gameover" })
+      } else {
+        Game.set({ lives: nl })
+      }
+    }
+
+    // Aliens reached player row
+    let invasion = range(0, ALIEN_ROWS * ALIEN_COLS).any(i =>
+      aliens[i] and alien_y(i) + ALIEN_H >= PLAYER_Y
+    )
+    if invasion {
+      Game.set({ phase: "gameover" })
+    }
+
+    // Wave clear
+    if alive_count() == 0 {
+      Game.set({ phase: "waveclear" })
+    }
+  }
+}
+
+fn next_wave() {
+  let nw = Game.wave + 1
+  reset_wave(nw)
+  Game.set({ wave: nw, phase: "playing" })
+}
+
+// ── Accessors ─────────────────────────────────────────────────────────────────
+
+fn get_aliens() =
+  range(0, ALIEN_ROWS * ALIEN_COLS)
+    .filter(i => aliens[i])
+    .map(i => do {
+      let color = row_color(alien_row(i))
+      { x: alien_x(i), y: alien_y(i), w: ALIEN_W, h: ALIEN_H, color }
+    })
+
+fn get_player()   = { x: player_x, y: PLAYER_Y, w: PLAYER_W, h: PLAYER_H }
+fn get_pbullets() = p_bullets
+fn get_abullets() = a_bullets
