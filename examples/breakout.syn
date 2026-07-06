@@ -171,16 +171,29 @@ fn tick(dt) {
       ball_vy = abs(ball_vy)
     }
 
-    // Paddle collision — surface-crossing check prevents tunneling at high speed
-    // Trigger: ball moving down AND bottom edge has reached/crossed paddle surface
+    // Paddle collision — two distinct surfaces, decided by direction before any mutation
+    let prev_vy     = ball_vy
     let on_paddle_x = ball_x + BALL_R > paddle_x and ball_x - BALL_R < paddle_x + PADDLE_W
-    if on_paddle_x and ball_vy > 0 and ball_y + BALL_R >= PADDLE_Y {
+    let in_paddle_y = ball_y + BALL_R > PADDLE_Y  and ball_y - BALL_R < PADDLE_Y + PADDLE_H
+
+    // Top-surface: ball moving down, sweep check prevents tunneling at high speed
+    if on_paddle_x and prev_vy > 0 and ball_y + BALL_R >= PADDLE_Y {
       ball_y = PADDLE_Y - BALL_R
       let hit_pos = clamp((ball_x - paddle_x) / PADDLE_W, 0.05, 0.95)
       let angle   = (hit_pos - 0.5) * 1.8
       let speed   = BALL_SPEED * speed_mult
       ball_vx = speed * angle
       ball_vy = 0 - sqrt(speed * speed - ball_vx * ball_vx)
+    }
+
+    // Side-surface: ball moving flat or upward but overlapping paddle volume — push out horizontally
+    if on_paddle_x and in_paddle_y and prev_vy <= 0 {
+      if ball_vx > 0 {
+        ball_x = paddle_x - BALL_R
+      } else {
+        ball_x = paddle_x + PADDLE_W + BALL_R
+      }
+      ball_vx = 0 - ball_vx
     }
 
     // Brick collisions
