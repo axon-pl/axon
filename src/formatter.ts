@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.9.0 — Canonical formatter
-// Normalizes Axon source: indentation, operator spacing, trailing whitespace.
+// Synth v0.9.0 — Canonical formatter
+// Normalizes Synth source: indentation, operator spacing, trailing whitespace.
 // Strategy: token-stream reconstruction with line-break preservation.
 // ─────────────────────────────────────────────────────────────────────────────
 

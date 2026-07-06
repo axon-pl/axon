@@ -1,9 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.9.5 — CLI entry point
-// Usage: node dist/cli.js <input.axn> [output.js] [--test] [--bundle]
-//        node dist/cli.js --fmt <input.axn>
-//        node dist/cli.js --check <input.axn>
-//        node dist/cli.js --watch <input.axn> [output.js]
+// Synth v0.9.5 — CLI entry point
+// Usage: node dist/cli.js <input.syn> [output.js] [--test] [--bundle]
+//        node dist/cli.js --fmt <input.syn>
+//        node dist/cli.js --check <input.syn>
+//        node dist/cli.js --watch <input.syn> [output.js]
 // ─────────────────────────────────────────────────────────────────────────────
 
 import * as fs from 'fs'
@@ -12,7 +12,7 @@ import { Lexer } from './lexer.js'
 import { Parser, ParseError } from './parser.js'
 import { Checker } from './checker.js'
 import { Codegen } from './codegen.js'
-import { AXON_STDLIB } from './stdlib.js'
+import { SYNTH_STDLIB } from './stdlib.js'
 import { format } from './formatter.js'
 import { Program } from './types.js'
 
@@ -56,7 +56,7 @@ function parseModule(absPath: string): ModuleEntry {
   const imports: string[] = []
   for (const decl of ast.body) {
     if (decl.kind === 'ImportDecl') {
-      const resolved = path.resolve(dir, decl.source.endsWith('.axn') ? decl.source : decl.source + '.axn')
+      const resolved = path.resolve(dir, decl.source.endsWith('.syn') ? decl.source : decl.source + '.syn')
       imports.push(resolved)
     }
   }
@@ -105,15 +105,15 @@ function main(): void {
 
   if (args.length === 0 || args[0] === '--help') {
     console.log(`
-  Axon v0.9.5 Transpiler
+  Synth v0.9.5 Transpiler
   ──────────────────────
   Usage:
-    axon <input.axn> [output.js]           Transpile a single file to JS
-    axon --bundle <input.axn> [out.js]     Bundle multi-file project (resolves imports)
-    axon --test <input.axn>                Transpile and run @test declarations
-    axon --fmt <input.axn>                 Format Axon source in-place
-    axon --check <input.axn>              Static analysis only — no emit
-    axon --watch <input.axn> [output.js]  Watch and recompile on change
+    synth <input.syn> [output.js]           Transpile a single file to JS
+    synth --bundle <input.syn> [out.js]     Bundle multi-file project (resolves imports)
+    synth --test <input.syn>                Transpile and run @test declarations
+    synth --fmt <input.syn>                 Format Synth source in-place
+    synth --check <input.syn>              Static analysis only — no emit
+    synth --watch <input.syn> [output.js]  Watch and recompile on change
 
   If output.js is omitted, transpiled JS is written to stdout.
   Multiple parse errors are reported together (v0.9.5).
@@ -121,7 +121,7 @@ function main(): void {
     process.exit(0)
   }
 
-  // ── axon --fmt ─────────────────────────────────────────────────────────────
+  // ── synth --fmt ─────────────────────────────────────────────────────────────
   if (args[0] === '--fmt') {
     const inputPath = path.resolve(args[1] ?? '')
     if (!fs.existsSync(inputPath)) {
@@ -139,7 +139,7 @@ function main(): void {
     return
   }
 
-  // ── axon --check ───────────────────────────────────────────────────────────
+  // ── synth --check ───────────────────────────────────────────────────────────
   if (args[0] === '--check') {
     const inputPath = path.resolve(args[1] ?? '')
     if (!fs.existsSync(inputPath)) {
@@ -168,7 +168,7 @@ function main(): void {
     return
   }
 
-  // ── axon --watch ──────────────────────────────────────────────────────────
+  // ── synth --watch ──────────────────────────────────────────────────────────
   if (args[0] === '--watch') {
     const inputPath  = path.resolve(args[1] ?? '')
     const outputPath = args[2] ? path.resolve(args[2]) : null
@@ -201,7 +201,7 @@ function main(): void {
     return
   }
 
-  // ── axon --test ────────────────────────────────────────────────────────────
+  // ── synth --test ────────────────────────────────────────────────────────────
   if (args[0] === '--test') {
     const inputPath = path.resolve(args[1] ?? '')
     if (!fs.existsSync(inputPath)) {
@@ -220,16 +220,16 @@ function main(): void {
         js = result.js; warnings = result.warnings
       }
       if (warnings.length > 0) {
-        console.warn(`⚠  Axon checker warnings:`)
+        console.warn(`⚠  Synth checker warnings:`)
         warnings.forEach(w => console.warn(w))
       }
       const vm = require('vm') as typeof import('vm')
       const ctx: any = { console, process, Math, JSON, Array, Object, Map, Set, String, Number, Boolean }
       vm.createContext(ctx)
-      vm.runInContext(AXON_STDLIB, ctx)
+      vm.runInContext(SYNTH_STDLIB, ctx)
       vm.runInContext('{\n' + js + '\n}', ctx)
-      const result = ctx.__runAxonTests?.() ?? { passed: 0, failed: 0, total: 0, results: [] }
-      console.log(`\n  Axon tests — ${path.basename(inputPath)}`)
+      const result = ctx.__runSynthTests?.() ?? { passed: 0, failed: 0, total: 0, results: [] }
+      console.log(`\n  Synth tests — ${path.basename(inputPath)}`)
       console.log(`  ${'─'.repeat(40)}`)
       for (const r of result.results) {
         console.log(`  ${r.ok ? '✓' : '✗'} ${r.desc}${r.error ? `  (${r.error})` : ''}`)
@@ -244,7 +244,7 @@ function main(): void {
     return
   }
 
-  // ── axon --bundle ─────────────────────────────────────────────────────────
+  // ── synth --bundle ─────────────────────────────────────────────────────────
   if (args[0] === '--bundle') {
     const inputPath  = path.resolve(args[1] ?? '')
     const outputPath = args[2] ? path.resolve(args[2]) : null
@@ -255,7 +255,7 @@ function main(): void {
     try {
       const bundle = buildBundle(inputPath)
       if (bundle.warnings.length > 0) {
-        console.warn(`⚠  Axon checker warnings:`)
+        console.warn(`⚠  Synth checker warnings:`)
         bundle.warnings.forEach(w => console.warn(w))
       }
       if (outputPath) {
@@ -287,7 +287,7 @@ function main(): void {
   try {
     const { js, warnings } = transpileSource(source)
     if (warnings.length > 0) {
-      console.warn(`⚠  Axon checker warnings:`)
+      console.warn(`⚠  Synth checker warnings:`)
       warnings.forEach(w => console.warn(w))
     }
     if (outputPath) {
@@ -296,7 +296,7 @@ function main(): void {
       const jsLines  = js.split('\n').filter(l => l.trim()).length
       const warnStr  = warnings.length > 0 ? ` (${warnings.length} warning${warnings.length > 1 ? 's' : ''})` : ''
       console.log(`✓ Transpiled ${path.basename(inputPath)} → ${path.basename(outputPath)}${warnStr}`)
-      console.log(`  ${srcLines} lines Axon → ${jsLines} lines JS`)
+      console.log(`  ${srcLines} lines Synth → ${jsLines} lines JS`)
     } else {
       process.stdout.write(js)
     }

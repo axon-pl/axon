@@ -1,15 +1,15 @@
-// Simulate how the browser uses axon.compiler.js
+// Simulate how the browser uses synth.compiler.js
 const fs = require('fs')
 const vm = require('vm')
 
-const bundleSrc = fs.readFileSync('demo/axon.compiler.js', 'utf8')
+const bundleSrc = fs.readFileSync('demo/synth.compiler.js', 'utf8')
 const ctx = { globalThis: {}, console }
 ctx.window = ctx
 vm.createContext(ctx)
 vm.runInContext(bundleSrc, ctx)
 
-const AxonCompiler = ctx.AxonCompiler
-console.log('Bundle version:', AxonCompiler.version)
+const SynthCompiler = ctx.SynthCompiler
+console.log('Bundle version:', SynthCompiler.version)
 
 const examples = [
   ['loops', `let mut total = 0
@@ -46,7 +46,7 @@ for i in 0..10 { console.log("fib(" + i + ") = " + fib(i)) }`],
 
 let pass = 0, fail = 0
 for (const [name, src] of examples) {
-  const { js, errors } = AxonCompiler.compile(src)
+  const { js, errors } = SynthCompiler.compile(src)
   if (errors.length) {
     console.log(`FAIL  ${name}: ${errors.map(e=>e.message).join('; ')}`)
     fail++

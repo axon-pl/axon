@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Axon v0.4.0 — Web Controls Demo
+// Synth v0.4.0 — Web Controls Demo
 //
 // New in v0.3 (all features exercised below):
 //
@@ -402,9 +402,9 @@ fn render_modal_demo :: (containerId: string) -> void {
   let closeBtn = el("button", { class: "btn btn-primary modal-close-btn" }, "Close")
   let overlay  = el("div", { class: "modal-overlay" },
     el("div", { class: "modal-box" },
-      el("h3", { class: "modal-title" }, "Hello from Axon"),
+      el("h3", { class: "modal-title" }, "Hello from Synth"),
       el("p",  { class: "modal-body" },
-        "This modal state is managed by pure Axon functions. " +
+        "This modal state is managed by pure Synth functions. " +
         "Opening and closing are just state transitions — no framework needed."
       ),
       closeBtn
@@ -412,7 +412,7 @@ fn render_modal_demo :: (containerId: string) -> void {
   )
   let openBtn = el("button", { class: "btn btn-primary", id: "modal-open" }, "Open Modal")
   let _ = openBtn.addEventListener("click", () => {
-    state = modal_open("Hello from Axon", "Pure state logic")
+    state = modal_open("Hello from Synth", "Pure state logic")
     overlay.style.display = "flex"
   })
   let _ = closeBtn.addEventListener("click", () => {

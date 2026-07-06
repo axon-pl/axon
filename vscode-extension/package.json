@@ -1,9 +1,9 @@
 {
-  "name": "axon-language",
-  "displayName": "Axon Language",
-  "description": "Syntax highlighting, bracket matching, and language support for the Axon programming language (.axn files)",
+  "name": "synth-language",
+  "displayName": "Synth Language",
+  "description": "Syntax highlighting, bracket matching, and language support for the Synth programming language (.syn files)",
   "version": "0.1.0",
-  "publisher": "axon-lang",
+  "publisher": "synth-lang",
   "license": "MIT",
   "engines": {
     "vscode": "^1.60.0"
@@ -14,14 +14,14 @@
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/axon-lang/axon"
+    "url": "https://github.com/synth-lang/synth"
   },
   "contributes": {
     "languages": [
       {
-        "id": "axon",
-        "aliases": ["Axon", "axon"],
-        "extensions": [".axn"],
+        "id": "synth",
+        "aliases": ["Synth", "synth"],
+        "extensions": [".syn"],
         "configuration": "./language-configuration.json",
         "icon": {
           "light": "./icon.png",
@@ -31,9 +31,9 @@
     ],
     "grammars": [
       {
-        "language": "axon",
-        "scopeName": "source.axon",
-        "path": "./syntaxes/axon.tmLanguage.json"
+        "language": "synth",
+        "scopeName": "source.synth",
+        "path": "./syntaxes/synth.tmLanguage.json"
       }
     ]
   }

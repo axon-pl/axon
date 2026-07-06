@@ -26,5 +26,5 @@ jobs:
       - name: Build compiler
         run: npx tsc
 
-      - name: Run Axon tests
+      - name: Run Synth tests
         run: npm test

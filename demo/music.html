@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon v0.6.0 — Synthwave Music Library</title>
+  <title>Synth v0.6.0 — Synthwave Music Library</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -422,10 +422,10 @@
     <div class="header-text">
       <div class="page-title">
         Synthwave Music Library
-        <span class="lang-badge">Axon v0.6.0</span>
+        <span class="lang-badge">Synth v0.6.0</span>
       </div>
       <div class="page-subtitle">
-        A full-feature Axon demo — string interpolation · .field shorthand · param validation injection · @memo · pipelines · pattern matching · constrained types · stdlib
+        A full-feature Synth demo — string interpolation · .field shorthand · param validation injection · @memo · pipelines · pattern matching · constrained types · stdlib
       </div>
     </div>
   </header>
@@ -439,8 +439,8 @@
     <div class="source-inner">
       <div class="source-heading">Source Code</div>
       <div class="source-tabs">
-        <button class="source-tab active" onclick="showTab('axn')">music.axn (Axon source)</button>
-        <button class="source-tab"        onclick="showTab('js')">music.axon.js (transpiled)</button>
+        <button class="source-tab active" onclick="showTab('axn')">music.syn (Synth source)</button>
+        <button class="source-tab"        onclick="showTab('js')">music.synth.js (transpiled)</button>
       </div>
       <div id="tab-axn" class="source-content active">
         <pre id="axn-src">Loading…</pre>
@@ -453,15 +453,15 @@
 
   <footer class="footer">
     <p>
-      Axon v0.6.0 · Designed by AI for AI · Transpiles to JavaScript ·
+      Synth v0.6.0 · Designed by AI for AI · Transpiles to JavaScript ·
       <code>"Hello {name}"</code> string interpolation ·
       <code>filter(.active)</code> .field shorthand ·
       <code>@memo</code> memoization
     </p>
   </footer>
 
-  <!-- Transpiled Axon -->
-  <script src="music.axon.js"></script>
+  <!-- Transpiled Synth -->
+  <script src="music.synth.js"></script>
 
   <!-- Embedded sources for viewer -->
   <script src="music.sources.js"></script>
@@ -494,7 +494,7 @@
     }
 
     if (window.MUSIC_SOURCES) {
-      document.getElementById('axn-src').textContent = MUSIC_SOURCES.axn;
+      document.getElementById('axn-src').textContent = MUSIC_SOURCES.syn;
       document.getElementById('js-src').textContent  = MUSIC_SOURCES.js;
     }
   </script>

@@ -1,12 +1,12 @@
-// Embeds music.axn source and transpiled JS into demo/music.sources.js
+// Embeds music.syn source and transpiled JS into demo/music.sources.js
 // Run after transpiling: node tools/embed_music.js
 const fs = require('fs')
 const path = require('path')
 
 const root = path.resolve(__dirname, '..')
 
-const axn = fs.readFileSync(path.join(root, 'examples', 'music.axn'), 'utf8')
-const js  = fs.readFileSync(path.join(root, 'demo',     'music.axon.js'), 'utf8')
+const axn = fs.readFileSync(path.join(root, 'examples', 'music.syn'), 'utf8')
+const js  = fs.readFileSync(path.join(root, 'demo',     'music.synth.js'), 'utf8')
 
 const escape = s => s.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')
 

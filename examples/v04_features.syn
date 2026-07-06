@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.4.0 — Feature demonstration
+// Synth v0.4.0 — Feature demonstration
 // Tests all 7 new language features:
 //   1. when guards in match
 //   2. ?. optional chaining

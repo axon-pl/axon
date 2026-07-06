@@ -1,10 +1,10 @@
-# ⬡ Axon
+# ⬡ Synth
 
 **An AI-native programming language that transpiles to JavaScript.**
 
-Axon is designed from the ground up to be written, read, and reasoned about by language models — with unambiguous grammar, intent-first declarations, constraint-enforced types, and explicit effect tracking. It compiles to clean, readable JavaScript with no runtime dependency.
+Synth is designed from the ground up to be written, read, and reasoned about by language models — with unambiguous grammar, intent-first declarations, constraint-enforced types, and explicit effect tracking. It compiles to clean, readable JavaScript with no runtime dependency.
 
-```axon
+```synth
 type Health = int where value >= 0 && value <= 100
 
 record Hero {
@@ -29,7 +29,7 @@ fn level_title :: (class: string, level: int) -> string {
 ```
 
 ```
-node dist/cli.js --test examples/rpg.axn
+node dist/cli.js --test examples/rpg.syn
   ✓ level_title: mage lv10 = Archmage
   ✓ hp_status_label: 0 = DEAD
   15 passed, 0 failed, 15 total
@@ -37,7 +37,7 @@ node dist/cli.js --test examples/rpg.axn
 
 ---
 
-## Why Axon?
+## Why Synth?
 
 OOP and mutable state exist to help *humans* manage large codebases. AI code generators don't have those constraints — they benefit from the opposite: unambiguous data flow, explicit effects, and constraints that are machine-checkable at the type level.
 
@@ -50,21 +50,21 @@ OOP and mutable state exist to help *humans* manage large codebases. AI code gen
 | Tagged unions | Sum types with exhaustive pattern matching |
 | `@test` | Inline test declarations, runnable with `--test` |
 | `\|>` pipelines | Left-to-right functional composition with optional `as` naming |
-| `import` / `export` | Multi-file modules — bundled to a single JS file with `axon --bundle` |
+| `import` / `export` | Multi-file modules — bundled to a single JS file with `synth --bundle` |
 
 ---
 
 ## Installation
 
 ```bash
-npm install -g axon-lang
+npm install -g synth-lang
 ```
 
 Or run from source:
 
 ```bash
-git clone https://github.com/axon-pl/axon
-cd axon
+git clone https://github.com/synth-lang/synth
+cd synth
 npm install
 npx tsc
 ```
@@ -75,13 +75,13 @@ npx tsc
 
 ```bash
 # Transpile a single file
-axon input.axn output.js
+synth input.syn output.js
 
 # Bundle a multi-file project (v0.5)
-axon --bundle main.axn output.js
+synth --bundle main.syn output.js
 
 # Run @test declarations
-axon --test input.axn
+synth --test input.syn
 ```
 
 ---
@@ -90,7 +90,7 @@ axon --test input.axn
 
 ### Functions
 
-```axon
+```synth
 // Full form
 fn add :: (a: int, b: int) -> int {
   @pure @total
@@ -106,7 +106,7 @@ let square = x => x * x
 
 ### Constrained types
 
-```axon
+```synth
 type EmailAddress = string where value.includes("@") && value.length > 3
 type Percentage   = int    where value >= 0 && value <= 100
 
@@ -120,7 +120,7 @@ fn send_welcome :: (email: EmailAddress) -> void {
 
 ### Pattern matching with guards
 
-```axon
+```synth
 fn classify :: (score: int) -> string =
   match score {
     | n when n >= 90 => "A"
@@ -132,7 +132,7 @@ fn classify :: (score: int) -> string =
 
 ### Tagged unions
 
-```axon
+```synth
 type Shape =
   | Circle   { r: float }
   | Rect     { w: float, h: float }
@@ -149,7 +149,7 @@ fn area :: (s: Shape) -> float =
 
 ### Pipelines
 
-```axon
+```synth
 let result =
   heroes
     |> filter(.alive)
@@ -166,7 +166,7 @@ let total =
 
 ### Triple-quote strings
 
-```axon
+```synth
 let intro = """
 In the realm of ALDENMOOR, a great evil has awakened.
 
@@ -176,8 +176,8 @@ Something must be done."""
 
 ### Modules (v0.5)
 
-```axon
-// tiles.axn
+```synth
+// tiles.syn
 export type Tile = | Floor | Wall | Door | Stairs | Chest | Water | Torch
 
 export fn tile_glyph(tag: string) -> string =
@@ -186,7 +186,7 @@ export fn tile_glyph(tag: string) -> string =
     | "Stairs" => "≋"  | _       => "?"
   }
 
-// main.axn
+// main.syn
 import { tile_glyph } from "./tiles"
 import { generate }   from "./generator"
 import { render_map } from "./renderer"
@@ -199,20 +199,20 @@ mount()
 ```
 
 ```bash
-axon --bundle main.axn bundle.js
-# ✓ Bundled tiles.axn + generator.axn + renderer.axn + main.axn
+synth --bundle main.syn bundle.js
+# ✓ Bundled tiles.syn + generator.syn + renderer.syn + main.syn
 #   4 modules → 407 lines JS
 ```
 
 ### Built-in testing
 
-```axon
+```synth
 @test "circle area r=1"  { area(Circle(1.0)) > 3.14 }
 @test "rect 4x3 = 12"    { area(Rect(4.0, 3.0)) === 12.0 }
 ```
 
 ```bash
-axon --test shapes.axn
+synth --test shapes.syn
   ✓ circle area r=1
   ✓ rect 4x3 = 12
   2 passed, 0 failed, 2 total
@@ -224,27 +224,27 @@ axon --test shapes.axn
 
 | Demo | Description |
 |---|---|
-| [Chronicle](https://axon-pl.github.io/axon/chronicle.html) | **v0.8** — Reactive fantasy kingdom log; `store`, `async fn`, `await`, `on...change` |
-| [The Bazaar](https://axon-pl.github.io/axon/bazaar.html) | **v0.7** — RPG item shop; generics, `interface`, `let infer`, immutable state |
-| [Dungeon Map Toolkit](https://axon-pl.github.io/axon/dungeon.html) | **v0.5–v0.6** — 4-file module demo with `Result` config parser |
-| [RPG Adventure](https://axon-pl.github.io/axon/rpg.standalone.html) | 50-battle dungeon crawl — 1576 lines of pure Axon game logic |
-| [Combat Engine](https://axon-pl.github.io/axon/combat.html) | Turn-based combat system |
-| [Music Library](https://axon-pl.github.io/axon/music.html) | Synthwave track browser |
+| [Chronicle](https://synth-pl.github.io/synth/chronicle.html) | **v0.8** — Reactive fantasy kingdom log; `store`, `async fn`, `await`, `on...change` |
+| [The Bazaar](https://synth-pl.github.io/synth/bazaar.html) | **v0.7** — RPG item shop; generics, `interface`, `let infer`, immutable state |
+| [Dungeon Map Toolkit](https://synth-pl.github.io/synth/dungeon.html) | **v0.5–v0.6** — 4-file module demo with `Result` config parser |
+| [RPG Adventure](https://synth-pl.github.io/synth/rpg.standalone.html) | 50-battle dungeon crawl — 1576 lines of pure Synth game logic |
+| [Combat Engine](https://synth-pl.github.io/synth/combat.html) | Turn-based combat system |
+| [Music Library](https://synth-pl.github.io/synth/music.html) | Synthwave track browser |
 
 ---
 
 ## Documentation
 
-Full language reference at **[axon-pl.github.io/axon/docs.html](https://axon-pl.github.io/axon/docs.html)**
+Full language reference at **[synth-pl.github.io/synth/docs.html](https://synth-pl.github.io/synth/docs.html)**
 
-- [Functions](https://axon-pl.github.io/axon/docs.html#functions)
-- [Types & Constraints](https://axon-pl.github.io/axon/docs.html#types)
-- [Tagged Unions](https://axon-pl.github.io/axon/docs.html#tagged-unions)
-- [Pattern Matching](https://axon-pl.github.io/axon/docs.html#pattern-matching)
-- [Annotations](https://axon-pl.github.io/axon/docs.html#ann-pure)
-- [Modules](https://axon-pl.github.io/axon/docs.html#modules)
-- [Version History](https://axon-pl.github.io/axon/docs.html#version-history)
-- [Roadmap](https://axon-pl.github.io/axon/docs.html#roadmap)
+- [Functions](https://synth-pl.github.io/synth/docs.html#functions)
+- [Types & Constraints](https://synth-pl.github.io/synth/docs.html#types)
+- [Tagged Unions](https://synth-pl.github.io/synth/docs.html#tagged-unions)
+- [Pattern Matching](https://synth-pl.github.io/synth/docs.html#pattern-matching)
+- [Annotations](https://synth-pl.github.io/synth/docs.html#ann-pure)
+- [Modules](https://synth-pl.github.io/synth/docs.html#modules)
+- [Version History](https://synth-pl.github.io/synth/docs.html#version-history)
+- [Roadmap](https://synth-pl.github.io/synth/docs.html#roadmap)
 
 ---
 
@@ -253,20 +253,20 @@ Full language reference at **[axon-pl.github.io/axon/docs.html](https://axon-pl.
 | Version | Theme | Key features |
 |---|---|---|
 | v0.4 ✓ | Guards & Unions | `when` guards, tagged unions, `@test`, `?.` / `??`, destructuring, heredocs |
-| v0.5 ✓ | Modules | `import` / `export`, `axon --bundle` — multi-file projects |
+| v0.5 ✓ | Modules | `import` / `export`, `synth --bundle` — multi-file projects |
 | v0.5.2 ✓ | Ergonomics | `for` loops (range + forEach), `break`/`continue`, `let mut` |
 | v0.6 ✓ | Safety | `Result<T>`, `?` propagation, error contracts, `refine x: "claim"` semantic narrowing |
 | v0.7 ✓ | Type System | Generics `<T,U>`, `interface`, `fn(T)->U` type expr, `let infer` model-resolved types |
 | **v0.8** ✓ | Async & Reactive | `async fn`, `await`, `store` reactive state, `on...change` subscriptions, enforced `@effects` |
-| v0.9 | Tooling | LSP, source maps, `axon fmt`, rich errors, `explain { }` semantic context blocks |
-| v1.0 | Stability | Frozen spec, semver promise, `axon spec` extracts `@intent`/`refine`/`explain` as JSON |
+| v0.9 | Tooling | LSP, source maps, `synth fmt`, rich errors, `explain { }` semantic context blocks |
+| v1.0 | Stability | Frozen spec, semver promise, `synth spec` extracts `@intent`/`refine`/`explain` as JSON |
 | v1.1 | AI-Native | `likely` arms — probabilistic pattern matching by semantic similarity |
 
 ---
 
 ## VS Code Extension
 
-Syntax highlighting for `.axn` files is available in `vscode-extension/`. Install via **Extensions: Install from VSIX** in the command palette.
+Syntax highlighting for `.syn` files is available in `vscode-extension/`. Install via **Extensions: Install from VSIX** in the command palette.
 
 ---
 
@@ -278,10 +278,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Issues and PRs welcome.
 
 ## License
 
-[MIT](LICENSE) — © 2026 axon-pl
+[MIT](LICENSE) — © 2026 synth-pl
 
 ---
 
 ## Support
 
-If Axon is useful to you, consider [sponsoring the project on GitHub](https://github.com/sponsors/axon-pl). It helps keep development going.
+If Synth is useful to you, consider [sponsoring the project on GitHub](https://github.com/sponsors/synth-pl). It helps keep development going.

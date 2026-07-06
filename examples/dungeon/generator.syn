@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.5.2 — dungeon/generator.axn
+// Synth v0.5.2 — dungeon/generator.syn
 // Room-based procedural dungeon map generator.
 // Carves rectangular rooms from an all-wall grid and connects them with
 // L-shaped corridors. Special tiles are scattered inside rooms only.

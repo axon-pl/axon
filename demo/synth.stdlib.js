@@ -1,6 +1,6 @@
-// axon.stdlib.js — Axon standard library (prebuilt, load once)
+// synth.stdlib.js — Synth standard library (prebuilt, load once)
 // All functions are declared in the global scope.
-// Load this before any compiled Axon output when using emitStdlib: false.
+// Load this before any compiled Synth output when using emitStdlib: false.
 
 const map = (xs, fn) => xs.map(fn);
 const filter = (xs, pred) => xs.filter(pred);
@@ -51,7 +51,7 @@ const pow = (x, exp) => Math.pow(x, exp);
 const sqrt = (x) => Math.sqrt(x);
 const random = () => Math.random();
 const random_int = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
-const __axon_presets = {
+const __synth_presets = {
   email:   /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   url:     /^https?:\/\//,
   uuid:    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
@@ -69,11 +69,11 @@ const unwrap = (r) => { if (r != null && r.tag === 'Ok') return r.value; throw n
 const unwrap_or = (r, fallback) => (r != null && r.tag === 'Ok') ? r.value : fallback;
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const println = (...args) => { console.log(...args); console.log(''); };
-const __axon_tests = [];
-const __runAxonTests = () => {
+const __synth_tests = [];
+const __runSynthTests = () => {
   let passed = 0, failed = 0;
   const results = [];
-  for (const t of __axon_tests) {
+  for (const t of __synth_tests) {
     try {
       const ok = !!t.fn();
       if (ok) { passed++; results.push({ ok: true, desc: t.desc }); }
@@ -82,4 +82,4 @@ const __runAxonTests = () => {
   }
   return { passed, failed, total: passed + failed, results };
 };
-if (typeof globalThis !== 'undefined') { globalThis.__axon_tests = __axon_tests; globalThis.__runAxonTests = __runAxonTests; }
+if (typeof globalThis !== 'undefined') { globalThis.__synth_tests = __synth_tests; globalThis.__runSynthTests = __runSynthTests; }

@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // TypeScript — Web Controls Demo (comparison file)
-// Equivalent functionality to controls.axn
+// Equivalent functionality to controls.syn
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -278,7 +278,7 @@ function render_modal_demo(containerId: string): void {
   const overlay = el("div", { class: "modal-overlay", id: "modal-overlay" },
     el("div", { class: "modal-box" },
       el("h3", { class: "modal-title" }, "Hello from TypeScript"),
-      el("p",  { class: "modal-body" },  "This modal is the TypeScript equivalent of the Axon demo."),
+      el("p",  { class: "modal-body" },  "This modal is the TypeScript equivalent of the Synth demo."),
       el("button", { class: "btn btn-primary modal-close-btn", id: "modal-close-ts" }, "Close")
     )
   )

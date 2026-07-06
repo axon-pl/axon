@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Axon v0.3.0 — Combat Engine
+// Synth v0.3.0 — Combat Engine
 //
-// The logic IS the demo. All game rules are expressed as pure Axon functions.
+// The logic IS the demo. All game rules are expressed as pure Synth functions.
 // The DOM layer is thin — everything interesting happens in the language:
 //
 //   Constrained types enforce stat boundaries at function entry
@@ -63,7 +63,7 @@ fn format_hero_label(hero) = "{hero.name} Lv.{hero.level} {hero.heroClass}"
 // v0.3: STRING INTERPOLATION — local let bindings as interpolation targets
 // ══════════════════════════════════════════════════════════════════════════════
 
-// HP bar: "████░░░░ 45/80 (56%)" built entirely from pure Axon functions
+// HP bar: "████░░░░ 45/80 (56%)" built entirely from pure Synth functions
 fn hp_bar_text :: (hp: int, maxHp: int) -> string {
   @pure @total
   @intent "Generate a visual HP bar string with percentage"
@@ -436,7 +436,7 @@ fn render_combat :: (rootId: string) -> void {
   })
 
   // Initial log
-  addLog("AXON COMBAT ENGINE — pure rules, memoized formulas, type-safe stats")
+  addLog("SYNTH COMBAT ENGINE — pure rules, memoized formulas, type-safe stats")
   addLog("Shadow Drake appears — {enemy.weakness}.")
   addLog("Aria (mage) has arcane bonus vs this enemy.")
   addLog("Press ATTACK to begin.")

@@ -3,14 +3,14 @@ const fs   = require('fs')
 const path = require('path')
 const root = path.resolve(__dirname, '..')
 
-const js  = fs.readFileSync(path.join(root, 'demo', 'rpg.axon.js'), 'utf8')
-const axn = fs.readFileSync(path.join(root, 'examples', 'rpg.axn'), 'utf8')
+const js  = fs.readFileSync(path.join(root, 'demo', 'rpg.synth.js'), 'utf8')
+const axn = fs.readFileSync(path.join(root, 'examples', 'rpg.syn'), 'utf8')
 const src = fs.readFileSync(path.join(root, 'demo', 'rpg.html'),    'utf8')
 
 const lineCount = s => s.replace(/\n$/, '').split('\n').length
 const axnLines = lineCount(axn)
 const jsLines  = lineCount(js)
-const pageSub  = `${axnLines} lines Axon · ${jsLines} lines JS · 50-battle marathon · pure game logic`
+const pageSub  = `${axnLines} lines Synth · ${jsLines} lines JS · 50-battle marathon · pure game logic`
 
 const inlineScript = `<script>
 ${js}
@@ -30,7 +30,7 @@ let standalone = src
   .replace(/\/\* ── Source viewer[\s\S]*?(?=\/\* ── Footer)/g, '')
   // Remove external scripts and the page's inline bootstrap; replace with inlined game
   .replace(
-    /\s*<script src="rpg\.axon\.js"><\/script>\s*<script src="rpg\.sources\.js"><\/script>\s*<script>[\s\S]*?<\/script>\s*/,
+    /\s*<script src="rpg\.synth\.js"><\/script>\s*<script src="rpg\.sources\.js"><\/script>\s*<script>[\s\S]*?<\/script>\s*/,
     `\n\n  ${inlineScript}\n\n`
   )
 

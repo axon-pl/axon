@@ -1,8 +1,8 @@
-# Axon v0.1 — Analysis: Was It Helpful?
+# Synth v0.1 — Analysis: Was It Helpful?
 
 ## What We Built
 
-A working transpiler (Lexer → Parser → Code Generator) that converts Axon source files (`.axn`)
+A working transpiler (Lexer → Parser → Code Generator) that converts Synth source files (`.syn`)
 to valid JavaScript. Tested against a web controls demo with 5 widgets: counter, email validator,
 toggle switch, theme switcher, and modal dialog.
 
@@ -11,7 +11,7 @@ toggle switch, theme switcher, and modal dialog.
 ## Quantitative Comparison
 
 
-| Metric                       | Axon (controls.axn) | TypeScript (controls.ts)   |
+| Metric                       | Synth (controls.syn) | TypeScript (controls.ts)   |
 | ---------------------------- | ------------------- | -------------------------- |
 | Source lines                 | 313                 | 273                        |
 | Non-blank/comment lines      | ~185                | ~220                       |
@@ -22,18 +22,18 @@ toggle switch, theme switcher, and modal dialog.
 | Totality annotations         | 26 (`@total`)       | 0                          |
 
 
-Axon is **~15% longer** in raw source lines, but carries **~100 lines of machine-readable 
+Synth is **~15% longer** in raw source lines, but carries **~100 lines of machine-readable 
 reasoning metadata** that TypeScript has no equivalent for.
 
 ---
 
-## Where Axon Genuinely Helped
+## Where Synth Genuinely Helped
 
 ### 1. Intent is first-class, not a comment
 
-In Axon:
+In Synth:
 
-```axon
+```synth
 fn counter_inc :: (state: CounterState) -> CounterState {
   @pure @total
   @intent "Return new state with count incremented by 1, clamped to max"
@@ -49,14 +49,14 @@ function counter_inc(state: CounterState): CounterState {
 }
 ```
 
-The TypeScript version is shorter, but the Axon version declares **what the function is supposed
+The TypeScript version is shorter, but the Synth version declares **what the function is supposed
 to do**. An AI can verify: does the implementation match the intent? TypeScript gives no hook for
 this question. The `@intent` annotation is machine-readable and emitted as JSDoc — it's not a
 comment that humans might skip.
 
 ### 2. Effect declarations prevent surprise
 
-```axon
+```synth
 fn render_counter :: (containerId: string) -> void {
   @effects [dom.write, dom.events, state.mutable]
 ```
@@ -76,7 +76,7 @@ An AI can check this mechanically against the body. TypeScript has no `pure` con
 
 ### 4. Type signatures signal intent at the semantic level
 
-```axon
+```synth
 type EmailAddress = string
 type CSSClass = string
 ```
@@ -88,9 +88,9 @@ but the naming convention is the only signal — it's not structured metadata.
 
 ### 5. Pattern matching is declarative and exhaustive
 
-Axon's match forces you to think about all cases up front:
+Synth's match forces you to think about all cases up front:
 
-```axon
+```synth
 fn counter_display :: (state: CounterState) -> string {
   match state.count {
     | > 0 => "+" + String(state.count)
@@ -101,11 +101,11 @@ fn counter_display :: (state: CounterState) -> string {
 ```
 
 The TypeScript equivalent uses if/else chains and requires the AI to trace all branches to
-understand coverage. The Axon version makes the case structure explicit in the syntax itself.
+understand coverage. The Synth version makes the case structure explicit in the syntax itself.
 
 ### 6. Pipeline operator reduces intermediate noise
 
-```axon
+```synth
 fn process :: (users: User[]) -> int {
   users |> filter(.active) |> map(.score) |> sum
 }
@@ -118,22 +118,22 @@ const scores = users.filter(u => u.active).map(u => u.score)
 return scores.reduce((a, b) => a + b, 0)
 ```
 
-In Axon, the data flow is left-to-right and readable without tracking variable names. For an AI
+In Synth, the data flow is left-to-right and readable without tracking variable names. For an AI
 generating or reviewing this code, there's less state to track.
 
 ---
 
-## Where Axon Did Not Help
+## Where Synth Did Not Help
 
 ### 1. Imperative DOM code is awkward
 
-The `el`, `mount`, and `render_*` functions in Axon source are essentially JavaScript with Axon
+The `el`, `mount`, and `render_*` functions in Synth source are essentially JavaScript with Synth
 syntax wrapped around them. The language provides no advantage here. TypeScript's type system
 actually helps more in this domain (it knows the difference between `HTMLInputElement` and
 `HTMLButtonElement`).
 
-**Verdict**: Axon is not the right tool for imperative DOM manipulation. The correct architecture
-(which this demo now uses) is: pure logic in Axon, DOM layer in TypeScript/JS.
+**Verdict**: Synth is not the right tool for imperative DOM manipulation. The correct architecture
+(which this demo now uses) is: pure logic in Synth, DOM layer in TypeScript/JS.
 
 ### 2. Type constraints aren't enforced in v0.1
 
@@ -143,7 +143,7 @@ type system is more immediately useful for preventing wrong-type errors at devel
 
 ### 3. Source is longer for simple functions
 
-```axon
+```synth
 fn toggle_flip :: (state: bool) -> bool {
   @pure @total
   @intent "Invert a boolean toggle — the simplest possible state transition"
@@ -157,20 +157,20 @@ vs:
 function toggle_flip(state: boolean): boolean { return !state }
 ```
 
-The Axon version is 5 lines for a one-liner. For an AI that already understands the domain, the
+The Synth version is 5 lines for a one-liner. For an AI that already understands the domain, the
 annotations add noise rather than signal. The annotations are most valuable on **complex**
 functions where the gap between declaration and implementation is large.
 
 ### 4. No IDE tooling (yet)
 
-TypeScript has decades of tooling: autocomplete, red squiggles, refactoring. Axon v0.1 has none.
+TypeScript has decades of tooling: autocomplete, red squiggles, refactoring. Synth v0.1 has none.
 This matters less for AI (which generates code) than for human review of AI output.
 
 ---
 
 ## The Core Honest Assessment
 
-Axon v0.1 is **genuinely useful** for one thing TypeScript can't do:
+Synth v0.1 is **genuinely useful** for one thing TypeScript can't do:
 
 > **Making machine-readable claims about what a function is supposed to do, and making
 > those claims structurally part of the code rather than prose comments.**
@@ -183,7 +183,7 @@ AI can use to:
 - Understand side-effect boundaries without reading function bodies
 - Reason about correctness at a higher level than types
 
-TypeScript improves the quality of the code *after* it's written. Axon's annotations could
+TypeScript improves the quality of the code *after* it's written. Synth's annotations could
 improve the quality of code *generation* — because the intent is explicitly declared before the
 implementation, not inferred from it afterward.
 
@@ -196,7 +196,7 @@ implementation, not inferred from it afterward.
 2. **Exhaustiveness checking** — `@exhaustive` on a match should be verified by the transpiler.
 3. **Purity checking** — `@pure` functions that contain DOM calls should produce a warning.
 4. **A stdlib** — Standard higher-order functions (`map`, `filter`, `fold`, `pipe`) with
-  Axon signatures so pipeline composition is fully typed.
+  Synth signatures so pipeline composition is fully typed.
 5. **Shorter syntax for trivial functions** — Single-expression functions without the full
   annotation block, for cases where the brevity matters more than the metadata.
 
@@ -204,7 +204,7 @@ implementation, not inferred from it afterward.
 
 ## Summary
 
-Axon helped. Not dramatically for this specific demo (which is mostly straightforward),
+Synth helped. Not dramatically for this specific demo (which is mostly straightforward),
 but the design is correct: intent declarations, effect annotations, and exhaustive pattern
 matching are the right primitives for an AI-native language. The test confirmed both where
 the language adds value and where it doesn't — which is exactly what a v0.1 test should do.

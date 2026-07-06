@@ -1,15 +1,15 @@
-# Contributing to Axon
+# Contributing to Synth
 
-Thanks for your interest in contributing. Axon is a small, focused project and every contribution counts.
+Thanks for your interest in contributing. Synth is a small, focused project and every contribution counts.
 
 ---
 
 ## Ways to contribute
 
-- **Bug reports** — open an issue with a minimal `.axn` repro
+- **Bug reports** — open an issue with a minimal `.syn` repro
 - **Feature requests** — open an issue describing the use case (not just the feature)
 - **Bug fixes** — open a PR with a failing `@test` that your fix makes pass
-- **New examples** — `.axn` files in `examples/` that demonstrate real use cases
+- **New examples** — `.syn` files in `examples/` that demonstrate real use cases
 - **Docs improvements** — typos, clarity, missing explanations in `demo/docs.html`
 
 ---
@@ -17,8 +17,8 @@ Thanks for your interest in contributing. Axon is a small, focused project and e
 ## Getting started
 
 ```bash
-git clone https://github.com/axon-pl/axon
-cd axon
+git clone https://github.com/synth-lang/synth
+cd synth
 npm install
 npx tsc          # compile the compiler
 npm test         # run @test suites
@@ -43,7 +43,7 @@ The compiler pipeline lives in `src/`:
 1. Fork the repo and create a branch: `git checkout -b feat/my-feature`
 2. Make your changes in `src/`
 3. Run `npx tsc` to rebuild
-4. Add a `@test` in `examples/v04_features.axn` (or a new `.axn` file) covering your change
+4. Add a `@test` in `examples/v04_features.syn` (or a new `.syn` file) covering your change
 5. Run `npm test` — all tests must pass
 6. Open a PR with a clear description of what changed and why
 
@@ -76,10 +76,10 @@ Then add tests in `examples/` and verify with `npm test`.
 
 Please include:
 
-- Axon source that triggers the bug (minimal reproduction)
+- Synth source that triggers the bug (minimal reproduction)
 - Expected output
 - Actual output or error message
-- Axon version (`node dist/cli.js --version` once that flag exists, or the git SHA)
+- Synth version (`node dist/cli.js --version` once that flag exists, or the git SHA)
 
 ---
 

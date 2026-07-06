@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Axon v0.6 — dungeon/config.axn
+// Synth v0.6 — dungeon/config.syn
 // Parses a user-supplied dungeon seed code into a validated DungeonConfig.
 // All parsing functions return Result — failures carry precise error messages.
 //

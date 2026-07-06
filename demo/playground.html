@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Axon Playground — v0.9.8</title>
+  <title>Synth Playground — v0.9.8</title>
   <style>
     /* ── Synthwave palette ─────────────────────────────────────────────────── */
     :root {
@@ -427,7 +427,7 @@
 
 <header class="page-header">
   <div class="header-logo">⬡</div>
-  <div class="header-title">Axon Playground</div>
+  <div class="header-title">Synth Playground</div>
   <div class="header-badge">v0.9.8</div>
   <div class="header-sep"></div>
   <label class="header-example-label" for="example-select">Examples:</label>
@@ -450,7 +450,7 @@
     <option value="while">While Loops</option>
     <option value="multilambda">Recipe Difficulty Ranker</option>
   </select>
-  <a class="header-nav" href="landing.html">← Axon</a>
+  <a class="header-nav" href="landing.html">← Synth</a>
 </header>
 
 <div class="toolbar">
@@ -468,7 +468,7 @@
   <!-- ── Editor ────────────────────────────────────────────────────────────── -->
   <div class="editor-pane">
     <div class="pane-label">
-      <span>Axon source</span>
+      <span>Synth source</span>
       <span id="line-col">line 1, col 1</span>
     </div>
     <div class="editor-wrap">
@@ -500,7 +500,7 @@
 </div>
 
 <!-- ── Compiler bundle ───────────────────────────────────────────────────────── -->
-<script src="axon.compiler.js?v=0.9.9-adfb84e"></script>
+<script src="synth.compiler.js?v=0.9.9-adfb84e"></script>
 
 <script>
 // ── Example snippets ─────────────────────────────────────────────────────────
@@ -777,7 +777,7 @@ print("Exit velocity:   " + pad_end("fast", 12, ".") + " door")`,
 // A completely reliable portfolio tracker. Do not sue us.
 
 let portfolio = [
-  { ticker: "AXON",  shares: 1_000,   buy: 9.99,     now: 42.00    },
+  { ticker: "SYNTH",  shares: 1_000,   buy: 9.99,     now: 42.00    },
   { ticker: "MOON",  shares: 50_000,  buy: 0.005,    now: 0.003    },
   { ticker: "YOLO",  shares: 250,     buy: 150.00,   now: 999.99   },
   { ticker: "HODL",  shares: 100_000, buy: 0.0001,   now: 0.0001   },
@@ -902,7 +902,7 @@ let missions = [
   { name: "Helios II",    fuel: 45,  temp: 18 },
   { name: "Deep Horizon", fuel: 91,  temp: 88 },
   { name: "Nova Prime",   fuel: 12,  temp: 5  },
-  { name: "Axon-1",       fuel: 100, temp: 20 },
+  { name: "Synth-1",       fuel: 100, temp: 20 },
 ]
 
 print("=== LAUNCH CONTROL ===")
@@ -986,10 +986,10 @@ record Track {
 
 let tracks = [
   Track("Neon Spiral",    "Synth City",   8_420_000, "synthwave"),
-  Track("Binary Sun",     "Axon Sound",  12_750_000, "electronic"),
+  Track("Binary Sun",     "Synth Sound",  12_750_000, "electronic"),
   Track("Gold Coast",     "The Drift",    3_100_000, "indie"),
   Track("Pulse Wave",     "Synth City",   6_330_000, "synthwave"),
-  Track("Static Dreams",  "Axon Sound",   9_100_000, "electronic"),
+  Track("Static Dreams",  "Synth Sound",   9_100_000, "electronic"),
   Track("Hollow Road",    "The Drift",    1_980_000, "indie"),
   Track("Midnight Freq",  "The Coast",    4_200_000, "synthwave"),
 ]
@@ -1155,7 +1155,7 @@ for i in 0..primes.length - 1 {
   }
 }`,
 
-  enums: `// Enums — Mission Axon-1 Checklist
+  enums: `// Enums — Mission Synth-1 Checklist
 // Enums give meaningful names to fixed sets of values.
 
 enum Priority = Low | Medium | High | Critical
@@ -1193,7 +1193,7 @@ let manifest = [
   Task("Orbital insertion burn", Status.Queued,      Priority.Critical),
 ]
 
-print("=== MISSION AXON-1 CHECKLIST ===")
+print("=== MISSION SYNTH-1 CHECKLIST ===")
 for t in manifest {
   print(format_task(t))
 }
@@ -1280,7 +1280,7 @@ print(status)
 // String and array functions working together on real data.
 
 let raw_log = [
-  "  2026-07-04 | LAUNCH    | Axon-1 lifts off from pad 39A  ",
+  "  2026-07-04 | LAUNCH    | Synth-1 lifts off from pad 39A  ",
   "  2026-07-04 | COMMS     | Downlink signal acquired        ",
   "  2026-07-05 | TELEMETRY | All systems nominal             ",
   "  2026-07-05 | WARNING   | Solar flare M-class detected    ",
@@ -1425,7 +1425,7 @@ const lineCol   = document.getElementById('line-col')
 
 function updateEditorHl() {
   // Trailing newline + space ensures the last empty line has proper height
-  editorHl.innerHTML = highlightAxon(editor.value) + '\n '
+  editorHl.innerHTML = highlightSynth(editor.value) + '\n '
 }
 
 // Load hello world on start
@@ -1499,10 +1499,10 @@ function compile() {
     return
   }
 
-  const { js, errors, warnings } = AxonCompiler.compile(src)
+  const { js, errors, warnings } = SynthCompiler.compile(src)
   // Strip stdlib preamble from display — it's injected at runtime, not part of user code.
   // Handles both old bundles (emitStdlib=true default) and new ones (emitStdlib=false).
-  const stdlib = AxonCompiler.stdlib || ''
+  const stdlib = SynthCompiler.stdlib || ''
   const userJs = (js && stdlib && js.startsWith(stdlib)) ? js.slice(stdlib.length).trimStart() : js
   lastJs = userJs
 
@@ -1551,7 +1551,7 @@ function runCode() {
   }
 
   try {
-    const execJs = (AxonCompiler.stdlib || '') + '{\n' + lastJs + '\n}'
+    const execJs = (SynthCompiler.stdlib || '') + '{\n' + lastJs + '\n}'
     const fn = new Function('console', 'Math', 'JSON', 'Array', 'Object', 'Map', 'Set',
       'String', 'Number', 'Boolean', 'Promise', 'parseInt', 'parseFloat', 'isNaN',
       execJs
@@ -1586,12 +1586,12 @@ function runCode() {
 function fmtCode() {
   const src = editor.value
   // Use the formatter from the browser bundle
-  if (!window.AxonCompiler || !AxonCompiler.compile) return
+  if (!window.SynthCompiler || !SynthCompiler.compile) return
   // Re-use: compile to check it's valid, then format using our inline formatter
-  const { errors } = AxonCompiler.compile(src)
+  const { errors } = SynthCompiler.compile(src)
   if (errors.length > 0) return  // don't format broken code
 
-  const formatted = formatAxon(src)
+  const formatted = formatSynth(src)
   if (formatted !== src) {
     const scrollTop = editor.scrollTop
     editor.value = formatted
@@ -1603,7 +1603,7 @@ function fmtCode() {
 }
 
 // Simple inline formatter for the playground (normalizes whitespace)
-function formatAxon(src) {
+function formatSynth(src) {
   return src
     .replace(/\r\n/g, '\n')
     .replace(/[ \t]+$/gm, '')   // trailing whitespace
@@ -1642,8 +1642,8 @@ function setStatus(type, text) {
   statusPill.textContent = text
 }
 
-// ── Axon source highlighter — single-pass tokeniser ──────────────────────────
-function highlightAxon(src) {
+// ── Synth source highlighter — single-pass tokeniser ──────────────────────────
+function highlightSynth(src) {
   return escHtml(src).replace(
     /(\/\/[^\n]*)|("""[\s\S]*?"""|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(0x[\da-fA-F_]+|0b[01_]+|\b\d[\d_]*\.?[\d_]*)|(@\w+)|(\|>|=>|->|\?\?|::|[|](?![|>]))|\b(fn|let|mut|type|record|enum|match|if|else|for|in|while|break|continue|where|return|import|export|from|module|store|interface|async|await|and|or|not|infer)\b|\b(true|false|null|undefined)\b|\b(string|int|float|bool|void)\b/g,
     (_, cmt, str, num, ann, op, kw, bool, ty) => {

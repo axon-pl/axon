@@ -85,7 +85,7 @@ for row in 1..4 {
 }
 
 // for...in over array
-let words = ["axon", "is", "fun"]
+let words = ["synth", "is", "fun"]
 let mut upper_words = []
 for w in words {
   upper_words = upper_words.concat([w.toUpperCase()])

@@ -1,7 +1,7 @@
 const { Lexer } = require('../dist/lexer.js');
 const { Parser } = require('../dist/parser.js');
 const { Codegen } = require('../dist/codegen.js');
-const { AXON_STDLIB } = require('../dist/stdlib.js');
+const { SYNTH_STDLIB } = require('../dist/stdlib.js');
 const vm = require('vm');
 
 function test(name, src) {
@@ -13,7 +13,7 @@ function test(name, src) {
   const js = new Codegen().generate(ast);
   const ctx = { console: { log: (...a) => {}, error: () => {}, warn: () => {} } };
   vm.createContext(ctx);
-  vm.runInContext(AXON_STDLIB, ctx);
+  vm.runInContext(SYNTH_STDLIB, ctx);
   try {
     vm.runInContext('{\n' + js + '\n}', ctx);
     console.log(`PASS [${name}]`);
@@ -184,7 +184,7 @@ for w in words {
 console.log(pad_start("2.1", 5) + " / 10")`,
 
 stonks: `let portfolio = [
-  { ticker: "AXON",  shares: 1_000,   buy: 9.99,    now: 42.00   },
+  { ticker: "SYNTH",  shares: 1_000,   buy: 9.99,    now: 42.00   },
   { ticker: "MOON",  shares: 50_000,  buy: 0.005,   now: 0.003   },
   { ticker: "YOLO",  shares: 250,     buy: 150.00,  now: 999.99  },
   { ticker: "HODL",  shares: 100_000, buy: 0.0001,  now: 0.0001  },

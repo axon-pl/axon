@@ -1,10 +1,10 @@
 {
-  "name": "axon-lang",
+  "name": "synth-lang",
   "version": "0.9.9",
-  "description": "Axon — AI-native programming language that transpiles to JavaScript",
+  "description": "Synth — AI-native programming language that transpiles to JavaScript",
   "main": "dist/cli.js",
   "bin": {
-    "axon": "dist/cli.js"
+    "synth": "dist/cli.js"
   },
   "files": [
     "dist/",
@@ -13,7 +13,7 @@
     "LICENSE"
   ],
   "keywords": [
-    "axon",
+    "synth",
     "language",
     "transpiler",
     "ai-native",
@@ -21,13 +21,13 @@
     "javascript",
     "compiler"
   ],
-  "homepage": "https://axon-lang.dev",
+  "homepage": "https://synth-lang.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/axon-pl/axon.git"
+    "url": "https://github.com/synth-lang/synth.git"
   },
   "bugs": {
-    "url": "https://github.com/axon-pl/axon/issues"
+    "url": "https://github.com/synth-lang/synth/issues"
   },
   "license": "MIT",
   "engines": {
@@ -35,14 +35,14 @@
   },
   "scripts": {
     "build": "tsc",
-    "axon": "node dist/cli.js",
-    "transpile-demo": "node dist/cli.js examples/controls.axn demo/controls.axon.js",
-    "build-demo": "node dist/cli.js examples/controls.axn demo/controls.axon.js && node tools/embed_sources.js",
-    "build-music": "node dist/cli.js examples/music.axn demo/music.axon.js && node tools/embed_music.js",
-    "build-combat": "node dist/cli.js examples/combat.axn demo/combat.axon.js && node tools/embed_combat.js",
-    "build-rpg": "node dist/cli.js examples/rpg.axn demo/rpg.axon.js && node tools/embed_rpg.js",
-    "build-rpg-standalone": "node dist/cli.js examples/rpg.axn demo/rpg.axon.js && node tools/embed_rpg.js && node tools/build_standalone_rpg.js",
-    "test": "node dist/cli.js --test examples/rpg.axn && node dist/cli.js --test examples/v04_features.axn && node dist/cli.js --test examples/v095_features.axn"
+    "synth": "node dist/cli.js",
+    "transpile-demo": "node dist/cli.js examples/controls.syn demo/controls.synth.js",
+    "build-demo": "node dist/cli.js examples/controls.syn demo/controls.synth.js && node tools/embed_sources.js",
+    "build-music": "node dist/cli.js examples/music.syn demo/music.synth.js && node tools/embed_music.js",
+    "build-combat": "node dist/cli.js examples/combat.syn demo/combat.synth.js && node tools/embed_combat.js",
+    "build-rpg": "node dist/cli.js examples/rpg.syn demo/rpg.synth.js && node tools/embed_rpg.js",
+    "build-rpg-standalone": "node dist/cli.js examples/rpg.syn demo/rpg.synth.js && node tools/embed_rpg.js && node tools/build_standalone_rpg.js",
+    "test": "node dist/cli.js --test examples/rpg.syn && node dist/cli.js --test examples/v04_features.syn && node dist/cli.js --test examples/v095_features.syn"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

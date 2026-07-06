@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Axon v0.4.0 — RPG Adventure
+// Synth v0.4.0 — RPG Adventure
 //
-// 50-battle marathon dungeon crawl built entirely in Axon. All game rules — damage,
+// 50-battle marathon dungeon crawl built entirely in Synth. All game rules — damage,
 // elemental bonuses, XP thresholds, stat scaling — live in pure @memo functions.
 // The DOM layer is a thin shell: it mounts scenes, wires buttons, and re-renders.
 //
-// Axon v0.4 features exercised (in addition to all v0.1–v0.3 features):
+// Synth v0.4 features exercised (in addition to all v0.1–v0.3 features):
 //   when guards             classify HP status with guarded match arms
 //   ?. optional chaining    hero.weapon?.name ?? "bare hands"
 //   ?? nullish coalescing   safe fallbacks without verbose ternaries
@@ -284,7 +284,7 @@ fn hp_status_label :: (hp: int, maxHp: int) -> string {
 @test "element_bonus: knight vs light = 4"  { element_bonus("knight", "light") === 4 }
 @test "element_bonus: no match = 0"         { element_bonus("mage", "fire") === 7 }
 
-// Nested match — core Axon feature: two axes in one expression
+// Nested match — core Synth feature: two axes in one expression
 fn element_bonus :: (heroClass: string, weakness: string) -> int {
   @pure @total
   @intent "Elemental affinity bonus — heroClass column vs weakness row"
@@ -625,7 +625,7 @@ fn equip_icon :: (id: string) -> string {
     | "mega_pot"      => "(O) "
     | "tonic"         => "[t] "
     | "elixir"        => "[E] "
-    // Consumables — revival (avoid {ident} — Axon treats that as interpolation)
+    // Consumables — revival (avoid {ident} — Synth treats that as interpolation)
     | "phoenix"       => "<+> "
     | "phoenix_fth"   => "<*> "
     // Consumables — offensive
@@ -1341,7 +1341,7 @@ Statistically, it could go either way."""
 
     let info = el("div", { class: "title-info" },
       el("div", { class: "dim" }, "Three heroes  ·  50 battles  ·  5 chapters  ·  4 tiers of gear"),
-      el("div", { class: "dim" }, "All game logic written in Axon v0.4, transpiled to JavaScript.")
+      el("div", { class: "dim" }, "All game logic written in Synth v0.4, transpiled to JavaScript.")
     )
     let _ = root.appendChild(info)
 
