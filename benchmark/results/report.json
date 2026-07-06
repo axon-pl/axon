@@ -1,0 +1,34 @@
+{
+  "generatedAt": "2026-07-06T15:13:28.681Z",
+  "verdict": {
+    "score": 5,
+    "maxScore": 9,
+    "recommendation": "worth-piloting-on-pure-logic",
+    "recommendationLabel": "Worth a bounded pilot on pure logic; keep DOM/npm in TypeScript",
+    "strengths": [
+      "Correctness mostly solid (88% pass) but 15 assertion(s) still fail.",
+      "Compiler speed: rpg.axn (1747 lines) transpiles in 2.57 ms median.",
+      "Runtime: generated JS is 1.09× hand-written for dungeon generator (negligible tax).",
+      "Compiled JS output: transpiled Axon is 3.63× TS source in tokens — the metric that tracks codegen/token-reduction work (informational; not scored).",
+      "Track D harness sanity: all reference answer keys pass acceptance tests."
+    ],
+    "risks": [
+      "Edge cases: 11/17 adversarial probes behaved as documented.",
+      "Bundle output is not reproducible vs checked-in reference.",
+      "Source verbosity: controls.axn is 1.49× longer than the TS twin (annotations/metadata).",
+      "Token economy (logic-only): Axon 1.35× TypeScript output tokens.",
+      "Full Axon output (with @intent/@test metadata) is 2.51× TypeScript — metadata tax on generation cost.",
+      "Axon prompts include README context (7.22× TS prompt size).",
+      "Track D live sessions not run — populate live-sessions/ and re-run with --live to measure session cost.",
+      "Pre-1.0 spec: v0.8 today, LSP/source maps planned v0.9 — expect churn before stability promise.",
+      "Tooling gap: no IDE diagnostics yet; human review of AI output is harder than TypeScript.",
+      "Ecosystem: transpiles to JS but no npm interop story beyond calling JS builtins."
+    ]
+  },
+  "tracksPresent": {
+    "a": true,
+    "b": true,
+    "c": true,
+    "d": true
+  }
+}

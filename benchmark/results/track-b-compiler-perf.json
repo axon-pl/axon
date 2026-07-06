@@ -1,0 +1,190 @@
+{
+  "track": "track-b-compiler-perf",
+  "generatedAt": "2026-07-06T15:13:25.701Z",
+  "node": "v20.20.2",
+  "platform": "linux-arm64",
+  "perStage": [
+    {
+      "file": "examples/combat.axn",
+      "bytes": 19777,
+      "lines": 444,
+      "tokens": 2335,
+      "lexMs": 0.3994795,
+      "parseMs": 0.2013125,
+      "checkMs": 0.043479,
+      "codegenMs": 0.19166699999999998,
+      "totalMs": 0.6103125,
+      "linesPerSec": 727496.1597542242,
+      "tokensPerSec": 3825908.8581669223
+    },
+    {
+      "file": "examples/controls.axn",
+      "bytes": 21954,
+      "lines": 430,
+      "tokens": 2209,
+      "lexMs": 0.2675,
+      "parseMs": 0.110375,
+      "checkMs": 0.0262915,
+      "codegenMs": 0.150646,
+      "totalMs": 0.496458,
+      "linesPerSec": 866135.7053366046,
+      "tokensPerSec": 4449520.4025315335
+    },
+    {
+      "file": "examples/expedition.axn",
+      "bytes": 6670,
+      "lines": 128,
+      "tokens": 1111,
+      "lexMs": 0.3049585,
+      "parseMs": 0.128292,
+      "checkMs": 0.001625,
+      "codegenMs": 0.0822705,
+      "totalMs": 0.223354,
+      "linesPerSec": 573081.2969546102,
+      "tokensPerSec": 4974166.569660719
+    },
+    {
+      "file": "examples/music.axn",
+      "bytes": 19630,
+      "lines": 432,
+      "tokens": 2319,
+      "lexMs": 0.2621035,
+      "parseMs": 0.128771,
+      "checkMs": 0.009729,
+      "codegenMs": 0.1398745,
+      "totalMs": 0.458979,
+      "linesPerSec": 941219.5329198067,
+      "tokensPerSec": 5052518.742687574
+    },
+    {
+      "file": "examples/rpg.axn",
+      "bytes": 81685,
+      "lines": 1747,
+      "tokens": 13779,
+      "lexMs": 1.5161250000000002,
+      "parseMs": 0.4059795,
+      "checkMs": 0.1266455,
+      "codegenMs": 0.7759165,
+      "totalMs": 2.568396,
+      "linesPerSec": 680191.0608800201,
+      "tokensPerSec": 5364826.919213393
+    },
+    {
+      "file": "examples/v04_features.axn",
+      "bytes": 8985,
+      "lines": 266,
+      "tokens": 1231,
+      "lexMs": 0.143104,
+      "parseMs": 0.10427049999999999,
+      "checkMs": 0.026021,
+      "codegenMs": 0.048125,
+      "totalMs": 0.2579165,
+      "linesPerSec": 1031341.5388313661,
+      "tokensPerSec": 4772862.534967713
+    },
+    {
+      "file": "examples/v052_features.axn",
+      "bytes": 1506,
+      "lines": 63,
+      "tokens": 249,
+      "lexMs": 0.06693750000000001,
+      "parseMs": 0.015333,
+      "checkMs": 0.000833,
+      "codegenMs": 0.0174995,
+      "totalMs": 0.100041,
+      "linesPerSec": 629741.8058595975,
+      "tokensPerSec": 2488979.518397457
+    },
+    {
+      "file": "examples/v06_features.axn",
+      "bytes": 4569,
+      "lines": 139,
+      "tokens": 619,
+      "lexMs": 0.0613545,
+      "parseMs": 0.064459,
+      "checkMs": 0.013042,
+      "codegenMs": 0.0517085,
+      "totalMs": 0.163521,
+      "linesPerSec": 850043.7252707604,
+      "tokensPerSec": 3785446.5175726665
+    },
+    {
+      "file": "examples/v07_features.axn",
+      "bytes": 3786,
+      "lines": 130,
+      "tokens": 644,
+      "lexMs": 0.06622900000000001,
+      "parseMs": 0.0329585,
+      "checkMs": 0.0041665,
+      "codegenMs": 0.017375,
+      "totalMs": 0.1187505,
+      "linesPerSec": 1094732.2327063887,
+      "tokensPerSec": 5423135.060483956
+    },
+    {
+      "file": "examples/v095_features.axn",
+      "bytes": 3248,
+      "lines": 80,
+      "tokens": 255,
+      "lexMs": 0.033937,
+      "parseMs": 0.0119585,
+      "checkMs": 0.0013544999999999998,
+      "codegenMs": 0.009062500000000001,
+      "totalMs": 0.059625,
+      "linesPerSec": 1341719.0775681343,
+      "tokensPerSec": 4276729.559748428
+    }
+  ],
+  "aggregate": {
+    "totalLinesPerSec": 763047.3131846527,
+    "totalTokensPerSec": 4894061.686611387
+  },
+  "scaling": [
+    {
+      "lines": 1747,
+      "totalMs": 2.782791,
+      "msPerLine": 0.0015928969662278192,
+      "measured": "full"
+    },
+    {
+      "lines": 5243,
+      "totalMs": 9.091583,
+      "msPerLine": 0.0017340421514400154,
+      "measured": "full"
+    },
+    {
+      "lines": 10487,
+      "totalMs": 18.561708,
+      "msPerLine": 0.0017699731095642223,
+      "measured": "full"
+    },
+    {
+      "lines": 24471,
+      "totalMs": 45.4597505,
+      "msPerLine": 0.0018576989293449388,
+      "measured": "full"
+    },
+    {
+      "lines": 50691,
+      "totalMs": 94.514208,
+      "msPerLine": 0.0018645165413978813,
+      "measured": "full"
+    }
+  ],
+  "scalingVerdict": "linear",
+  "scalingNote": "Synthetic inputs built by repeating examples/rpg.axn (1747 lines); measured stage(s): full. Time grew 34.0x while lines grew 29.0x (1747 -> 50691 lines), log-log slope 1.05 (1.0 = linear, 2.0 = quadratic). ms/line at each size: 1747: 0.0016, 5243: 0.0017, 10487: 0.0018, 24471: 0.0019, 50691: 0.0019",
+  "tscBaseline": {
+    "file": "examples/controls.ts",
+    "lines": 307,
+    "coldMs": 418.4985,
+    "linesPerSec": 733.574911260136,
+    "note": "tsc timed as a cold process spawn (npx tsc --noEmit --skipLibCheck), median of 5 runs, so it pays Node startup + tsc bootstrapping + full type checking on every run. Axon numbers are in-process, warmed-up, JIT-friendly loops with no process overhead, so this comparison is rough and flatters Axon. It is a ballpark industry reference, not an apples-to-apples race."
+  },
+  "findings": [
+    "Largest single file (examples/rpg.axn, 1747 lines / 13779 tokens) transpiles in 2.57 ms median (680,191 lines/sec).",
+    "Aggregate throughput across all 10 single-file examples: 763,047 lines/sec, 4,894,062 tokens/sec.",
+    "lex is the most expensive stage (51% of summed per-stage time across all files).",
+    "Scaling verdict: linear. Time grew 34.0x for a 29.0x increase in lines (log-log slope 1.05).",
+    "Rough tsc reference: 734 lines/sec cold vs Axon's 763,047 lines/sec in-process — see tscBaseline.note for why this comparison is generous to Axon."
+  ]
+}

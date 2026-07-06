@@ -1,0 +1,9 @@
+node_modules
+dist
+benchmark/results
+**/*.log
+.git
+.DS_Store
+demo
+vscode-extension
+tools

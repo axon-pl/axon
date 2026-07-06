@@ -1,0 +1,62 @@
+type ParseResult =
+  | Ok  { value: int }
+  | Err { msg: string }
+
+fn is_digit :: (code: int) -> bool {
+  @pure @total
+  code >= 48 && code <= 57
+}
+
+fn all_digits :: (s: string, i: int) -> bool {
+  @pure
+  i >= s.length ? true : (is_digit(s.charCodeAt(i)) && all_digits(s, i + 1))
+}
+
+fn digits_value :: (s: string, i: int, acc: int) -> int {
+  @pure
+  i >= s.length ? acc : digits_value(s, i + 1, acc * 10 + (s.charCodeAt(i) - 48))
+}
+
+fn parse_body :: (s: string, start: int, neg: bool) -> ParseResult {
+  @pure
+  start >= s.length
+    ? Err("no digits")
+    : !all_digits(s, start)
+      ? Err("non-numeric character")
+      : (s.length - start > 1 && s.charCodeAt(start) === 48)
+        ? Err("leading zeros")
+        : Ok(neg ? 0 - digits_value(s, start, 0) : digits_value(s, start, 0))
+}
+
+fn parse_int_safe :: (s: string) -> ParseResult {
+  @pure
+  @intent "Strict decimal integer parser: Ok(value), or Err for empty / non-numeric / leading zeros"
+  s.length === 0
+    ? Err("empty string")
+    : parse_body(s, s.charCodeAt(0) === 45 ? 1 : 0, s.charCodeAt(0) === 45)
+}
+
+fn ok_value :: (r: ParseResult) -> int {
+  @pure
+  match r {
+    | Ok { value } => value
+    | Err { msg }  => -999999
+  }
+}
+
+fn is_err :: (r: ParseResult) -> bool {
+  @pure
+  match r {
+    | Ok { value } => false
+    | Err { msg }  => true
+  }
+}
+
+@test "parses simple int" { ok_value(parse_int_safe("42")) === 42 }
+@test "parses negative" { ok_value(parse_int_safe("-7")) === -7 }
+@test "parses zero" { ok_value(parse_int_safe("0")) === 0 }
+@test "negative zero allowed" { ok_value(parse_int_safe("-0")) === 0 }
+@test "empty is err" { is_err(parse_int_safe("")) }
+@test "trailing garbage is err" { is_err(parse_int_safe("12a")) }
+@test "leading zeros is err" { is_err(parse_int_safe("007")) }
+@test "bare minus is err" { is_err(parse_int_safe("-")) }

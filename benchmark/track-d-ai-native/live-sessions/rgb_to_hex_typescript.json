@@ -1,0 +1,16 @@
+{
+  "taskId": "rgb_to_hex",
+  "language": "typescript",
+  "provenance": "reference",
+  "note": "Bootstrap from hidden answer key — for pipeline testing only, not AI writability.",
+  "turns": [
+    {
+      "role": "user",
+      "content": "Implement the following task in TypeScript.\n\n## Task\nImplement rgb_to_hex(r, g, b) -> string.\n\nClamp each channel to 0..255, format as lowercase #rrggbb with zero-padded hex bytes.\n\nExamples: (0,0,0)→#000000, (255,255,255)→#ffffff, (300,0,0)→#ff0000, (1,2,3)→#010203.\n\nReturn only the source code for a single file. Include tests inline (@test for Axon) or export functions for external testing (TypeScript)."
+    },
+    {
+      "role": "assistant",
+      "content": "```\nfunction clampChannel(n: number): number {\n  return Math.min(255, Math.max(0, n));\n}\n\nfunction hex2(c: number): string {\n  return c.toString(16).padStart(2, '0');\n}\n\n/** Clamp each channel to 0..255 and format as lowercase #rrggbb. */\nexport function rgb_to_hex(r: number, g: number, b: number): string {\n  return '#' + hex2(clampChannel(r)) + hex2(clampChannel(g)) + hex2(clampChannel(b));\n}\n\n```"
+    }
+  ]
+}

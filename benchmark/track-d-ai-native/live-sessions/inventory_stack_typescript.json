@@ -1,0 +1,16 @@
+{
+  "taskId": "inventory_stack",
+  "language": "typescript",
+  "provenance": "reference",
+  "note": "Bootstrap from hidden answer key — for pipeline testing only, not AI writability.",
+  "turns": [
+    {
+      "role": "user",
+      "content": "Implement the following task in TypeScript.\n\n## Task\nImplement inventory_stack(items, max_size) that merges stackable items by name (first-seen order), then splits into stacks of at most max_size.\n\nUse a record Item { name: string, count: int }.\n\nAcceptance:\n- Empty inventory → []\n- [wood×3, wood×4], max 10 → one stack count 7\n- stone×25, max 10 → three stacks ending with count 5\n- [a×1, b×1], max 10 → two stacks\n\nReturn only the source code for a single file. Include tests inline (@test for Axon) or export functions for external testing (TypeScript)."
+    },
+    {
+      "role": "assistant",
+      "content": "```\nexport interface Item {\n  name: string;\n  count: number;\n}\n\n/** Merge stackable items by name (first-seen order), then split into stacks of at most maxSize. */\nexport function inventory_stack(items: Item[], maxSize: number): Item[] {\n  const totals = new Map<string, number>();\n  for (const item of items) {\n    totals.set(item.name, (totals.get(item.name) ?? 0) + item.count);\n  }\n  const result: Item[] = [];\n  for (const [name, total] of totals) {\n    let remaining = total;\n    while (remaining > 0) {\n      const take = Math.min(remaining, maxSize);\n      result.push({ name, count: take });\n      remaining -= take;\n    }\n  }\n  return result;\n}\n\n```"
+    }
+  ]
+}

@@ -1,0 +1,650 @@
+{
+  "track": "track-d-ai-native",
+  "generatedAt": "2026-07-06T15:13:28.659Z",
+  "node": "v20.20.2",
+  "platform": "linux-arm64",
+  "static": {
+    "pairs": [
+      {
+        "taskId": "inventory_stack",
+        "axon": {
+          "outputTokens": 430,
+          "logicTokens": 195,
+          "promptTokens": 925,
+          "compiledTokens": 570,
+          "estimatedGenerationCostUsd": 0.009225
+        },
+        "typescript": {
+          "outputTokens": 165,
+          "logicTokens": 142,
+          "promptTokens": 146,
+          "compiledTokens": 165,
+          "estimatedGenerationCostUsd": 0.002913
+        },
+        "ratios": {
+          "outputTokens": 2.606060606060606,
+          "logicTokens": 1.3732394366197183,
+          "promptTokens": 6.335616438356165,
+          "compiledTokens": 3.4545454545454546
+        }
+      },
+      {
+        "taskId": "parse_int_safe",
+        "axon": {
+          "outputTokens": 582,
+          "logicTokens": 385,
+          "promptTokens": 889,
+          "compiledTokens": 834,
+          "estimatedGenerationCostUsd": 0.011397000000000001
+        },
+        "typescript": {
+          "outputTokens": 214,
+          "logicTokens": 192,
+          "promptTokens": 110,
+          "compiledTokens": 214,
+          "estimatedGenerationCostUsd": 0.00354
+        },
+        "ratios": {
+          "outputTokens": 2.7196261682242993,
+          "logicTokens": 2.0052083333333335,
+          "promptTokens": 8.081818181818182,
+          "compiledTokens": 3.897196261682243
+        }
+      },
+      {
+        "taskId": "classify_grade",
+        "axon": {
+          "outputTokens": 303,
+          "logicTokens": 112,
+          "promptTokens": 904,
+          "compiledTokens": 425,
+          "estimatedGenerationCostUsd": 0.0072569999999999996
+        },
+        "typescript": {
+          "outputTokens": 100,
+          "logicTokens": 81,
+          "promptTokens": 125,
+          "compiledTokens": 100,
+          "estimatedGenerationCostUsd": 0.001875
+        },
+        "ratios": {
+          "outputTokens": 3.03,
+          "logicTokens": 1.382716049382716,
+          "promptTokens": 7.232,
+          "compiledTokens": 4.25
+        }
+      },
+      {
+        "taskId": "shape_area",
+        "axon": {
+          "outputTokens": 283,
+          "logicTokens": 108,
+          "promptTokens": 922,
+          "compiledTokens": 389,
+          "estimatedGenerationCostUsd": 0.007011
+        },
+        "typescript": {
+          "outputTokens": 143,
+          "logicTokens": 132,
+          "promptTokens": 143,
+          "compiledTokens": 143,
+          "estimatedGenerationCostUsd": 0.0025740000000000003
+        },
+        "ratios": {
+          "outputTokens": 1.979020979020979,
+          "logicTokens": 0.8181818181818182,
+          "promptTokens": 6.4475524475524475,
+          "compiledTokens": 2.7202797202797204
+        }
+      },
+      {
+        "taskId": "rgb_to_hex",
+        "axon": {
+          "outputTokens": 319,
+          "logicTokens": 132,
+          "promptTokens": 905,
+          "compiledTokens": 489,
+          "estimatedGenerationCostUsd": 0.0075
+        },
+        "typescript": {
+          "outputTokens": 115,
+          "logicTokens": 96,
+          "promptTokens": 126,
+          "compiledTokens": 115,
+          "estimatedGenerationCostUsd": 0.002103
+        },
+        "ratios": {
+          "outputTokens": 2.773913043478261,
+          "logicTokens": 1.375,
+          "promptTokens": 7.182539682539683,
+          "compiledTokens": 4.252173913043478
+        }
+      },
+      {
+        "taskId": "fib_memo",
+        "axon": {
+          "outputTokens": 216,
+          "logicTokens": 59,
+          "promptTokens": 881,
+          "compiledTokens": 379,
+          "estimatedGenerationCostUsd": 0.005882999999999999
+        },
+        "typescript": {
+          "outputTokens": 114,
+          "logicTokens": 89,
+          "promptTokens": 102,
+          "compiledTokens": 114,
+          "estimatedGenerationCostUsd": 0.002016
+        },
+        "ratios": {
+          "outputTokens": 1.894736842105263,
+          "logicTokens": 0.6629213483146067,
+          "promptTokens": 8.637254901960784,
+          "compiledTokens": 3.324561403508772
+        }
+      },
+      {
+        "taskId": "controls",
+        "axon": {
+          "outputTokens": 5054,
+          "logicTokens": 4530,
+          "promptTokens": 841,
+          "compiledTokens": 3995,
+          "estimatedGenerationCostUsd": 0.078333
+        },
+        "typescript": {
+          "outputTokens": 3277,
+          "logicTokens": 2103,
+          "promptTokens": 62,
+          "compiledTokens": 3277,
+          "estimatedGenerationCostUsd": 0.049340999999999996
+        },
+        "ratios": {
+          "outputTokens": 1.54226426609704,
+          "logicTokens": 2.1540656205420827,
+          "promptTokens": 13.564516129032258,
+          "compiledTokens": 1.2191028379615503
+        }
+      }
+    ],
+    "aggregate": {
+      "taskCount": 6,
+      "axonOutputTokens": 2133,
+      "tsOutputTokens": 851,
+      "axonLogicTokens": 991,
+      "tsLogicTokens": 732,
+      "axonCompiledTokens": 3086,
+      "tsCompiledTokens": 851,
+      "ratios": {
+        "outputTokens": 2.5064629847238544,
+        "logicTokens": 1.3538251366120218,
+        "promptTokens": 7.215425531914893,
+        "compiledTokens": 3.6263219741480612
+      },
+      "note": "cl100k_base proxy via js-tiktoken; Claude/GPT counts may differ slightly."
+    },
+    "controls": {
+      "taskId": "controls",
+      "axon": {
+        "outputTokens": 5054,
+        "logicTokens": 4530,
+        "promptTokens": 841,
+        "compiledTokens": 3995,
+        "estimatedGenerationCostUsd": 0.078333
+      },
+      "typescript": {
+        "outputTokens": 3277,
+        "logicTokens": 2103,
+        "promptTokens": 62,
+        "compiledTokens": 3277,
+        "estimatedGenerationCostUsd": 0.049340999999999996
+      },
+      "ratios": {
+        "outputTokens": 1.54226426609704,
+        "logicTokens": 2.1540656205420827,
+        "promptTokens": 13.564516129032258,
+        "compiledTokens": 1.2191028379615503
+      }
+    },
+    "findings": [
+      "Across 6 benchmark tasks, Axon full output is 2.51× TypeScript tokens (metadata + @test inflate Axon).",
+      "Logic-only (annotations/comments stripped): 1.35× — closer measure of syntax efficiency.",
+      "Simulated generation prompt (spec + README for Axon): 7.22× input tokens before any output.",
+      "controls.axn example: 1.54× output, 2.15× logic vs controls.ts.",
+      "Compiled JS output (transpiled Axon vs TS source): 3.63× — this is the metric codegen changes move."
+    ],
+    "note": "Token counts are a proxy; Claude/GPT billing may differ by ~5-10%. Edit prices to match your provider."
+  },
+  "harnessSanity": {
+    "allOk": true,
+    "results": [
+      {
+        "id": "inventory_stack",
+        "spec": "Implement inventory_stack(items, max_size) that merges stackable items by name (first-seen order), then splits into stacks of at most max_size.\n\nUse a record Item { name: string, count: int }.\n\nAcceptance:\n- Empty inventory → []\n- [wood×3, wood×4], max 10 → one stack count 7\n- stone×25, max 10 → three stacks ending with count 5\n- [a×1, b×1], max 10 → two stacks",
+        "axon": {
+          "language": "axon",
+          "file": "benchmark/track-d-ai-native/solutions/inventory_stack.axn",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 7,
+            "failed": 0,
+            "total": 7,
+            "source": "@test"
+          }
+        },
+        "typescript": {
+          "language": "typescript",
+          "file": "benchmark/track-d-ai-native/solutions/inventory_stack.ts",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 7,
+            "failed": 0,
+            "total": 7,
+            "results": [
+              {
+                "name": "empty",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "merge",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "one stack",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "split",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "remainder",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "exact multiple",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "distinct",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        },
+        "harnessOk": true
+      },
+      {
+        "id": "parse_int_safe",
+        "spec": "Implement parse_int_safe(s: string) returning a Result type: Ok(value: int) or Err(msg: string).\n\nStrict decimal integer parser:\n- Ok for \"42\", \"-7\", \"0\", \"-0\"\n- Err for empty string, trailing garbage (\"12a\"), leading zeros (\"007\"), bare minus (\"-\")\n\nNo parseInt permissiveness.",
+        "axon": {
+          "language": "axon",
+          "file": "benchmark/track-d-ai-native/solutions/parse_int_safe.axn",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 8,
+            "failed": 0,
+            "total": 8,
+            "source": "@test"
+          }
+        },
+        "typescript": {
+          "language": "typescript",
+          "file": "benchmark/track-d-ai-native/solutions/parse_int_safe.ts",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 8,
+            "failed": 0,
+            "total": 8,
+            "results": [
+              {
+                "name": "simple",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "negative",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "zero",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "neg zero",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "empty err",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "trailing err",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "leading zeros err",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "bare minus err",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        },
+        "harnessOk": true
+      },
+      {
+        "id": "classify_grade",
+        "spec": "Implement classify_grade(score: float) -> string.\n\nLetter grades with strict >= boundaries, no rounding:\n- A: score >= 90\n- B: score >= 80\n- C: score >= 70\n- D: score >= 60\n- F: otherwise (including 0)\n- \"Invalid\" for score < 0 or score > 100\n\n89.5 must be B, not A.",
+        "axon": {
+          "language": "axon",
+          "file": "benchmark/track-d-ai-native/solutions/classify_grade.axn",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 8,
+            "failed": 0,
+            "total": 8,
+            "source": "@test"
+          }
+        },
+        "typescript": {
+          "language": "typescript",
+          "file": "benchmark/track-d-ai-native/solutions/classify_grade.ts",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 8,
+            "failed": 0,
+            "total": 8,
+            "results": [
+              {
+                "name": "90 is A",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "89.5 is B",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "100 is A",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "60 is D",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "59.9 is F",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "0 is F",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "negative Invalid",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "over 100 Invalid",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        },
+        "harnessOk": true
+      },
+      {
+        "id": "shape_area",
+        "spec": "Define a tagged union Shape = Circle { r } | Rect { w, h } | Triangle { base, height }.\n\nImplement area(s: Shape) -> float exhaustively:\n- Circle: pi * r * r\n- Rect: w * h\n- Triangle: 0.5 * base * height\n\nAcceptance includes circle r=1 ≈ pi, rect 4×3 = 12, triangle 6×4 = 12, degenerate rect 0×5 = 0.",
+        "axon": {
+          "language": "axon",
+          "file": "benchmark/track-d-ai-native/solutions/shape_area.axn",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 5,
+            "failed": 0,
+            "total": 5,
+            "source": "@test"
+          }
+        },
+        "typescript": {
+          "language": "typescript",
+          "file": "benchmark/track-d-ai-native/solutions/shape_area.ts",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 5,
+            "failed": 0,
+            "total": 5,
+            "results": [
+              {
+                "name": "circle r=1",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "rect 4x3",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "triangle 6x4",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "degenerate rect",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "circle r=2",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        },
+        "harnessOk": true
+      },
+      {
+        "id": "rgb_to_hex",
+        "spec": "Implement rgb_to_hex(r, g, b) -> string.\n\nClamp each channel to 0..255, format as lowercase #rrggbb with zero-padded hex bytes.\n\nExamples: (0,0,0)→#000000, (255,255,255)→#ffffff, (300,0,0)→#ff0000, (1,2,3)→#010203.",
+        "axon": {
+          "language": "axon",
+          "file": "benchmark/track-d-ai-native/solutions/rgb_to_hex.axn",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 6,
+            "failed": 0,
+            "total": 6,
+            "source": "@test"
+          }
+        },
+        "typescript": {
+          "language": "typescript",
+          "file": "benchmark/track-d-ai-native/solutions/rgb_to_hex.ts",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 6,
+            "failed": 0,
+            "total": 6,
+            "results": [
+              {
+                "name": "black",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "white",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "clamp high",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "clamp low",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "zero pad",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "mixed",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        },
+        "harnessOk": true
+      },
+      {
+        "id": "fib_memo",
+        "spec": "Implement fib(n: int) -> int with memoization.\n\nfib(0)=0, fib(1)=1, fib(n)=fib(n-1)+fib(n-2) for n>1.\nNegative input treated as 0.\n\nMust handle fib(40)=102334155 efficiently (memo required).",
+        "axon": {
+          "language": "axon",
+          "file": "benchmark/track-d-ai-native/solutions/fib_memo.axn",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 7,
+            "failed": 0,
+            "total": 7,
+            "source": "@test"
+          }
+        },
+        "typescript": {
+          "language": "typescript",
+          "file": "benchmark/track-d-ai-native/solutions/fib_memo.ts",
+          "compiled": true,
+          "compileError": null,
+          "tests": {
+            "passed": 7,
+            "failed": 0,
+            "total": 7,
+            "results": [
+              {
+                "name": "fib 0",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 1",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 2",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 10",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 30",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 40",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "negative",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        },
+        "harnessOk": true
+      }
+    ],
+    "findings": [
+      "All reference solutions pass acceptance tests — harness is valid."
+    ]
+  },
+  "live": {
+    "status": "not_run",
+    "note": "Run with --live after populating live-sessions/"
+  },
+  "findings": [
+    "Across 6 benchmark tasks, Axon full output is 2.51× TypeScript tokens (metadata + @test inflate Axon).",
+    "Logic-only (annotations/comments stripped): 1.35× — closer measure of syntax efficiency.",
+    "Simulated generation prompt (spec + README for Axon): 7.22× input tokens before any output.",
+    "controls.axn example: 1.54× output, 2.15× logic vs controls.ts.",
+    "Compiled JS output (transpiled Axon vs TS source): 3.63× — this is the metric codegen changes move.",
+    "All reference solutions pass acceptance tests — harness is valid."
+  ],
+  "summary": {
+    "staticAggregate": {
+      "taskCount": 6,
+      "axonOutputTokens": 2133,
+      "tsOutputTokens": 851,
+      "axonLogicTokens": 991,
+      "tsLogicTokens": 732,
+      "axonCompiledTokens": 3086,
+      "tsCompiledTokens": 851,
+      "ratios": {
+        "outputTokens": 2.5064629847238544,
+        "logicTokens": 1.3538251366120218,
+        "promptTokens": 7.215425531914893,
+        "compiledTokens": 3.6263219741480612
+      },
+      "note": "cl100k_base proxy via js-tiktoken; Claude/GPT counts may differ slightly."
+    },
+    "harnessSanityOk": true,
+    "liveStatus": "not_run",
+    "liveSummary": null
+  }
+}

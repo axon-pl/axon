@@ -1,0 +1,66 @@
+{
+  "track": "track-c-runtime-perf",
+  "generatedAt": "2026-07-06T14:31:19.707Z",
+  "node": "v20.20.2",
+  "platform": "linux-arm64",
+  "dungeon": {
+    "seedsVerifiedEqual": true,
+    "equalityCases": 90,
+    "batchSize": 200,
+    "mapSize": "22x48",
+    "axonMedianMs": 25.945875,
+    "handwrittenMedianMs": 23.7191875,
+    "overheadRatio": 1.093877056286182,
+    "axonStats": {
+      "samples": 30,
+      "min": 25.355375,
+      "max": 27.524041,
+      "mean": 25.983141600000003,
+      "median": 25.945875,
+      "p95": 26.661416,
+      "label": "axon"
+    },
+    "handwrittenStats": {
+      "samples": 30,
+      "min": 23.356166,
+      "max": 28.464833,
+      "mean": 23.9730958,
+      "median": 23.7191875,
+      "p95": 26.401625,
+      "label": "handwritten"
+    },
+    "note": "Outputs byte-identical (JSON deep-equal) across 90 seed/size/level combinations before timing. Hand-written port inlines grid indexing and uses function declarations; algorithm and LCG identical."
+  },
+  "whereGuard": {
+    "withGuardNsPerOp": 2.602611,
+    "withoutGuardNsPerOp": 2.658805666666667,
+    "overheadPct": -2.1135304234971732,
+    "guardRejectsInvalidInput": true,
+    "callsMeasured": 21000000,
+    "note": "Two constrained params (type Pos = int where value >= 0) on a trivial add. Measured as median of 7 alternating rounds of 3M direct calls each. Guard = one predicate call + branch per constrained param; overhead % is worst-case since the fn body is a single add."
+  },
+  "memo": {
+    "memoized": true,
+    "firstCallMs": 210.861709,
+    "cachedCallMs": 0.000375,
+    "speedup": 562297.8906666667,
+    "plainMedianMs": 206.375417,
+    "vsNoMemoNote": "Same body without @memo takes 206.38 ms per call every time; @memo pays 210.86 ms once then ~0.4 µs per repeat call. Cache is a Map keyed by JSON.stringify(args), unbounded."
+  },
+  "codeSize": {
+    "axonSrcLines": 371,
+    "axonJsLines": 741,
+    "axonJsBytes": 29060,
+    "axonJsPreludeLines": 334,
+    "tsSrcLines": 249,
+    "tsJsLines": 238,
+    "tsJsBytes": 13035,
+    "note": "Non-empty lines. Axon generated JS carries a fixed stdlib + test-runner prelude (~334 lines) in every emitted file plus JSDoc for each fn."
+  },
+  "findings": [
+    "Dungeon generator: Axon-generated JS runs at 1.09x the time of hand-written JS (outputs verified identical across 90 seed/size/level cases).",
+    "where-guard: constraint validation adds ~-0.1 ns per call (-2% on a trivial add; two guarded params). Guard correctly throws on violation: true.",
+    "@memo: caching is real — repeat call with same arg took 0.4 µs vs 210.86 ms cold (562,298x). Cache key is JSON.stringify of args, so keying costs scale with arg size.",
+    "Code size: controls.axn is 371 src lines vs 249 for the TS twin (1.49x). Axon's generated JS is 741 lines / 29060 bytes vs tsc's 238 lines / 13035 bytes (2.2x bytes); 334 lines of that is a fixed per-file stdlib/test-runner prelude."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "taskId": "shape_area",
+  "language": "typescript",
+  "provenance": "reference",
+  "note": "Bootstrap from hidden answer key — for pipeline testing only, not AI writability.",
+  "turns": [
+    {
+      "role": "user",
+      "content": "Implement the following task in TypeScript.\n\n## Task\nDefine a tagged union Shape = Circle { r } | Rect { w, h } | Triangle { base, height }.\n\nImplement area(s: Shape) -> float exhaustively:\n- Circle: pi * r * r\n- Rect: w * h\n- Triangle: 0.5 * base * height\n\nAcceptance includes circle r=1 ≈ pi, rect 4×3 = 12, triangle 6×4 = 12, degenerate rect 0×5 = 0.\n\nReturn only the source code for a single file. Include tests inline (@test for Axon) or export functions for external testing (TypeScript)."
+    },
+    {
+      "role": "assistant",
+      "content": "```\nexport type Shape =\n  | { kind: 'circle'; r: number }\n  | { kind: 'rect'; w: number; h: number }\n  | { kind: 'triangle'; base: number; height: number };\n\n/** Exhaustive area over the Shape tagged union. */\nexport function area(s: Shape): number {\n  switch (s.kind) {\n    case 'circle':\n      return Math.PI * s.r * s.r;\n    case 'rect':\n      return s.w * s.h;\n    case 'triangle':\n      return 0.5 * s.base * s.height;\n    default: {\n      const never: never = s;\n      return never;\n    }\n  }\n}\n\n```"
+    }
+  ]
+}

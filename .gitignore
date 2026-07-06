@@ -5,3 +5,5 @@ dist/
 Thumbs.db
 *.log
 .env
+benchmark/track-d-ai-native/live-sessions/*.json
+benchmark/track-d-ai-native/live-prompts/*.txt

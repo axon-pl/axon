@@ -1,0 +1,6 @@
+{
+  "model": "cl100k_base proxy (js-tiktoken)",
+  "note": "Token counts are a proxy; Claude/GPT billing may differ by ~5-10%. Edit prices to match your provider.",
+  "inputPer1M": 3.0,
+  "outputPer1M": 15.0
+}

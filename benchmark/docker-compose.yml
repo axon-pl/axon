@@ -1,0 +1,20 @@
+# One-command reproducible run of the full Axon benchmark suite.
+#
+#   ./benchmark/run-docker.sh          # rebuilds image, then runs (recommended)
+#   docker compose -f benchmark/docker-compose.yml run --build --rm bench
+#
+# Build context is the repo root so the image can access src/ and examples/.
+# Results are written back to benchmark/results/ on the host via the mount.
+# Without --build, an old axon-bench image may miss track-*/run.js files.
+
+services:
+  bench:
+    build:
+      context: ..
+      dockerfile: benchmark/Dockerfile
+    image: axon-bench
+    volumes:
+      - ./results:/app/benchmark/results
+    environment:
+      NODE_ENV: production
+    command: ["node", "benchmark/run-all.js"]

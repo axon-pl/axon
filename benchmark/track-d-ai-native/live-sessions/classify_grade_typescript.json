@@ -1,0 +1,16 @@
+{
+  "taskId": "classify_grade",
+  "language": "typescript",
+  "provenance": "reference",
+  "note": "Bootstrap from hidden answer key — for pipeline testing only, not AI writability.",
+  "turns": [
+    {
+      "role": "user",
+      "content": "Implement the following task in TypeScript.\n\n## Task\nImplement classify_grade(score: float) -> string.\n\nLetter grades with strict >= boundaries, no rounding:\n- A: score >= 90\n- B: score >= 80\n- C: score >= 70\n- D: score >= 60\n- F: otherwise (including 0)\n- \"Invalid\" for score < 0 or score > 100\n\n89.5 must be B, not A.\n\nReturn only the source code for a single file. Include tests inline (@test for Axon) or export functions for external testing (TypeScript)."
+    },
+    {
+      "role": "assistant",
+      "content": "```\n/** Letter grade with strict >= boundaries, no rounding; out-of-range is \"Invalid\". */\nexport function classify_grade(score: number): string {\n  if (score < 0 || score > 100) return 'Invalid';\n  if (score >= 90) return 'A';\n  if (score >= 80) return 'B';\n  if (score >= 70) return 'C';\n  if (score >= 60) return 'D';\n  return 'F';\n}\n\n```"
+    }
+  ]
+}

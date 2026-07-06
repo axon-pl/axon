@@ -1,0 +1,22 @@
+fn classify_grade :: (score: float) -> string {
+  @pure @total
+  @intent "Letter grade with strict >= boundaries, no rounding; out-of-range is Invalid"
+  match score {
+    | s when s < 0.0   => "Invalid"
+    | s when s > 100.0 => "Invalid"
+    | s when s >= 90.0 => "A"
+    | s when s >= 80.0 => "B"
+    | s when s >= 70.0 => "C"
+    | s when s >= 60.0 => "D"
+    | _                => "F"
+  }
+}
+
+@test "exact boundary 90 is A" { classify_grade(90.0) === "A" }
+@test "89.5 does not round up" { classify_grade(89.5) === "B" }
+@test "100 is A" { classify_grade(100.0) === "A" }
+@test "boundary 60 is D" { classify_grade(60.0) === "D" }
+@test "59.9 is F" { classify_grade(59.9) === "F" }
+@test "0 is F" { classify_grade(0.0) === "F" }
+@test "negative is Invalid" { classify_grade(-1.0) === "Invalid" }
+@test "over 100 is Invalid" { classify_grade(100.5) === "Invalid" }

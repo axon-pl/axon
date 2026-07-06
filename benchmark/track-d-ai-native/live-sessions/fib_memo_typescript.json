@@ -1,0 +1,16 @@
+{
+  "taskId": "fib_memo",
+  "language": "typescript",
+  "provenance": "reference",
+  "note": "Bootstrap from hidden answer key — for pipeline testing only, not AI writability.",
+  "turns": [
+    {
+      "role": "user",
+      "content": "Implement the following task in TypeScript.\n\n## Task\nImplement fib(n: int) -> int with memoization.\n\nfib(0)=0, fib(1)=1, fib(n)=fib(n-1)+fib(n-2) for n>1.\nNegative input treated as 0.\n\nMust handle fib(40)=102334155 efficiently (memo required).\n\nReturn only the source code for a single file. Include tests inline (@test for Axon) or export functions for external testing (TypeScript)."
+    },
+    {
+      "role": "assistant",
+      "content": "```\nconst cache = new Map<number, number>();\n\n/** Memoized fibonacci; fib(0)=0, fib(1)=1, negative input treated as 0. */\nexport function fib(n: number): number {\n  if (n <= 0) return 0;\n  if (n === 1) return 1;\n  const hit = cache.get(n);\n  if (hit !== undefined) return hit;\n  const value = fib(n - 1) + fib(n - 2);\n  cache.set(n, value);\n  return value;\n}\n\n```"
+    }
+  ]
+}

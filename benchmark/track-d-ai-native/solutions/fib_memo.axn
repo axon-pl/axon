@@ -1,0 +1,17 @@
+fn fib :: (n: int) -> int {
+  @pure @total @memo
+  @intent "Memoized fibonacci; fib(0)=0, fib(1)=1, negative input treated as 0"
+  match n {
+    | m when m <= 0 => 0
+    | m when m === 1 => 1
+    | m => fib(m - 1) + fib(m - 2)
+  }
+}
+
+@test "fib 0" { fib(0) === 0 }
+@test "fib 1" { fib(1) === 1 }
+@test "fib 2" { fib(2) === 1 }
+@test "fib 10" { fib(10) === 55 }
+@test "fib 30 (memo keeps this fast)" { fib(30) === 832040 }
+@test "fib 40 (infeasible without memo)" { fib(40) === 102334155 }
+@test "negative clamps to 0" { fib(-5) === 0 }

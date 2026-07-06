@@ -1,0 +1,25 @@
+type Channel = int where value >= 0 && value <= 255
+
+fn clamp_channel :: (n: int) -> Channel {
+  @pure @total
+  n < 0 ? 0 : n > 255 ? 255 : n
+}
+
+fn hex2 :: (c: Channel) -> string {
+  @pure
+  let h = c.toString(16)
+  h.length === 1 ? "0" + h : h
+}
+
+fn rgb_to_hex :: (r: int, g: int, b: int) -> string {
+  @pure
+  @intent "Clamp each channel to 0..255 and format as lowercase #rrggbb"
+  "#" + hex2(clamp_channel(r)) + hex2(clamp_channel(g)) + hex2(clamp_channel(b))
+}
+
+@test "black" { rgb_to_hex(0, 0, 0) === "#000000" }
+@test "white" { rgb_to_hex(255, 255, 255) === "#ffffff" }
+@test "clamps above 255" { rgb_to_hex(300, 0, 0) === "#ff0000" }
+@test "clamps below 0" { rgb_to_hex(0, -20, 0) === "#000000" }
+@test "zero pads single digits" { rgb_to_hex(1, 2, 3) === "#010203" }
+@test "mixed channels" { rgb_to_hex(255, 128, 64) === "#ff8040" }

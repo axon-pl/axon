@@ -1,0 +1,589 @@
+{
+  "track": "track-d-live",
+  "generatedAt": "2026-07-06T13:26:20.413Z",
+  "node": "v24.18.0",
+  "platform": "darwin-arm64",
+  "status": "complete",
+  "missing": [],
+  "sessions": [
+    {
+      "taskId": "inventory_stack",
+      "language": "axon",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 992,
+      "sessionOutputTokens": 433,
+      "sessionCostUsd": 0.009471,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 433,
+          "compileError": null,
+          "tests": {
+            "passed": 7,
+            "failed": 0,
+            "total": 7,
+            "source": "@test"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "inventory_stack",
+      "language": "typescript",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 146,
+      "sessionOutputTokens": 168,
+      "sessionCostUsd": 0.0029579999999999997,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 168,
+          "compileError": null,
+          "tests": {
+            "passed": 7,
+            "failed": 0,
+            "total": 7,
+            "results": [
+              {
+                "name": "empty",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "merge",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "one stack",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "split",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "remainder",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "exact multiple",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "distinct",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "parse_int_safe",
+      "language": "axon",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 956,
+      "sessionOutputTokens": 585,
+      "sessionCostUsd": 0.011643,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 585,
+          "compileError": null,
+          "tests": {
+            "passed": 8,
+            "failed": 0,
+            "total": 8,
+            "source": "@test"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "parse_int_safe",
+      "language": "typescript",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 110,
+      "sessionOutputTokens": 217,
+      "sessionCostUsd": 0.0035849999999999996,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 217,
+          "compileError": null,
+          "tests": {
+            "passed": 8,
+            "failed": 0,
+            "total": 8,
+            "results": [
+              {
+                "name": "simple",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "negative",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "zero",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "neg zero",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "empty err",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "trailing err",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "leading zeros err",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "bare minus err",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "classify_grade",
+      "language": "axon",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 971,
+      "sessionOutputTokens": 306,
+      "sessionCostUsd": 0.007503,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 306,
+          "compileError": null,
+          "tests": {
+            "passed": 8,
+            "failed": 0,
+            "total": 8,
+            "source": "@test"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "classify_grade",
+      "language": "typescript",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 125,
+      "sessionOutputTokens": 103,
+      "sessionCostUsd": 0.0019199999999999998,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 103,
+          "compileError": null,
+          "tests": {
+            "passed": 8,
+            "failed": 0,
+            "total": 8,
+            "results": [
+              {
+                "name": "90 is A",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "89.5 is B",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "100 is A",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "60 is D",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "59.9 is F",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "0 is F",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "negative Invalid",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "over 100 Invalid",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "shape_area",
+      "language": "axon",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 989,
+      "sessionOutputTokens": 286,
+      "sessionCostUsd": 0.007257,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 286,
+          "compileError": null,
+          "tests": {
+            "passed": 5,
+            "failed": 0,
+            "total": 5,
+            "source": "@test"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "shape_area",
+      "language": "typescript",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 143,
+      "sessionOutputTokens": 146,
+      "sessionCostUsd": 0.0026190000000000002,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 146,
+          "compileError": null,
+          "tests": {
+            "passed": 5,
+            "failed": 0,
+            "total": 5,
+            "results": [
+              {
+                "name": "circle r=1",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "rect 4x3",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "triangle 6x4",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "degenerate rect",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "circle r=2",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "rgb_to_hex",
+      "language": "axon",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 972,
+      "sessionOutputTokens": 322,
+      "sessionCostUsd": 0.007746,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 322,
+          "compileError": null,
+          "tests": {
+            "passed": 6,
+            "failed": 0,
+            "total": 6,
+            "source": "@test"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "rgb_to_hex",
+      "language": "typescript",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 126,
+      "sessionOutputTokens": 118,
+      "sessionCostUsd": 0.0021479999999999997,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 118,
+          "compileError": null,
+          "tests": {
+            "passed": 6,
+            "failed": 0,
+            "total": 6,
+            "results": [
+              {
+                "name": "black",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "white",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "clamp high",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "clamp low",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "zero pad",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "mixed",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "fib_memo",
+      "language": "axon",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 948,
+      "sessionOutputTokens": 219,
+      "sessionCostUsd": 0.006129,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 219,
+          "compileError": null,
+          "tests": {
+            "passed": 7,
+            "failed": 0,
+            "total": 7,
+            "source": "@test"
+          }
+        }
+      ],
+      "provenance": "reference"
+    },
+    {
+      "taskId": "fib_memo",
+      "language": "typescript",
+      "firstAttemptCompiled": true,
+      "firstAttemptTestsPassed": true,
+      "fixIterations": 0,
+      "attempts": 1,
+      "finalTestsPassed": true,
+      "sessionInputTokens": 102,
+      "sessionOutputTokens": 117,
+      "sessionCostUsd": 0.002061,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "compiled": true,
+          "testsPassed": true,
+          "outputTokens": 117,
+          "compileError": null,
+          "tests": {
+            "passed": 7,
+            "failed": 0,
+            "total": 7,
+            "results": [
+              {
+                "name": "fib 0",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 1",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 2",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 10",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 30",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "fib 40",
+                "ok": true,
+                "error": null
+              },
+              {
+                "name": "negative",
+                "ok": true,
+                "error": null
+              }
+            ],
+            "source": "acceptance"
+          }
+        }
+      ],
+      "provenance": "reference"
+    }
+  ],
+  "summary": {
+    "sessionCount": 12,
+    "axon": {
+      "sessions": 6,
+      "firstAttemptPassRate": 1,
+      "avgFixIterations": 0,
+      "avgSessionOutputTokens": 358.5,
+      "avgSessionCostUsd": 0.008291500000000002,
+      "totalSessionCostUsd": 0.04974900000000001
+    },
+    "typescript": {
+      "sessions": 6,
+      "firstAttemptPassRate": 1,
+      "avgFixIterations": 0,
+      "avgSessionOutputTokens": 144.83333333333334,
+      "avgSessionCostUsd": 0.0025485,
+      "totalSessionCostUsd": 0.015290999999999999
+    }
+  },
+  "referenceBacked": true,
+  "findings": [
+    "All live sessions are reference-backed (bootstrap) — session cost reflects answer keys, not real AI generation.",
+    "Live sessions (12): Axon first-attempt pass 100%, TS 100%.",
+    "Avg session cost: Axon $0.0083 vs TS $0.0025 (3.25×)."
+  ],
+  "note": "Sessions loaded from reference bootstrap — replace with real agent transcripts for AI writability measurement."
+}

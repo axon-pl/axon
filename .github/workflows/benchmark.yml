@@ -1,0 +1,74 @@
+name: Benchmark
+
+# Static suite (Tracks A–D token economy) runs on schedule.
+# Live Track D (session cost) runs on workflow_dispatch only — requires
+# live-sessions/*.json transcripts checked in or uploaded as artifacts.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_live:
+        description: 'Run Track D live session evaluation (--live)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+
+jobs:
+  benchmark-static:
+    name: Benchmark (static)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.run_live != 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build benchmark image
+        run: docker build -f benchmark/Dockerfile -t axon-bench .
+
+      - name: Run suite (static Track D)
+        run: |
+          mkdir -p benchmark/results
+          docker run --rm -v "$PWD/benchmark/results:/app/benchmark/results" axon-bench
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-static
+          path: |
+            benchmark/results/*.json
+            benchmark/results/report.md
+
+  benchmark-live:
+    name: Benchmark (Track D live)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_live == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build benchmark image
+        run: docker build -f benchmark/Dockerfile -t axon-bench .
+
+      - name: Run suite with live Track D
+        run: |
+          mkdir -p benchmark/results
+          docker run --rm \
+            -e BENCH_TRACK_D_LIVE=1 \
+            -v "$PWD/benchmark/results:/app/benchmark/results" \
+            -v "$PWD/benchmark/track-d-ai-native/live-sessions:/app/benchmark/track-d-ai-native/live-sessions" \
+            axon-bench
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-live
+          path: |
+            benchmark/results/*.json
+            benchmark/results/report.md

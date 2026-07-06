@@ -1,0 +1,41 @@
+record Item {
+  name:  string
+  count: int
+}
+
+fn stack_take :: (remaining: int, max_size: int) -> int {
+  @pure @total
+  remaining > max_size ? max_size : remaining
+}
+
+fn inventory_stack :: (items: Item[], max_size: int) -> Item[] {
+  @intent "Merge stackable items by name (first-seen order), then split into stacks of at most max_size"
+  let mut names = []
+  let mut totals = []
+  for item in items {
+    let idx = names.indexOf(item.name)
+    if idx >= 0 {
+      totals[idx] = totals[idx] + item.count
+    } else {
+      names.push(item.name)
+      totals.push(item.count)
+    }
+  }
+  let mut result = []
+  for i in 0..names.length {
+    let mut remaining = totals[i]
+    while remaining > 0 {
+      result.push(Item(names[i], stack_take(remaining, max_size)))
+      remaining = remaining - stack_take(remaining, max_size)
+    }
+  }
+  result
+}
+
+@test "empty inventory yields no stacks" { inventory_stack([], 10).length === 0 }
+@test "merges duplicates under max" { inventory_stack([Item("wood", 3), Item("wood", 4)], 10)[0].count === 7 }
+@test "merge keeps one stack" { inventory_stack([Item("wood", 3), Item("wood", 4)], 10).length === 1 }
+@test "overflow splits into stacks" { inventory_stack([Item("stone", 25)], 10).length === 3 }
+@test "last overflow stack has remainder" { inventory_stack([Item("stone", 25)], 10)[2].count === 5 }
+@test "exact multiple fills stacks" { inventory_stack([Item("iron", 20)], 10).length === 2 }
+@test "distinct names stay separate" { inventory_stack([Item("a", 1), Item("b", 1)], 10).length === 2 }
