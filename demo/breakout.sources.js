@@ -20,7 +20,7 @@ let BALL_R = 8;
 
 let PADDLE_Y = CANVAS_H - 40;
 
-let BALL_SPEED = 420;
+let BALL_SPEED = 840;
 
 const row_color = (row) => ((_m) => (_m === 0) ? "#ff2d78" : (_m === 1) ? "#ff6e3a" : (_m === 2) ? "#ffd166" : (_m === 3) ? "#06d6a0" : (_m === 4) ? "#00e5ff" : "#b84fff")(row);
 
