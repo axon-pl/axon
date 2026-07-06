@@ -62,7 +62,7 @@ let bricks = range(0, ROWS * COLS).map(i => true)
 // ── Brick helpers (@memo: grid layout never changes) ──────────────────────────
 
 @memo
-fn brick_x(col) = 40 + col * (BRICK_W + BRICK_GAP)
+fn brick_x(col) = (CANVAS_W - COLS * BRICK_W - (COLS - 1) * BRICK_GAP) / 2 + col * (BRICK_W + BRICK_GAP)
 
 @memo
 fn brick_y(row) = 60 + row * (BRICK_H + BRICK_GAP)
