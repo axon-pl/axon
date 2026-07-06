@@ -2,33 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Expedition Hub — Synth v0.9.9 Demo</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="icon" href="favicon.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expedition Hub — Synth Demo</title>
   <style>
     :root {
-      --bg:      #080818;
-      --bg2:     #0d0d28;
-      --bg3:     #12122e;
-      --border:  rgba(100,120,255,0.18);
-      --text:    #d4d8ff;
-      --dim:     #4a4a7a;
-      --accent:  #6470ff;
-      --cyan:    #00d4ff;
-      --green:   #00e5a0;
-      --gold:    #ffb020;
-      --pink:    #ff2d78;
-      --red:     #ff4455;
-      --purple:  #b060ff;
-
-      --d-safe: #00e5a0;
-      --d-low:  #6470ff;
-      --d-mod:  #ffb020;
-      --d-high: #ff7a00;
-      --d-crit: #ff2d78;
+      --bg:        #030d1a;
+      --bg2:       #071525;
+      --bg3:       #0c1f35;
+      --border:    rgba(0,212,255,0.18);
+      --text:      #cde8ff;
+      --muted:     #5a8aaa;
+      --accent:    #00d4ff;
+      --accent2:   #6470ff;
+      --gold:      #ffd166;
+      --green:     #06d6a0;
+      --red:       #ff4d6a;
+      --orange:    #ff8c42;
+      --dim:       #0e2030;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
       background: var(--bg);
@@ -36,410 +29,274 @@
       min-height: 100vh;
     }
 
-    /* ── Header ── */
-    .hdr {
-      background: linear-gradient(180deg, rgba(100,112,255,0.08) 0%, var(--bg2) 100%);
+    /* ── Header ──────────────────────────────────────────── */
+    .site-header {
+      background: linear-gradient(180deg, rgba(0,180,255,0.06) 0%, var(--bg2) 100%);
       border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      height: 56px;
+      padding: 1rem 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
-    .hdr-left { display: flex; align-items: center; gap: 14px; }
-    .hdr-icon { font-size: 22px; }
-    .hdr-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
-    .hdr-badge {
-      font-size: 11px; font-weight: 600; padding: 2px 8px;
-      border-radius: 20px; background: rgba(100,112,255,0.18);
-      color: var(--accent); border: 1px solid rgba(100,112,255,0.3);
-      letter-spacing: 0.5px;
+    .header-left { display: flex; align-items: center; gap: 1rem; }
+    .header-icon { font-size: 2rem; }
+    .header-title h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; }
+    .header-title p  { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .back-link {
+      font-size: 0.8rem; color: var(--muted); text-decoration: none;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.35rem 0.8rem; transition: color 0.2s, border-color 0.2s;
     }
-    .hdr-nav { display: flex; gap: 16px; align-items: center; }
-    .hdr-link {
-      font-size: 13px; color: var(--dim); text-decoration: none;
-      transition: color .15s;
-    }
-    .hdr-link:hover { color: var(--text); }
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
 
-    /* ── Controls bar ── */
+    /* ── Stats bar ───────────────────────────────────────── */
+    .stats-bar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0.8rem 2rem;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      flex: 1;
+      min-width: 100px;
+      padding: 0.4rem 1rem;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-value { font-size: 1.25rem; font-weight: 700; color: var(--accent); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .stat-value.gold  { color: var(--gold); }
+    .stat-value.green { color: var(--green); }
+    .stat-value.red   { color: var(--red); }
+
+    /* ── Controls ────────────────────────────────────────── */
     .controls {
       background: var(--bg2);
       border-bottom: 1px solid var(--border);
-      padding: 12px 24px;
+      padding: 0.9rem 2rem;
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 1.2rem;
       flex-wrap: wrap;
     }
-    .ctrl-group { display: flex; align-items: center; gap: 8px; }
-    .ctrl-label { font-size: 11px; color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; }
-
-    /* Sector pills */
-    .pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
-    .pill {
-      font-size: 12px; font-weight: 600; padding: 4px 12px;
-      border-radius: 20px; cursor: pointer;
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .ctrl-label { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+    select, .danger-val {
+      background: var(--bg3);
+      color: var(--text);
       border: 1px solid var(--border);
-      background: transparent; color: var(--dim);
-      transition: all .15s;
+      border-radius: 6px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      outline: none;
     }
-    .pill:hover { color: var(--text); border-color: var(--accent); }
-    .pill.active { background: rgba(100,112,255,0.2); color: var(--accent); border-color: var(--accent); }
-    .pill[data-sector="Kepler"].active  { background: rgba(0,212,255,0.12); color: var(--cyan);   border-color: var(--cyan); }
-    .pill[data-sector="Proxima"].active { background: rgba(0,229,160,0.12); color: var(--green);  border-color: var(--green); }
-    .pill[data-sector="Helios"].active  { background: rgba(255,176,32,0.12); color: var(--gold);   border-color: var(--gold); }
-    .pill[data-sector="Vega"].active    { background: rgba(176,96,255,0.12); color: var(--purple); border-color: var(--purple); }
-
-    /* Danger slider */
-    .slider-wrap { display: flex; align-items: center; gap: 10px; }
+    select:focus { border-color: var(--accent); }
     input[type=range] {
-      appearance: none; width: 100px; height: 4px;
-      background: var(--border); border-radius: 2px; outline: none;
+      accent-color: var(--accent);
+      width: 110px;
+      cursor: pointer;
     }
-    input[type=range]::-webkit-slider-thumb {
-      appearance: none; width: 14px; height: 14px;
-      border-radius: 50%; background: var(--accent); cursor: pointer;
+    .danger-val {
+      min-width: 2.8rem;
+      text-align: center;
+      border-color: rgba(0,212,255,0.3);
+      color: var(--accent);
+      font-weight: 600;
+      padding: 0.35rem 0.5rem;
     }
-    .slider-val {
-      font-size: 12px; font-weight: 700; color: var(--accent);
-      min-width: 28px;
-    }
-
-    /* Sort select */
-    select {
-      background: var(--bg3); color: var(--text);
-      border: 1px solid var(--border); border-radius: 6px;
-      padding: 4px 10px; font-size: 13px; cursor: pointer; outline: none;
-    }
-    select:hover { border-color: var(--accent); }
-
-    /* Fleet count */
-    .fleet-count {
-      margin-left: auto; font-size: 13px; color: var(--dim);
-    }
-    #fleet-total { color: var(--accent); font-weight: 600; }
-
-    /* ── Body layout ── */
-    .body {
-      display: grid;
-      grid-template-columns: 1fr 240px;
-      gap: 0;
-      min-height: calc(100vh - 56px - 57px);
+    .fleet-total {
+      margin-left: auto;
+      font-size: 0.8rem;
+      color: var(--muted);
     }
 
-    /* ── Mission grid ── */
-    .grid-area {
-      padding: 24px;
-      border-right: 1px solid var(--border);
-    }
+    /* ── Grid ────────────────────────────────────────────── */
+    .grid-wrap { padding: 1.5rem 2rem; }
     #grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .empty-state {
+      grid-column: 1/-1;
+      text-align: center;
+      color: var(--muted);
+      padding: 3rem;
+      font-size: 0.9rem;
     }
 
+    /* ── Mission cards ───────────────────────────────────── */
     .mc {
-      background: var(--bg2);
+      background: var(--bg3);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 14px 16px;
-      transition: border-color .15s, transform .1s;
+      padding: 1rem;
+      transition: border-color 0.2s, transform 0.15s;
     }
-    .mc:hover { border-color: rgba(100,112,255,0.4); transform: translateY(-2px); }
-
+    .mc:hover { border-color: var(--accent); transform: translateY(-2px); }
     .mc-top {
-      display: flex; align-items: center;
+      display: flex;
+      align-items: center;
       justify-content: space-between;
-      margin-bottom: 6px;
+      margin-bottom: 0.4rem;
     }
-    .mc-name { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
+    .mc-name { font-weight: 700; font-size: 1rem; color: var(--text); }
     .mc-badge {
-      font-size: 10px; font-weight: 700; padding: 2px 7px;
-      border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
-    .mc-badge.safe { background: rgba(0,229,160,0.15); color: var(--d-safe); }
-    .mc-badge.low  { background: rgba(100,112,255,0.15); color: var(--d-low); }
-    .mc-badge.mod  { background: rgba(255,176,32,0.15); color: var(--d-mod); }
-    .mc-badge.high { background: rgba(255,122,0,0.15); color: var(--d-high); }
-    .mc-badge.crit { background: rgba(255,45,120,0.15); color: var(--d-crit); }
-
-    .mc-sector { font-size: 11px; color: var(--dim); margin-bottom: 10px; }
-
-    .mc-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mc-badge.safe { background: rgba(6,214,160,0.15); color: var(--green); border: 1px solid rgba(6,214,160,0.3); }
+    .mc-badge.low  { background: rgba(100,112,255,0.15); color: #9aa4ff; border: 1px solid rgba(100,112,255,0.3); }
+    .mc-badge.mod  { background: rgba(255,209,102,0.12); color: var(--gold); border: 1px solid rgba(255,209,102,0.3); }
+    .mc-badge.high { background: rgba(255,140,66,0.12); color: var(--orange); border: 1px solid rgba(255,140,66,0.3); }
+    .mc-badge.crit { background: rgba(255,77,106,0.12); color: var(--red); border: 1px solid rgba(255,77,106,0.3); }
+    .mc-sector {
+      font-size: 0.73rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.03em;
+    }
+    .mc-row {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
     .mc-stat {
-      font-size: 12px; color: var(--dim);
-      background: var(--bg3); border-radius: 5px;
-      padding: 3px 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--dim);
+      border-radius: 5px;
+      padding: 0.25rem 0.5rem;
+      white-space: nowrap;
     }
-    .mc-stat b { color: var(--text); font-weight: 600; }
+    .s-dist { color: var(--accent); }
+    .s-ore  { color: var(--gold); }
+    .s-fuel { color: var(--green); }
+    .s-data { color: #c084fc; }
 
-    .empty-state {
-      grid-column: 1 / -1;
-      text-align: center; color: var(--dim);
-      padding: 48px 0; font-size: 14px;
-    }
-
-    /* ── Stats sidebar ── */
-    .stats-panel {
-      padding: 20px 16px;
-      background: var(--bg);
-    }
-    .stats-title {
-      font-size: 11px; font-weight: 700; color: var(--dim);
-      text-transform: uppercase; letter-spacing: 1px;
-      margin-bottom: 16px;
-    }
-    .stat-row {
-      display: flex; justify-content: space-between; align-items: baseline;
-      padding: 9px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .stat-row:last-child { border-bottom: none; }
-    .stat-key { font-size: 12px; color: var(--dim); }
-    .stat-val { font-size: 16px; font-weight: 700; color: var(--text); }
-    .stat-val.accent { color: var(--accent); }
-    .stat-val.warn   { color: var(--gold); }
-    .stat-val.danger { color: var(--pink); }
-    .stat-val.green  { color: var(--green); }
-    .stat-val.cyan   { color: var(--cyan); }
-
-    /* ── Source drawer ── */
-    details {
+    /* ── Synth tag ───────────────────────────────────────── */
+    .synth-tag {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 1.5rem;
       border-top: 1px solid var(--border);
+      margin-top: 0.5rem;
     }
-    summary {
-      padding: 14px 24px;
-      cursor: pointer;
-      font-size: 13px; color: var(--dim);
-      display: flex; align-items: center; gap: 8px;
-      user-select: none;
-      list-style: none;
-      transition: color .15s;
-    }
-    summary::-webkit-details-marker { display: none; }
-    summary:hover { color: var(--text); }
-    summary::before {
-      content: '▶'; font-size: 9px; transition: transform .2s;
-    }
-    details[open] summary::before { transform: rotate(90deg); }
-    details[open] summary { color: var(--text); }
-
-    .src-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 0;
-      border-top: 1px solid var(--border);
-    }
-    .src-block {
-      padding: 20px 24px;
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .src-block:last-child { border-right: none; }
-    .src-tag {
-      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-      margin-bottom: 10px; padding: 2px 8px; border-radius: 4px;
-      display: inline-block;
-    }
-    .src-tag.spread   { background: rgba(0,212,255,0.1); color: var(--cyan); }
-    .src-tag.shorthand{ background: rgba(0,229,160,0.1); color: var(--green); }
-    .src-tag.methods  { background: rgba(100,112,255,0.1); color: var(--accent); }
-    .src-tag.do-block { background: rgba(255,176,32,0.1); color: var(--gold); }
-    pre.src {
-      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-      font-size: 12.5px; line-height: 1.65;
-      color: #c8ceff;
-      white-space: pre;
-      overflow-x: auto;
-    }
-    pre.src .kw  { color: #7c9dff; }
-    pre.src .fn  { color: #a0c0ff; }
-    pre.src .str { color: #7fd9a0; }
-    pre.src .cmt { color: #3a4070; font-style: italic; }
-    pre.src .op  { color: #6470ff; }
-    pre.src .num { color: #ffb06a; }
-    pre.src .hi  { color: #00e5a0; font-weight: 600; }
+    .synth-tag a { color: var(--accent); text-decoration: none; }
+    .synth-tag a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
 
-<!-- ── Header ──────────────────────────────────────────────────────────────── -->
-<header class="hdr">
-  <div class="hdr-left">
-    <span class="hdr-icon">🛸</span>
-    <span class="hdr-title">Expedition Hub</span>
-    <span class="hdr-badge">v0.9.9</span>
-  </div>
-  <nav class="hdr-nav">
-    <a class="hdr-link" href="playground.html">Playground</a>
-    <a class="hdr-link" href="index.html">← All Demos</a>
-  </nav>
-</header>
+  <header class="site-header">
+    <div class="header-left">
+      <div class="header-icon">🚀</div>
+      <div class="header-title">
+        <h1>Expedition Hub</h1>
+        <p>Reactive fleet dashboard — Synth <code>store</code> · spread · stdlib methods · <code>do</code> notation</p>
+      </div>
+    </div>
+    <a class="back-link" href="landing.html">← All Demos</a>
+  </header>
 
-<!-- ── Controls ────────────────────────────────────────────────────────────── -->
-<div class="controls">
-  <div class="ctrl-group">
-    <span class="ctrl-label">Sector</span>
-    <div class="pill-row">
-      <button class="pill active" data-sector="All" onclick="setSector('All', this)">All</button>
-      <button class="pill" data-sector="Kepler"  onclick="setSector('Kepler', this)">Kepler</button>
-      <button class="pill" data-sector="Proxima" onclick="setSector('Proxima', this)">Proxima</button>
-      <button class="pill" data-sector="Helios"  onclick="setSector('Helios', this)">Helios</button>
-      <button class="pill" data-sector="Vega"    onclick="setSector('Vega', this)">Vega</button>
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-label">Missions</div>
+      <div class="stat-value" id="stat-count">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">⛏ Ore</div>
+      <div class="stat-value gold" id="stat-ore">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">⚡ Fuel</div>
+      <div class="stat-value green" id="stat-fuel">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">💾 Data</div>
+      <div class="stat-value" id="stat-data">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Avg Danger</div>
+      <div class="stat-value" id="stat-avgd">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Max Range</div>
+      <div class="stat-value" id="stat-dist">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">⚠ High Risk</div>
+      <div class="stat-value red" id="stat-risk">—</div>
     </div>
   </div>
 
-  <div class="ctrl-group">
-    <span class="ctrl-label">Max Danger</span>
-    <div class="slider-wrap">
-      <input type="range" id="danger-slider" min="1" max="5" value="5"
-             oninput="setDanger(this.value)" />
-      <span class="slider-val" id="danger-val">5</span>
+  <div class="controls">
+    <div class="ctrl-group">
+      <span class="ctrl-label">Sector</span>
+      <select id="ctrl-sector">
+        <option value="All">All Sectors</option>
+        <option value="Kepler">Kepler</option>
+        <option value="Proxima">Proxima</option>
+        <option value="Helios">Helios</option>
+        <option value="Vega">Vega</option>
+      </select>
     </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Max Danger</span>
+      <input type="range" id="ctrl-danger" min="1" max="5" value="5" />
+      <span class="danger-val" id="danger-display">5</span>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Sort by</span>
+      <select id="ctrl-sort">
+        <option value="distance">Distance</option>
+        <option value="danger">Danger</option>
+        <option value="ore">Ore ↓</option>
+        <option value="data">Data ↓</option>
+      </select>
+    </div>
+    <span class="fleet-total" id="fleet-total"></span>
   </div>
 
-  <div class="ctrl-group">
-    <span class="ctrl-label">Sort</span>
-    <select onchange="setSort(this.value)">
-      <option value="distance">Distance ↑</option>
-      <option value="danger">Danger ↑</option>
-      <option value="ore">Ore ↓</option>
-      <option value="data">Data ↓</option>
-    </select>
+  <div class="grid-wrap">
+    <div id="grid"></div>
   </div>
 
-  <span class="fleet-count"><span id="fleet-total">13 of 13 missions</span></span>
-</div>
-
-<!-- ── Body ────────────────────────────────────────────────────────────────── -->
-<div class="body">
-
-  <!-- Mission grid -->
-  <div class="grid-area">
-    <div id="grid">
-      <div style="color:var(--dim);font-size:13px;padding:20px 0">Loading…</div>
-    </div>
+  <div class="synth-tag">
+    Powered by <a href="https://synth-pl.github.io/synth/playground.html" target="_blank">Synth</a> —
+    view <a href="https://github.com/synth-pl/synth/blob/main/examples/expedition.syn" target="_blank">expedition.syn</a>
   </div>
 
-  <!-- Stats sidebar -->
-  <aside class="stats-panel">
-    <div class="stats-title">Fleet Stats</div>
-    <div class="stat-row">
-      <span class="stat-key">Missions</span>
-      <span class="stat-val accent" id="stat-count">—</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-key">Total Ore ⛏</span>
-      <span class="stat-val cyan" id="stat-ore">—</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-key">Total Fuel ⚡</span>
-      <span class="stat-val green" id="stat-fuel">—</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-key">Total Data 💾</span>
-      <span class="stat-val" id="stat-data">—</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-key">Avg Danger</span>
-      <span class="stat-val warn" id="stat-avgd">—</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-key">Max Distance</span>
-      <span class="stat-val" id="stat-dist">—</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-key">High-Risk ⚠</span>
-      <span class="stat-val danger" id="stat-risk">—</span>
-    </div>
-  </aside>
-</div>
+  <script src="synth.stdlib.js"></script>
+  <script src="expedition.sources.js"></script>
+  <script>
+    const sector  = document.getElementById('ctrl-sector')
+    const danger  = document.getElementById('ctrl-danger')
+    const dangerD = document.getElementById('danger-display')
+    const sort    = document.getElementById('ctrl-sort')
 
-<!-- ── Source drawer ────────────────────────────────────────────────────────── -->
-<details>
-  <summary>View Synth Source — four v0.9.9 features in action</summary>
-  <div class="src-grid">
-
-    <div class="src-block">
-      <div class="src-tag spread">Spread</div>
-      <pre class="src"><span class="cmt">// Two squadrons merged into one fleet</span>
-<span class="kw">let</span> alpha_wing <span class="op">=</span> [
-  { id: <span class="num">1</span>, name: <span class="str">"Vanguard"</span>, <span class="cmt">...</span> },
-  <span class="cmt">// ...</span>
-]
-<span class="kw">let</span> beta_wing <span class="op">=</span> [
-  { id: <span class="num">5</span>, name: <span class="str">"Horizon"</span>, <span class="cmt">...</span> },
-  <span class="cmt">// ...</span>
-]
-
-<span class="cmt">// Spread both wings into one fleet</span>
-<span class="kw">let</span> fleet <span class="op">=</span> [<span class="hi">...alpha_wing</span>, <span class="hi">...beta_wing</span>]</pre>
-    </div>
-
-    <div class="src-block">
-      <div class="src-tag shorthand">Object Shorthand</div>
-      <pre class="src"><span class="cmt">// { name, sector, danger } instead of</span>
-<span class="cmt">// { name: name, sector: sector, danger: danger }</span>
-<span class="kw">fn</span> <span class="fn">mission_summary</span>(name, sector, danger) <span class="op">=</span>
-  { <span class="hi">name</span>, <span class="hi">sector</span>, <span class="hi">danger</span> }
-
-<span class="cmt">// Also used inside do blocks:</span>
-<span class="cmt">// { count: n, ore, fuel, data, ... }</span>
-<span class="cmt">// where ore, fuel, data are local vars</span></pre>
-    </div>
-
-    <div class="src-block">
-      <div class="src-tag methods">Method Syntax</div>
-      <pre class="src"><span class="cmt">// value.fn(args) → fn(value, args)</span>
-<span class="kw">let</span> filtered <span class="op">=</span> fleet
-  .<span class="hi">filter</span>(m <span class="op">=></span> m.danger <span class="op">&lt;=</span> max_danger)
-
-<span class="kw">match</span> sort_key {
-  <span class="op">|</span> <span class="str">"distance"</span> <span class="op">=></span> filtered.<span class="hi">sort_by</span>(m <span class="op">=></span> m.distance)
-  <span class="op">|</span> <span class="str">"ore"</span>      <span class="op">=></span> filtered.<span class="hi">sort_by_desc</span>(m <span class="op">=></span> m.ore)
-  <span class="op">|</span> _          <span class="op">=></span> filtered
-}
-
-<span class="cmt">// Works on strings too:</span>
-<span class="cmt">// "hello".to_upper() → to_upper("hello")</span></pre>
-    </div>
-
-    <div class="src-block">
-      <div class="src-tag do-block">do Notation</div>
-      <pre class="src"><span class="cmt">// Block expression — last value is result</span>
-<span class="kw">fn</span> <span class="fn">fleet_stats</span>(missions) <span class="op">-></span> any {
-  <span class="hi">do</span> {
-    <span class="kw">let</span> n        <span class="op">=</span> count(missions)
-    <span class="kw">let</span> ore      <span class="op">=</span> missions.<span class="hi">sum_by</span>(m <span class="op">=></span> m.ore)
-    <span class="kw">let</span> fuel     <span class="op">=</span> missions.<span class="hi">sum_by</span>(m <span class="op">=></span> m.fuel)
-    <span class="kw">let</span> max_dist <span class="op">=</span> missions.<span class="hi">max_by</span>(m <span class="op">=></span> m.distance).distance
-    <span class="cmt">// object shorthand at the end</span>
-    { count: n, <span class="hi">ore</span>, <span class="hi">fuel</span>, max_dist }
-  }
-}</pre>
-    </div>
-
-  </div>
-</details>
-
-<!-- ── Scripts ──────────────────────────────────────────────────────────────── -->
-<script src="synth.stdlib.js"></script>
-<script src="expedition.sources.js"></script>
-<script>
-  function setSector(s, btn) {
-    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'))
-    btn.classList.add('active')
-    Fleet.set({ sector: s })
-  }
-  function setDanger(v) {
-    document.getElementById('danger-val').textContent = v
-    Fleet.set({ max_danger: Number(v) })
-  }
-  function setSort(v) {
-    Fleet.set({ sort_key: v })
-  }
-</script>
+    sector.addEventListener('change', () => Fleet.set({ sector: sector.value }))
+    sort.addEventListener('change',   () => Fleet.set({ sort_key: sort.value }))
+    danger.addEventListener('input',  () => {
+      const v = parseInt(danger.value)
+      dangerD.textContent = v
+      Fleet.set({ max_danger: v })
+    })
+  </script>
 </body>
 </html>
