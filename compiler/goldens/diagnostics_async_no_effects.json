@@ -1,0 +1,7 @@
+[
+  {
+    "severity": "warning",
+    "message": "async fn 'f' should declare @effects to document its async operations (e.g. @effects [\"network\"] or @effects [\"timer\"])",
+    "line": 1
+  }
+]

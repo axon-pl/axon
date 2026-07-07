@@ -1,0 +1,6 @@
+@exhaustive
+fn f(isActive: bool) {
+  match isActive {
+    | true => 1
+  }
+}

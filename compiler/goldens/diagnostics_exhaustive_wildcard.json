@@ -1,0 +1,7 @@
+[
+  {
+    "severity": "warning",
+    "message": "@exhaustive function 'f': match has no wildcard '_' — may not cover all cases",
+    "line": 2
+  }
+]

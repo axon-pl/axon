@@ -1,0 +1,8 @@
+type Shape = | Circle | Rect
+
+@exhaustive
+fn f(s: Shape) {
+  match s {
+    | Circle => 1
+  }
+}

@@ -1,0 +1,7 @@
+[
+  {
+    "severity": "warning",
+    "message": "@exhaustive function 'f': match on union missing case for 'Rect'",
+    "line": 4
+  }
+]

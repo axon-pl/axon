@@ -1,0 +1,7 @@
+[
+  {
+    "severity": "warning",
+    "message": "@test \"always fails\" has a trivially false assertion",
+    "line": 1
+  }
+]

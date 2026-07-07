@@ -1,0 +1,6 @@
+@exhaustive
+fn f(n: int) {
+  match n {
+    | 0 => "zero"
+  }
+}

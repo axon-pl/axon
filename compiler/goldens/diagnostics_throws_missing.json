@@ -1,0 +1,7 @@
+[
+  {
+    "severity": "warning",
+    "message": "@throws function 'f' never calls ok() or err()",
+    "line": 2
+  }
+]

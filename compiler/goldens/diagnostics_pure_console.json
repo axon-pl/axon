@@ -1,0 +1,17 @@
+[
+  {
+    "severity": "warning",
+    "message": "@pure function 'bad' accesses effectful global 'console.log'",
+    "line": 2
+  },
+  {
+    "severity": "warning",
+    "message": "@pure function 'bad' calls potentially effectful method '.log()'",
+    "line": 2
+  },
+  {
+    "severity": "warning",
+    "message": "@pure function 'bad' references effectful global 'console'",
+    "line": 2
+  }
+]

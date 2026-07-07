@@ -1,0 +1,544 @@
+// ── Checker — port of src/checker.ts ─────────────────────────────────────────
+
+import { Program } from "./ast"
+
+record ChkState {
+  diagnostics:   any[]
+  unions:        any[]
+  purity_fn:     string
+  purity_line:   int
+  purity_on:     bool
+  exhaustive_fn: string
+  exhaustive_line: int
+  exhaustive_on: bool
+  throws_fn:     string
+  throws_line:   int
+  throws_on:     bool
+  throws_ok:     bool
+  throws_err:    bool
+}
+
+fn chk_warn(st: ChkState, message: string, line: int) -> ChkState {
+  let d = { severity: "warning", message: message, line: line }
+  ChkState(st.diagnostics.concat([d]), st.unions, st.purity_fn, st.purity_line, st.purity_on, st.exhaustive_fn, st.exhaustive_line, st.exhaustive_on, st.throws_fn, st.throws_line, st.throws_on, st.throws_ok, st.throws_err)
+}
+
+fn arr_has(arr: any[], item: string) -> bool {
+  let mut i = 0
+  while i < arr.length {
+    if arr[i] == item { return true }
+    i = i + 1
+  }
+  false
+}
+
+fn has_annotation(anns: any[], name: string) -> bool {
+  let mut i = 0
+  while i < anns.length {
+    if anns[i].name == name { return true }
+    i = i + 1
+  }
+  false
+}
+
+fn str_index_of(s: string, sub: string) -> int {
+  let mut i = 0
+  while i <= s.length - sub.length {
+    if s.slice(i, i + sub.length) == sub { return i }
+    i = i + 1
+  }
+  -1
+}
+
+fn str_contains(s: string, sub: string) -> bool {
+  str_index_of(s, sub) >= 0
+}
+
+fn char_to_lower(c: string) -> string {
+  if c == "A" { "a" } else if c == "B" { "b" } else if c == "C" { "c" } else if c == "D" { "d" }
+  else if c == "E" { "e" } else if c == "F" { "f" } else if c == "G" { "g" } else if c == "H" { "h" }
+  else if c == "I" { "i" } else if c == "J" { "j" } else if c == "K" { "k" } else if c == "L" { "l" }
+  else if c == "M" { "m" } else if c == "N" { "n" } else if c == "O" { "o" } else if c == "P" { "p" }
+  else if c == "Q" { "q" } else if c == "R" { "r" } else if c == "S" { "s" } else if c == "T" { "t" }
+  else if c == "U" { "u" } else if c == "V" { "v" } else if c == "W" { "w" } else if c == "X" { "x" }
+  else if c == "Y" { "y" } else if c == "Z" { "z" } else { c }
+}
+
+fn str_to_lower(s: string) -> string {
+  let mut out = ""
+  let mut i = 0
+  while i < s.length {
+    out = out + char_to_lower(s.slice(i, i + 1))
+    i = i + 1
+  }
+  out
+}
+
+fn starts_with_upper(name: string) -> bool {
+  if name.length == 0 { false }
+  else {
+    let c = name.slice(0, 1)
+    c >= "A" and c <= "Z"
+  }
+}
+
+fn looks_like_bool_name(name: string) -> bool {
+  let lower = str_to_lower(name)
+  if lower == "state" { true }
+  else if str_contains(lower, "bool") { true }
+  else if str_contains(lower, "flag") { true }
+  else if str_contains(lower, "is") { true }
+  else if str_contains(lower, "has") { true }
+  else if str_contains(lower, "can") { true }
+  else if str_contains(lower, "dark") { true }
+  else if str_contains(lower, "open") { true }
+  else if str_contains(lower, "valid") { true }
+  else if str_contains(lower, "active") { true }
+  else if str_contains(lower, "enabled") { true }
+  else { false }
+}
+
+fn looks_like_bool(expr: any) -> bool {
+  if expr.kind == "BoolLit" { true }
+  else if expr.kind == "Identifier" { looks_like_bool_name(expr.name) }
+  else { false }
+}
+
+fn union_variant_names(decl: any) -> string[] {
+  let mut names = []
+  let mut i = 0
+  while i < decl.variants.length {
+    names = names.concat([decl.variants[i].name])
+    i = i + 1
+  }
+  names
+}
+
+fn collect_unions(st: ChkState, program: Program) -> ChkState {
+  let mut s = st
+  let mut i = 0
+  while i < program.body.length {
+    let decl = program.body[i]
+    if decl.kind == "TaggedUnionDecl" {
+      let info = { name: decl.name, variants: union_variant_names(decl) }
+      s = ChkState(s.diagnostics, s.unions.concat([info]), s.purity_fn, s.purity_line, s.purity_on, s.exhaustive_fn, s.exhaustive_line, s.exhaustive_on, s.throws_fn, s.throws_line, s.throws_on, s.throws_ok, s.throws_err)
+    } else if decl.kind == "ExportDecl" and decl.decl.kind == "TaggedUnionDecl" {
+      let u = decl.decl
+      let info = { name: u.name, variants: union_variant_names(u) }
+      s = ChkState(s.diagnostics, s.unions.concat([info]), s.purity_fn, s.purity_line, s.purity_on, s.exhaustive_fn, s.exhaustive_line, s.exhaustive_on, s.throws_fn, s.throws_line, s.throws_on, s.throws_ok, s.throws_err)
+    }
+    i = i + 1
+  }
+  s
+}
+
+fn is_effectful_global(name: string) -> bool {
+  if name == "document" { true }
+  else if name == "window" { true }
+  else if name == "console" { true }
+  else if name == "fetch" { true }
+  else if name == "XMLHttpRequest" { true }
+  else if name == "setTimeout" { true }
+  else if name == "setInterval" { true }
+  else if name == "clearTimeout" { true }
+  else if name == "clearInterval" { true }
+  else if name == "localStorage" { true }
+  else if name == "sessionStorage" { true }
+  else if name == "indexedDB" { true }
+  else if name == "alert" { true }
+  else if name == "confirm" { true }
+  else if name == "prompt" { true }
+  else { false }
+}
+
+fn is_effectful_method(prop: string) -> bool {
+  if prop == "log" { true }
+  else if prop == "warn" { true }
+  else if prop == "error" { true }
+  else if prop == "info" { true }
+  else if prop == "getElementById" { true }
+  else if prop == "querySelector" { true }
+  else if prop == "querySelectorAll" { true }
+  else if prop == "createElement" { true }
+  else if prop == "appendChild" { true }
+  else if prop == "removeChild" { true }
+  else if prop == "insertBefore" { true }
+  else if prop == "addEventListener" { true }
+  else if prop == "removeEventListener" { true }
+  else if prop == "setAttribute" { true }
+  else if prop == "removeAttribute" { true }
+  else if prop == "push" { true }
+  else if prop == "pop" { true }
+  else if prop == "shift" { true }
+  else if prop == "unshift" { true }
+  else if prop == "splice" { true }
+  else if prop == "sort" { true }
+  else if prop == "reverse" { true }
+  else if prop == "write" { true }
+  else if prop == "writeln" { true }
+  else { false }
+}
+
+fn chk_visit_purity(st: ChkState, e: any) -> ChkState {
+  if not st.purity_on { st }
+  else {
+    let mut s = st
+    if e.kind == "Identifier" and is_effectful_global(e.name) {
+      s = chk_warn(s, "@pure function '" + s.purity_fn + "' references effectful global '" + e.name + "'", s.purity_line)
+    }
+    if e.kind == "MemberExpr" {
+      if e.object.kind == "Identifier" and is_effectful_global(e.object.name) {
+        s = chk_warn(s, "@pure function '" + s.purity_fn + "' accesses effectful global '" + e.object.name + "." + e.property + "'", s.purity_line)
+      }
+      if e.object.kind == "Identifier" and e.object.name == "Math" and e.property == "random" {
+        s = chk_warn(s, "@pure function '" + s.purity_fn + "' calls Math.random which is non-deterministic", s.purity_line)
+      }
+      if is_effectful_method(e.property) {
+        s = chk_warn(s, "@pure function '" + s.purity_fn + "' calls potentially effectful method '." + e.property + "()'", s.purity_line)
+      }
+    }
+    s
+  }
+}
+
+fn chk_visit_throws(st: ChkState, e: any) -> ChkState {
+  if not st.throws_on { st }
+  else if e.kind == "CallExpr" and e.callee.kind == "Identifier" {
+    if e.callee.name == "ok" {
+      ChkState(st.diagnostics, st.unions, st.purity_fn, st.purity_line, st.purity_on, st.exhaustive_fn, st.exhaustive_line, st.exhaustive_on, st.throws_fn, st.throws_line, st.throws_on, true, st.throws_err)
+    } else if e.callee.name == "err" {
+      ChkState(st.diagnostics, st.unions, st.purity_fn, st.purity_line, st.purity_on, st.exhaustive_fn, st.exhaustive_line, st.exhaustive_on, st.throws_fn, st.throws_line, st.throws_on, st.throws_ok, true)
+    } else {
+      st
+    }
+  } else {
+    st
+  }
+}
+
+fn chk_visit_expr(st: ChkState, e: any) -> ChkState {
+  let mut s = chk_visit_purity(st, e)
+  if s.exhaustive_on and e.kind == "MatchExpr" {
+    s = chk_match_exhaustive(s, e, s.exhaustive_fn, s.exhaustive_line)
+  }
+  chk_visit_throws(s, e)
+}
+
+fn walk_expr(st: ChkState, expr: any) -> ChkState {
+  let mut s = chk_visit_expr(st, expr)
+  let k = expr.kind
+  if k == "BinaryExpr" {
+    s = walk_expr(s, expr.left)
+    walk_expr(s, expr.right)
+  } else if k == "UnaryExpr" {
+    walk_expr(s, expr.operand)
+  } else if k == "TernaryExpr" {
+    s = walk_expr(s, expr.test)
+    s = walk_expr(s, expr.consequent)
+    walk_expr(s, expr.alternate)
+  } else if k == "CallExpr" {
+    s = walk_expr(s, expr.callee)
+    let mut i = 0
+    while i < expr.args.length {
+      s = walk_expr(s, expr.args[i])
+      i = i + 1
+    }
+    s
+  } else if k == "NewExpr" {
+    s = walk_expr(s, expr.callee)
+    let mut i = 0
+    while i < expr.args.length {
+      s = walk_expr(s, expr.args[i])
+      i = i + 1
+    }
+    s
+  } else if k == "MemberExpr" {
+    walk_expr(s, expr.object)
+  } else if k == "IndexExpr" {
+    s = walk_expr(s, expr.object)
+    walk_expr(s, expr.index)
+  } else if k == "SpreadExpr" {
+    walk_expr(s, expr.argument)
+  } else if k == "ObjectLit" {
+    let mut i = 0
+    while i < expr.properties.length {
+      s = walk_expr(s, expr.properties[i].value)
+      i = i + 1
+    }
+    s
+  } else if k == "ArrayLit" {
+    let mut i = 0
+    while i < expr.elements.length {
+      s = walk_expr(s, expr.elements[i])
+      i = i + 1
+    }
+    s
+  } else if k == "LambdaExpr" {
+    walk_expr(s, expr.body)
+  } else if k == "PipelineExpr" {
+    let mut i = 0
+    while i < expr.steps.length {
+      let step = expr.steps[i]
+      if step.kind != "PipeAs" {
+        s = walk_expr(s, step)
+      }
+      i = i + 1
+    }
+    s
+  } else if k == "MatchExpr" {
+    s = walk_expr(s, expr.subject)
+    let mut i = 0
+    while i < expr.arms.length {
+      let arm = expr.arms[i]
+      if arm.guard != null {
+        s = walk_expr(s, arm.guard)
+      }
+      s = walk_expr(s, arm.body)
+      i = i + 1
+    }
+    s
+  } else if k == "BlockExpr" {
+    walk_block(s, expr)
+  } else if k == "ResultPropagateExpr" {
+    walk_expr(s, expr.value)
+  } else if k == "AwaitExpr" {
+    walk_expr(s, expr.value)
+  } else {
+    s
+  }
+}
+
+fn walk_block(st: ChkState, block: any) -> ChkState {
+  let mut s = st
+  let mut i = 0
+  while i < block.stmts.length {
+    let stmt = block.stmts[i]
+    let sk = stmt.kind
+    if sk == "LetStmt" {
+      if stmt.value != null { s = walk_expr(s, stmt.value) }
+    } else if sk == "DestructureStmt" {
+      s = walk_expr(s, stmt.value)
+    } else if sk == "ReturnStmt" {
+      s = walk_expr(s, stmt.value)
+    } else if sk == "ExprStmt" {
+      s = walk_expr(s, stmt.value)
+    } else if sk == "IfStmt" {
+      s = walk_expr(s, stmt.test)
+      s = walk_block(s, stmt.then)
+      if stmt.else_ != null { s = walk_block(s, stmt.else_) }
+    } else if sk == "ForRangeStmt" {
+      s = walk_expr(s, stmt.lo)
+      s = walk_expr(s, stmt.hi)
+      s = walk_block(s, stmt.body)
+    } else if sk == "ForInStmt" {
+      s = walk_expr(s, stmt.iter)
+      s = walk_block(s, stmt.body)
+    } else if sk == "BreakStmt" {
+      s
+    } else if sk == "ContinueStmt" {
+      s
+    } else if sk == "RefineStmt" {
+      s
+    } else {
+      s
+    }
+    i = i + 1
+  }
+  s
+}
+
+fn arm_has_wildcard(pat: any) -> bool {
+  if pat.kind == "WildcardPat" { true }
+  else if pat.kind == "IdentPat" and not starts_with_upper(pat.name) { true }
+  else { false }
+}
+
+fn arms_have_wildcard(arms: any[]) -> bool {
+  let mut i = 0
+  while i < arms.length {
+    if arm_has_wildcard(arms[i].pattern) { return true }
+    i = i + 1
+  }
+  false
+}
+
+fn arms_have_bool_lit(arms: any[], value: bool) -> bool {
+  let mut i = 0
+  while i < arms.length {
+    let p = arms[i].pattern
+    if p.kind == "LiteralPat" and p.value == value { return true }
+    i = i + 1
+  }
+  false
+}
+
+fn arms_have_compare(arms: any[]) -> bool {
+  let mut i = 0
+  while i < arms.length {
+    if arms[i].pattern.kind == "ComparePat" { return true }
+    i = i + 1
+  }
+  false
+}
+
+fn tag_pattern_name(pat: any) -> string {
+  if pat.kind == "TagPat" { pat.name }
+  else if pat.kind == "IdentPat" { pat.name }
+  else { "" }
+}
+
+fn is_tag_pattern(pat: any) -> bool {
+  if pat.kind == "TagPat" { true }
+  else if pat.kind == "IdentPat" and starts_with_upper(pat.name) { true }
+  else { false }
+}
+
+fn collect_tag_names(arms: any[]) -> string[] {
+  let mut names = []
+  let mut i = 0
+  while i < arms.length {
+    let p = arms[i].pattern
+    if is_tag_pattern(p) {
+      names = names.concat([tag_pattern_name(p)])
+    }
+    i = i + 1
+  }
+  names
+}
+
+fn set_has_all_variants(covered: string[], variants: string[]) -> bool {
+  let mut i = 0
+  while i < variants.length {
+    if not arr_has(covered, variants[i]) { return false }
+    i = i + 1
+  }
+  true
+}
+
+fn set_overlaps_union(covered: string[], variants: string[]) -> bool {
+  let mut i = 0
+  while i < covered.length {
+    if arr_has(variants, covered[i]) { return true }
+    i = i + 1
+  }
+  false
+}
+
+fn chk_match_exhaustive(st: ChkState, e: any, fn_name: string, fn_line: int) -> ChkState {
+  let arms = e.arms
+  if arms_have_wildcard(arms) { st }
+  else if looks_like_bool(e.subject) {
+    let has_true = arms_have_bool_lit(arms, true)
+    let has_false = arms_have_bool_lit(arms, false)
+    if has_true and has_false { st }
+    else {
+      let missing = if has_true { "false" } else { "true" }
+      chk_warn(st, "@exhaustive function '" + fn_name + "': match on boolean missing case for '" + missing + "'", fn_line)
+    }
+  } else {
+    let covered = collect_tag_names(arms)
+    if covered.length > 0 {
+      let mut s = st
+      let mut ui = 0
+      while ui < s.unions.length {
+        let info = s.unions[ui]
+        if set_overlaps_union(covered, info.variants) {
+          let mut vi = 0
+          while vi < info.variants.length {
+            let variant = info.variants[vi]
+            if not arr_has(covered, variant) {
+              s = chk_warn(s, "@exhaustive function '" + fn_name + "': match on union missing case for '" + variant + "'", fn_line)
+            }
+            vi = vi + 1
+          }
+        }
+        ui = ui + 1
+      }
+      s
+    } else if arms_have_compare(arms) {
+      st
+    } else {
+      chk_warn(st, "@exhaustive function '" + fn_name + "': match has no wildcard '_' — may not cover all cases", fn_line)
+    }
+  }
+}
+
+fn check_exhaustive_body(st: ChkState, expr: any, fn_name: string, fn_line: int) -> ChkState {
+  let active = ChkState(st.diagnostics, st.unions, st.purity_fn, st.purity_line, st.purity_on, fn_name, fn_line, true, st.throws_fn, st.throws_line, st.throws_on, st.throws_ok, st.throws_err)
+  walk_expr(active, expr)
+}
+
+fn check_purity(st: ChkState, expr: any, fn_name: string, fn_line: int) -> ChkState {
+  let active = ChkState(st.diagnostics, st.unions, fn_name, fn_line, true, st.exhaustive_fn, st.exhaustive_line, st.exhaustive_on, st.throws_fn, st.throws_line, st.throws_on, st.throws_ok, st.throws_err)
+  walk_expr(active, expr)
+}
+
+fn check_throws(st: ChkState, expr: any, fn_name: string, fn_line: int) -> ChkState {
+  let active = ChkState(st.diagnostics, st.unions, st.purity_fn, st.purity_line, st.purity_on, st.exhaustive_fn, st.exhaustive_line, st.exhaustive_on, fn_name, fn_line, true, false, false)
+  let walked = walk_expr(active, expr)
+  if walked.throws_ok or walked.throws_err { walked }
+  else {
+    chk_warn(walked, "@throws function '" + fn_name + "' never calls ok() or err()", fn_line)
+  }
+}
+
+fn check_fn(st: ChkState, fndecl: any) -> ChkState {
+  let mut s = st
+  if has_annotation(fndecl.annotations, "pure") {
+    s = check_purity(s, fndecl.body, fndecl.name, fndecl.line)
+  }
+  if has_annotation(fndecl.annotations, "exhaustive") {
+    s = check_exhaustive_body(s, fndecl.body, fndecl.name, fndecl.line)
+  }
+  if has_annotation(fndecl.annotations, "throws") {
+    s = check_throws(s, fndecl.body, fndecl.name, fndecl.line)
+  }
+  s
+}
+
+fn check_async_effects(st: ChkState, fndecl: any) -> ChkState {
+  if has_annotation(fndecl.annotations, "effects") { st }
+  else {
+    chk_warn(st, "async fn '" + fndecl.name + "' should declare @effects to document its async operations (e.g. @effects [\"network\"] or @effects [\"timer\"])", fndecl.line)
+  }
+}
+
+fn check_test(st: ChkState, decl: any) -> ChkState {
+  if decl.body.kind == "BoolLit" and decl.body.value == false {
+    chk_warn(st, "@test \"" + decl.description + "\" has a trivially false assertion", decl.line)
+  } else {
+    st
+  }
+}
+
+fn check_top_level(st: ChkState, decl: any) -> ChkState {
+  let mut s = st
+  if decl.kind == "FnDecl" {
+    s = check_fn(s, decl)
+    if decl.isAsync { s = check_async_effects(s, decl) }
+  } else if decl.kind == "ModuleDecl" {
+    let mut i = 0
+    while i < decl.body.length {
+      s = check_top_level(s, decl.body[i])
+      i = i + 1
+    }
+  } else if decl.kind == "TestDecl" {
+    s = check_test(s, decl)
+  } else if decl.kind == "ExportDecl" {
+    s = check_top_level(s, decl.decl)
+  } else {
+    s
+  }
+  s
+}
+
+export fn check(program: Program) -> any[] {
+  let mut st = ChkState([], [], "", 0, false, "", 0, false, "", 0, false, false, false)
+  st = collect_unions(st, program)
+  let mut i = 0
+  while i < program.body.length {
+    st = check_top_level(st, program.body[i])
+    i = i + 1
+  }
+  st.diagnostics
+}

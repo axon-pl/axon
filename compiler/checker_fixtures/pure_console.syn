@@ -1,0 +1,4 @@
+@pure
+fn bad() {
+  console.log(1)
+}

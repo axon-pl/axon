@@ -1,0 +1,7 @@
+[
+  {
+    "severity": "warning",
+    "message": "@exhaustive function 'f': match on boolean missing case for 'false'",
+    "line": 2
+  }
+]

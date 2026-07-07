@@ -5,8 +5,10 @@ const path = require('path')
 const { Lexer } = require('../dist/lexer.js')
 const { Parser } = require('../dist/parser.js')
 const { Codegen } = require('../dist/codegen.js')
+const { Checker } = require('../dist/checker.js')
 
 const FIXTURES_DIR = path.join(__dirname, '..', 'compiler', 'fixtures')
+const CHECKER_FIXTURES_DIR = path.join(__dirname, '..', 'compiler', 'checker_fixtures')
 const GOLDENS_DIR  = path.join(__dirname, '..', 'compiler', 'goldens')
 const SYNTH_BUNDLE = path.join(__dirname, '..', 'dist', 'compiler.synth.js')
 
@@ -39,6 +41,21 @@ function serializeAst(node) {
   return out
 }
 
+function loadDiagnosticsGolden(name) {
+  const p = path.join(GOLDENS_DIR, `diagnostics_${name}.json`)
+  if (!fs.existsSync(p)) {
+    throw new Error(`missing golden: ${p} (run npm run gen:checker-goldens)`)
+  }
+  return JSON.parse(fs.readFileSync(p, 'utf8'))
+}
+
+function serializeDiagnostics(diags) {
+  return diags.map(d => ({
+    severity: d.severity,
+    message:  d.message,
+    line:     d.line,
+  }))
+}
 function loadJsGolden(name) {
   const p = path.join(GOLDENS_DIR, `js_${name}.js`)
   if (!fs.existsSync(p)) {
@@ -151,7 +168,7 @@ function loadSynthBundle(bundlePath) {
   const module = { exports: {} }
   const exports = module.exports
   const body = fs.readFileSync(bundlePath, 'utf8')
-    + '\nmodule.exports = { compile, tokenize, parse, generate };'
+    + '\nmodule.exports = { compile, tokenize, parse, generate, check, check_source };'
   const vm = require('vm')
   const script = new vm.Script(body, { filename: bundlePath })
   script.runInNewContext({
@@ -375,6 +392,84 @@ function testSynthCodegenVsGoldens() {
   return failed
 }
 
+function testTsCheckerVsGoldens() {
+  const fixtures = fs.readdirSync(CHECKER_FIXTURES_DIR)
+    .filter(f => f.endsWith('.syn'))
+    .sort()
+
+  let failed = false
+  for (const file of fixtures) {
+    const name = path.basename(file, '.syn')
+    const src = fs.readFileSync(path.join(CHECKER_FIXTURES_DIR, file), 'utf8')
+    const tokens = new Lexer(src).tokenize()
+    const { ast, errors } = new Parser(tokens).parse()
+    if (errors.length > 0) {
+      failed = true
+      console.error(`FAIL TS parser errors in checker fixture ${name}:`, errors.map(e => e.message).join('; '))
+      continue
+    }
+    const actual = serializeDiagnostics(new Checker().check(ast))
+    const expected = loadDiagnosticsGolden(name)
+    const diffs = diffJson(expected, actual, name)
+    if (diffs.length > 0) {
+      failed = true
+      console.error(`FAIL TS checker vs golden: ${name}`)
+      for (const e of diffs.slice(0, 10)) console.error('  ', e)
+      if (diffs.length > 10) console.error(`  ... and ${diffs.length - 10} more`)
+    } else {
+      console.log(`ok  TS checker vs golden: ${name} (${actual.length} diagnostics)`)
+    }
+  }
+  return failed
+}
+
+function testSynthCheckerVsGoldens() {
+  if (!fs.existsSync(SYNTH_BUNDLE)) {
+    console.log('skip Synth checker (no dist/compiler.synth.js — run npm run build:compiler)')
+    return false
+  }
+
+  let synth
+  try {
+    synth = loadSynthBundle(SYNTH_BUNDLE)
+  } catch (err) {
+    console.error('FAIL loading Synth compiler bundle:', err.message)
+    return true
+  }
+
+  if (typeof synth.check_source !== 'function') {
+    console.error('FAIL Synth bundle: export check_source not found')
+    return true
+  }
+
+  const fixtures = fs.readdirSync(CHECKER_FIXTURES_DIR)
+    .filter(f => f.endsWith('.syn'))
+    .sort()
+
+  let failed = false
+  for (const file of fixtures) {
+    const name = path.basename(file, '.syn')
+    const src = fs.readFileSync(path.join(CHECKER_FIXTURES_DIR, file), 'utf8')
+    try {
+      const actual = serializeDiagnostics(synth.check_source(src))
+      const expected = loadDiagnosticsGolden(name)
+      const diffs = diffJson(expected, actual, `synth:${name}`)
+      if (diffs.length > 0) {
+        failed = true
+        console.error(`FAIL Synth checker vs golden: ${name}`)
+        for (const e of diffs.slice(0, 10)) console.error('  ', e)
+        if (diffs.length > 10) console.error(`  ... and ${diffs.length - 10} more`)
+      } else {
+        console.log(`ok  Synth checker vs golden: ${name} (${actual.length} diagnostics)`)
+      }
+    } catch (err) {
+      failed = true
+      console.error(`FAIL Synth check_source(${name}):`, err.message)
+    }
+  }
+  return failed
+}
+
 function testSynthAstConstructors() {
   const { execSync } = require('child_process')
   const cli = path.join(__dirname, '..', 'dist', 'cli.js')
@@ -402,6 +497,8 @@ function main() {
   failed = testSynthParserVsGoldens() || failed
   failed = testTsCodegenVsGoldens() || failed
   failed = testSynthCodegenVsGoldens() || failed
+  failed = testTsCheckerVsGoldens() || failed
+  failed = testSynthCheckerVsGoldens() || failed
   failed = testSynthAstConstructors() || failed
   if (failed) process.exit(1)
   console.log('compiler parity: all checks passed')
