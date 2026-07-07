@@ -1,0 +1,45 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "TopLevelStmt",
+      "stmt": {
+        "kind": "ForRangeStmt",
+        "varName": "i",
+        "lo": {
+          "kind": "NumberLit",
+          "value": 2,
+          "raw": "2"
+        },
+        "hi": {
+          "kind": "NumberLit",
+          "value": 5,
+          "raw": "5"
+        },
+        "inclusive": true,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "Identifier",
+                  "name": "print"
+                },
+                "args": [
+                  {
+                    "kind": "Identifier",
+                    "name": "i"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "line": 1
+    }
+  ]
+}

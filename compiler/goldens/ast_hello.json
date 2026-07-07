@@ -1,0 +1,23 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "TopLevelExpr",
+      "expr": {
+        "kind": "CallExpr",
+        "callee": {
+          "kind": "Identifier",
+          "name": "print"
+        },
+        "args": [
+          {
+            "kind": "StringLit",
+            "value": "Hello",
+            "raw": "\"Hello\""
+          }
+        ]
+      },
+      "line": 1
+    }
+  ]
+}

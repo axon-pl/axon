@@ -1,6 +1,548 @@
-// ── AST types — port of src/types.ts ─────────────────────────────────────────
-// Phase 2: expand into tagged unions for Expr, Stmt, Decl, Program, etc.
+// ── AST types — port of src/types.ts (AST slice) ────────────────────────────
+// Recursive / union slots use `any` so nodes match the TS parser JSON shape.
+
+// ── Program & top-level declarations ─────────────────────────────────────────
 
 export record Program {
   kind: string
+  body: any[]
+}
+
+export record TypeAlias {
+  kind:       string
+  name:       string
+  typeParams: any[]
+  type:       any
+  constraint: any
+  line:       int
+}
+
+export record InterfaceDecl {
+  kind:       string
+  name:       string
+  typeParams: any[]
+  fields:     any[]
+  line:       int
+}
+
+export record InterfaceField {
+  name: string
+  type: any
+}
+
+export record EnumDecl {
+  kind:     string
+  name:     string
+  variants: any[]
+  line:     int
+}
+
+export record TaggedUnionDecl {
+  kind:     string
+  name:     string
+  variants: any[]
+  line:     int
+}
+
+export record UnionVariant {
+  name:   string
+  fields: any[]
+}
+
+export record TestDecl {
+  kind:        string
+  description: string
+  body:        any
+  line:        int
+}
+
+export record ImportDecl {
+  kind:   string
+  names:  any[]
+  source: string
+  line:   int
+}
+
+export record ExportDecl {
+  kind: string
+  decl: any
+  line: int
+}
+
+export record TopLevelExpr {
+  kind: string
+  expr: any
+  line: int
+}
+
+export record TopLevelLet {
+  kind:  string
+  name:  any
+  value: any
+  line:  int
+}
+
+export record TopLevelStmt {
+  kind: string
+  stmt: any
+  line: int
+}
+
+export record RecordDecl {
+  kind:       string
+  name:       string
+  typeParams: any[]
+  fields:     any[]
+  line:       int
+}
+
+export record FieldDecl {
+  name: string
+  type: any
+}
+
+export record FnDecl {
+  kind:        string
+  name:        string
+  typeParams:  any[]
+  params:      any[]
+  returnType:  any
+  annotations: any[]
+  body:        any
+  shortForm:   bool
+  isAsync:     bool
+  line:        int
+}
+
+export record StoreDecl {
+  kind:   string
+  name:   string
+  fields: any[]
+  line:   int
+}
+
+export record StoreField {
+  name:         string
+  type:         any
+  defaultValue: any
+}
+
+export record ModuleDecl {
+  kind:        string
+  name:        string
+  annotations: any[]
+  body:        any[]
+  line:        int
+}
+
+export record Annotation {
+  name:  string
+  value: any
+}
+
+export record FnParam {
+  name:   string
+  type:   any
+  spread: bool
+}
+
+// ── Constraints ───────────────────────────────────────────────────────────────
+
+export record CompareConstraint {
+  kind:  string
+  op:    string
+  value: any
+}
+
+export record LengthConstraint {
+  kind:  string
+  op:    string
+  value: int
+}
+
+export record MatchesConstraint {
+  kind:   string
+  preset: string
+}
+
+export record RegexConstraint {
+  kind:    string
+  pattern: string
+  flags:   string
+}
+
+export record AndConstraint {
+  kind:  string
+  left:  any
+  right: any
+}
+
+export record OrConstraint {
+  kind:  string
+  left:  any
+  right: any
+}
+
+export record NotConstraint {
+  kind:  string
+  inner: any
+}
+
+export record CustomConstraint {
+  kind: string
+  expr: any
+}
+
+// ── Type expressions ──────────────────────────────────────────────────────────
+
+export record TypeExpr {
+  name:       string
+  typeArgs:   any[]
+  isArray:    bool
+  isOptional: bool
+  union:      any[]
+  fnParams:   any[]
+  fnReturn:   any
+}
+
+// ── Expressions ───────────────────────────────────────────────────────────────
+
+export record NumberLit {
+  kind:  string
+  value: float
+  raw:   string
+}
+
+export record StringLit {
+  kind:  string
+  value: string
+  raw:   string
+}
+
+export record TemplateLit {
+  kind:   string
+  raw:    string
+  quasis: any[]
+  exprs:  any[]
+}
+
+export record BoolLit {
+  kind:  string
+  value: bool
+}
+
+export record RegexLit {
+  kind:    string
+  pattern: string
+  flags:   string
+}
+
+export record NullLit {
+  kind: string
+}
+
+export record RawJS {
+  kind: string
+  code: string
+}
+
+export record Identifier {
+  kind: string
+  name: string
+}
+
+export record ObjectLit {
+  kind:       string
+  properties: any[]
+}
+
+export record ObjectProperty {
+  kind:       string
+  key:        any
+  value:      any
+  computed:   bool
+  shorthand:  bool
+  spread:     bool
+}
+
+export record ArrayLit {
+  kind:     string
+  elements: any[]
+}
+
+export record SpreadExpr {
+  kind:     string
+  argument: any
+}
+
+export record BinaryExpr {
+  kind:  string
+  op:    string
+  left:  any
+  right: any
+}
+
+export record UnaryExpr {
+  kind:   string
+  op:     string
+  operand: any
+  prefix: bool
+}
+
+export record TernaryExpr {
+  kind:       string
+  test:       any
+  consequent: any
+  alternate:  any
+}
+
+export record CallExpr {
+  kind:     string
+  callee:   any
+  args:     any[]
+  optional: bool
+}
+
+export record NewExpr {
+  kind:   string
+  callee: any
+  args:   any[]
+}
+
+export record IndexExpr {
+  kind:     string
+  object:   any
+  index:    any
+  optional: bool
+}
+
+export record MemberExpr {
+  kind:     string
+  object:   any
+  property: string
+  optional: bool
+}
+
+export record LambdaExpr {
+  kind:     string
+  params:   any[]
+  body:     any
+  isAsync:  bool
+}
+
+export record PipeAsStep {
+  kind: string
+  name: string
+}
+
+export record PipelineExpr {
+  kind:  string
+  steps: any[]
+}
+
+export record BlockExpr {
+  kind:  string
+  stmts: any[]
+}
+
+export record DoExpr {
+  kind: string
+  body: any
+}
+
+export record ResultPropagateExpr {
+  kind:  string
+  value: any
+}
+
+export record AwaitExpr {
+  kind:  string
+  value: any
+}
+
+export record MatchExpr {
+  kind:    string
+  subject: any
+  arms:    any[]
+}
+
+export record MatchArm {
+  pattern: any
+  guard:   any
+  body:    any
+}
+
+// ── Block statements ──────────────────────────────────────────────────────────
+
+export record LetStmt {
+  kind:    string
+  name:    any
+  value:   any
+  mutable: bool
+  infer:   bool
+}
+
+export record DestructureStmt {
+  kind:  string
+  style: string
+  names: any[]
+  value: any
+}
+
+export record ReturnStmt {
+  kind:  string
+  value: any
+}
+
+export record ExprStmt {
+  kind:  string
+  value: any
+}
+
+export record IfStmt {
+  kind:  string
+  test:  any
+  then:  any
+  else_: any
+}
+
+export record ForRangeStmt {
+  kind:     string
+  varName:  string
+  lo:       any
+  hi:       any
+  inclusive: bool
+  body:     any
+}
+
+export record ForInStmt {
+  kind:    string
+  varName: string
+  iter:    any
+  body:    any
+}
+
+export record WhileStmt {
+  kind: string
+  test: any
+  body: any
+}
+
+export record BreakStmt {
+  kind: string
+}
+
+export record ContinueStmt {
+  kind: string
+}
+
+export record RefineStmt {
+  kind:  string
+  name:  string
+  claim: string
+}
+
+// ── Match patterns ────────────────────────────────────────────────────────────
+
+export record LiteralPat {
+  kind:  string
+  value: any
+}
+
+export record WildcardPat {
+  kind: string
+}
+
+export record ComparePat {
+  kind:  string
+  op:    string
+  value: any
+}
+
+export record IdentPat {
+  kind: string
+  name: string
+}
+
+export record TagPat {
+  kind:     string
+  name:     string
+  bindings: any[]
+}
+
+export record EnumPat {
+  kind:      string
+  enumName:  string
+  variant:   string
+}
+
+// ── Diagnostics ───────────────────────────────────────────────────────────────
+
+export record Diagnostic {
+  severity: string
+  message:  string
+  line:     int
+  col:      int
+}
+
+// ── Constructors (kind tags match src/types.ts) ───────────────────────────────
+
+export fn program(body: any[]) -> Program {
+  Program("Program", body)
+}
+
+export fn type_alias(name: string, ty: any, line: int) -> TypeAlias {
+  TypeAlias("TypeAlias", name, [], ty, null, line)
+}
+
+export fn fn_decl(name: string, params: any[], return_type: any, body: any, line: int) -> FnDecl {
+  FnDecl("FnDecl", name, [], params, return_type, [], body, false, false, line)
+}
+
+export fn record_decl(name: string, fields: any[], line: int) -> RecordDecl {
+  RecordDecl("RecordDecl", name, [], fields, line)
+}
+
+export fn number_lit(value: float, raw: string) -> NumberLit {
+  NumberLit("NumberLit", value, raw)
+}
+
+export fn string_lit(value: string, raw: string) -> StringLit {
+  StringLit("StringLit", value, raw)
+}
+
+export fn bool_lit(value: bool) -> BoolLit {
+  BoolLit("BoolLit", value)
+}
+
+export fn ident(name: string) -> Identifier {
+  Identifier("Identifier", name)
+}
+
+export fn block_expr(stmts: any[]) -> BlockExpr {
+  BlockExpr("BlockExpr", stmts)
+}
+
+export fn expr_stmt(value: any) -> ExprStmt {
+  ExprStmt("ExprStmt", value)
+}
+
+export fn top_level_expr(expr: any, line: int) -> TopLevelExpr {
+  TopLevelExpr("TopLevelExpr", expr, line)
+}
+
+export fn type_expr(name: string) -> TypeExpr {
+  TypeExpr(name, [], false, false, [], [], null)
+}
+
+export fn field_decl(name: string, ty: any) -> FieldDecl {
+  FieldDecl(name, ty)
+}
+
+export fn fn_param(name: string, ty: any) -> FnParam {
+  FnParam(name, ty, false)
+}
+
+export fn ast_kind(node: any) -> string {
+  node.kind
 }

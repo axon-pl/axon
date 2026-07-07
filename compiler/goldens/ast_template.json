@@ -1,0 +1,42 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "TopLevelLet",
+      "name": "name",
+      "value": {
+        "kind": "StringLit",
+        "value": "Synth",
+        "raw": "\"Synth\""
+      },
+      "line": 1
+    },
+    {
+      "kind": "TopLevelExpr",
+      "expr": {
+        "kind": "CallExpr",
+        "callee": {
+          "kind": "Identifier",
+          "name": "print"
+        },
+        "args": [
+          {
+            "kind": "TemplateLit",
+            "raw": "`Hello, ${name}!`",
+            "quasis": [
+              "Hello, ",
+              "!"
+            ],
+            "exprs": [
+              {
+                "kind": "Identifier",
+                "name": "name"
+              }
+            ]
+          }
+        ]
+      },
+      "line": 2
+    }
+  ]
+}

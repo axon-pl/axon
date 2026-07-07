@@ -1,9 +1,9 @@
 // ── Parser — port of src/parser.ts ───────────────────────────────────────────
 // Phase 3: build Program AST from Token[].
 
-import { Program } from "./ast"
+import { Program, program } from "./ast"
 import { Token } from "./token"
 
 export fn parse(tokens: Token[]) -> Program {
-  Program("Program")
+  program([])
 }

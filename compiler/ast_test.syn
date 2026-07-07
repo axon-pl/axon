@@ -1,0 +1,34 @@
+// Smoke-test AST constructors bundled from compiler/ast.syn
+
+import {
+  program,
+  ident,
+  top_level_expr,
+  ast_kind,
+  type_expr,
+  fn_decl,
+  block_expr,
+  expr_stmt,
+} from "./ast"
+
+@test "program kind tag" {
+  ast_kind(program([])) == "Program"
+}
+
+@test "identifier kind tag" {
+  ast_kind(ident("x")) == "Identifier"
+}
+
+@test "nested top-level expr shape" {
+  let p = program([top_level_expr(ident("hello"), 1)])
+  ast_kind(p.body[0]) == "TopLevelExpr"
+}
+
+@test "type_expr defaults" {
+  type_expr("int").name == "int" and type_expr("int").isArray == false
+}
+
+@test "fn_decl kind tag" {
+  let body = block_expr([expr_stmt(ident("x"))])
+  ast_kind(fn_decl("f", [], type_expr("int"), body, 1)) == "FnDecl"
+}

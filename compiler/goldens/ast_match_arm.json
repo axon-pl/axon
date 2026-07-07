@@ -1,0 +1,86 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "FnDecl",
+      "name": "label",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "n",
+          "type": {
+            "name": "int",
+            "isArray": false,
+            "isOptional": false
+          },
+          "spread": false
+        }
+      ],
+      "returnType": {
+        "name": "string",
+        "isArray": false,
+        "isOptional": false
+      },
+      "annotations": [],
+      "body": {
+        "kind": "MatchExpr",
+        "subject": {
+          "kind": "Identifier",
+          "name": "n"
+        },
+        "arms": [
+          {
+            "pattern": {
+              "kind": "LiteralPat",
+              "value": 0
+            },
+            "body": {
+              "kind": "StringLit",
+              "value": "zero",
+              "raw": "\"zero\""
+            }
+          },
+          {
+            "pattern": {
+              "kind": "WildcardPat"
+            },
+            "body": {
+              "kind": "StringLit",
+              "value": "other",
+              "raw": "\"other\""
+            }
+          }
+        ]
+      },
+      "shortForm": false,
+      "line": 1
+    },
+    {
+      "kind": "TopLevelExpr",
+      "expr": {
+        "kind": "CallExpr",
+        "callee": {
+          "kind": "Identifier",
+          "name": "print"
+        },
+        "args": [
+          {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "Identifier",
+              "name": "label"
+            },
+            "args": [
+              {
+                "kind": "NumberLit",
+                "value": 0,
+                "raw": "0"
+              }
+            ]
+          }
+        ]
+      },
+      "line": 8
+    }
+  ]
+}

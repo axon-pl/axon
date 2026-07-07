@@ -1,0 +1,52 @@
+{
+  "kind": "Program",
+  "body": [
+    {
+      "kind": "TopLevelLet",
+      "name": "ok",
+      "value": {
+        "kind": "BinaryExpr",
+        "op": "or",
+        "left": {
+          "kind": "BinaryExpr",
+          "op": "and",
+          "left": {
+            "kind": "BoolLit",
+            "value": true
+          },
+          "right": {
+            "kind": "BoolLit",
+            "value": false
+          }
+        },
+        "right": {
+          "kind": "UnaryExpr",
+          "op": "!",
+          "operand": {
+            "kind": "BoolLit",
+            "value": false
+          },
+          "prefix": true
+        }
+      },
+      "line": 1
+    },
+    {
+      "kind": "TopLevelExpr",
+      "expr": {
+        "kind": "CallExpr",
+        "callee": {
+          "kind": "Identifier",
+          "name": "print"
+        },
+        "args": [
+          {
+            "kind": "Identifier",
+            "name": "ok"
+          }
+        ]
+      },
+      "line": 2
+    }
+  ]
+}
