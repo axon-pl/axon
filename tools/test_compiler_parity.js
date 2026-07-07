@@ -4,6 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const { Lexer } = require('../dist/lexer.js')
 const { Parser } = require('../dist/parser.js')
+const { Codegen } = require('../dist/codegen.js')
 
 const FIXTURES_DIR = path.join(__dirname, '..', 'compiler', 'fixtures')
 const GOLDENS_DIR  = path.join(__dirname, '..', 'compiler', 'goldens')
@@ -38,6 +39,18 @@ function serializeAst(node) {
   return out
 }
 
+function loadJsGolden(name) {
+  const p = path.join(GOLDENS_DIR, `js_${name}.js`)
+  if (!fs.existsSync(p)) {
+    throw new Error(`missing golden: ${p} (run npm run gen:codegen-goldens)`)
+  }
+  return fs.readFileSync(p, 'utf8')
+}
+
+function diffText(expected, actual, label) {
+  if (expected === actual) return []
+  return [`${label}: expected ${expected.length} bytes, got ${actual.length} bytes`]
+}
 function loadAstGolden(name) {
   const p = path.join(GOLDENS_DIR, `ast_${name}.json`)
   if (!fs.existsSync(p)) {
@@ -282,6 +295,86 @@ function testSynthParserVsGoldens() {
   return failed
 }
 
+function testTsCodegenVsGoldens() {
+  const fixtures = fs.readdirSync(FIXTURES_DIR)
+    .filter(f => f.endsWith('.syn'))
+    .sort()
+
+  let failed = false
+  for (const file of fixtures) {
+    const name = path.basename(file, '.syn')
+    const src = fs.readFileSync(path.join(FIXTURES_DIR, file), 'utf8')
+    const tokens = new Lexer(src).tokenize()
+    const { ast, errors } = new Parser(tokens).parse()
+    if (errors.length > 0) {
+      failed = true
+      console.error(`FAIL TS parser errors in ${name}:`, errors.map(e => e.message).join('; '))
+      continue
+    }
+    const actual = new Codegen().generate(ast)
+    const expected = loadJsGolden(name)
+    const diffs = diffText(expected, actual, name)
+    if (diffs.length > 0) {
+      failed = true
+      console.error(`FAIL TS codegen vs golden: ${name}`)
+      for (const e of diffs) console.error('  ', e)
+    } else {
+      console.log(`ok  TS codegen vs golden: ${name}`)
+    }
+  }
+  return failed
+}
+
+function testSynthCodegenVsGoldens() {
+  if (!fs.existsSync(SYNTH_BUNDLE)) {
+    console.log('skip Synth codegen (no dist/compiler.synth.js — run npm run build:compiler)')
+    return false
+  }
+
+  let synth
+  try {
+    synth = loadSynthBundle(SYNTH_BUNDLE)
+  } catch (err) {
+    console.error('FAIL loading Synth compiler bundle:', err.message)
+    return true
+  }
+
+  if (typeof synth.compile !== 'function') {
+    console.error('FAIL Synth bundle: export compile not found')
+    return true
+  }
+
+  const fixtures = fs.readdirSync(FIXTURES_DIR)
+    .filter(f => f.endsWith('.syn'))
+    .sort()
+
+  let failed = false
+  for (const file of fixtures) {
+    const name = path.basename(file, '.syn')
+    const src = fs.readFileSync(path.join(FIXTURES_DIR, file), 'utf8')
+    try {
+      const actual = synth.compile(src).js
+      const expected = loadJsGolden(name)
+      const diffs = diffText(expected, actual, `synth:${name}`)
+      if (diffs.length > 0) {
+        failed = true
+        console.error(`FAIL Synth codegen vs golden: ${name}`)
+        for (const e of diffs) console.error('  ', e)
+        if (actual !== expected) {
+          console.error('  expected:', JSON.stringify(expected))
+          console.error('  actual:  ', JSON.stringify(actual))
+        }
+      } else {
+        console.log(`ok  Synth codegen vs golden: ${name}`)
+      }
+    } catch (err) {
+      failed = true
+      console.error(`FAIL Synth compile(${name}):`, err.message)
+    }
+  }
+  return failed
+}
+
 function testSynthAstConstructors() {
   const { execSync } = require('child_process')
   const cli = path.join(__dirname, '..', 'dist', 'cli.js')
@@ -307,6 +400,8 @@ function main() {
   failed = testSynthLexerVsGoldens() || failed
   failed = testTsParserVsGoldens() || failed
   failed = testSynthParserVsGoldens() || failed
+  failed = testTsCodegenVsGoldens() || failed
+  failed = testSynthCodegenVsGoldens() || failed
   failed = testSynthAstConstructors() || failed
   if (failed) process.exit(1)
   console.log('compiler parity: all checks passed')

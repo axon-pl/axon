@@ -1,8 +1,530 @@
-// ── Codegen — port of src/codegen.ts ─────────────────────────────────────────
-// Phase 4: emit JavaScript from Program AST.
+// ── Codegen — port of src/codegen.ts (fixture-complete subset) ─────────────────
 
 import { Program } from "./ast"
 
+record CgState {
+  lines:  any[]
+  indent: int
+  scopes: any[]
+}
+
+fn cg_join_strings(parts: string[], sep: string) -> string {
+  let mut result = ""
+  let mut i = 0
+  while i < parts.length {
+    if i > 0 { result = result + sep }
+    result = result + parts[i]
+    i = i + 1
+  }
+  result
+}
+
+fn pad_indent(n: int) -> string {
+  let mut s = ""
+  let mut i = 0
+  while i < n {
+    s = s + "  "
+    i = i + 1
+  }
+  s
+}
+
+fn cg_emit_line(st: CgState, line: string) -> CgState {
+  CgState(st.lines.concat([pad_indent(st.indent) + line + "\n"]), st.indent, st.scopes)
+}
+
+fn cg_emit_blank(st: CgState) -> CgState {
+  cg_emit_line(st, "")
+}
+
+fn cg_push_scope(st: CgState) -> CgState {
+  CgState(st.lines, st.indent, st.scopes.concat([[]]))
+}
+
+fn cg_pop_scope(st: CgState) -> CgState {
+  if st.scopes.length <= 1 {
+    st
+  } else {
+    CgState(st.lines, st.indent, st.scopes.slice(0, st.scopes.length - 1))
+  }
+}
+
+fn cg_declare(st: CgState, name: string) -> CgState {
+  let cur = st.scopes[st.scopes.length - 1]
+  let next_scope = cur.concat([name])
+  let mut ss = st.scopes.slice(0, st.scopes.length - 1)
+  ss = ss.concat([next_scope])
+  CgState(st.lines, st.indent, ss)
+}
+
+fn cg_is_local(st: CgState, name: string) -> bool {
+  let mut i = st.scopes.length - 1
+  while i >= 0 {
+    let scope = st.scopes[i]
+    let mut j = 0
+    while j < scope.length {
+      if scope[j] == name { return true }
+      j = j + 1
+    }
+    i = i - 1
+  }
+  false
+}
+
+fn cg_type_to_js(ty: any) -> string {
+  if ty == null { return "any" }
+  let n = ty.name
+  if n == "int" { "number" }
+  else if n == "float" { "number" }
+  else if n == "string" { "string" }
+  else if n == "bool" { "boolean" }
+  else if n == "void" { "void" }
+  else if n == "any" { "*" }
+  else { n }
+}
+
+fn is_block_decl(decl: any) -> bool {
+  let k = decl.kind
+  if k == "FnDecl" { true }
+  else if k == "StoreDecl" { true }
+  else if k == "RecordDecl" { true }
+  else if k == "TaggedUnionDecl" { true }
+  else if k == "TestDecl" { true }
+  else if k == "ModuleDecl" { true }
+  else if k == "EnumDecl" { true }
+  else if k == "InterfaceDecl" { true }
+  else if k == "ExportDecl" { is_block_decl(decl.decl) }
+  else { false }
+}
+
+fn binop_js(op: string) -> string {
+  if op == "and" { "&&" }
+  else if op == "or" { "||" }
+  else if op == "not" { "!" }
+  else { op }
+}
+
+fn precedence(op: string) -> int {
+  if op == "||" { 1 }
+  else if op == "&&" { 2 }
+  else if op == "==" { 3 }
+  else if op == "!=" { 3 }
+  else if op == "===" { 3 }
+  else if op == "!==" { 3 }
+  else if op == "<" { 4 }
+  else if op == ">" { 4 }
+  else if op == "<=" { 4 }
+  else if op == ">=" { 4 }
+  else if op == "+" { 5 }
+  else if op == "-" { 5 }
+  else if op == "*" { 6 }
+  else if op == "/" { 6 }
+  else if op == "%" { 6 }
+  else { 10 }
+}
+
+fn cg_emit_name(st: CgState, name: string) -> string {
+  if cg_is_local(st, name) { name } else { name }
+}
+
+fn is_string_value(v: any) -> bool {
+  if v == true { false }
+  else if v == false { false }
+  else if v == 0 { false }
+  else if v == 1 { false }
+  else if v == 2 { false }
+  else if v == 3 { false }
+  else if v == 4 { false }
+  else if v == 5 { false }
+  else { true }
+}
+
+fn lambda_param_name(p: any) -> string {
+  if p.name != null { p.name } else { p }
+}
+
+fn cg_pattern_condition(pat: any, subj: string) -> string {
+  let k = pat.kind
+  if k == "WildcardPat" {
+    "true"
+  } else if k == "LiteralPat" {
+    if is_string_value(pat.value) {
+      subj + " === \"" + pat.value + "\""
+    } else {
+      subj + " === " + pat.value
+    }
+  } else if k == "ComparePat" {
+    if is_string_value(pat.value) {
+      subj + " " + pat.op + " \"" + pat.value + "\""
+    } else {
+      subj + " " + pat.op + " " + pat.value
+    }
+  } else if k == "IdentPat" {
+    "true"
+  } else if k == "TagPat" {
+    subj + ".tag === \"" + pat.name + "\""
+  } else if k == "EnumPat" {
+    subj + " === " + pat.enumName + "." + pat.variant
+  } else {
+    "true"
+  }
+}
+
+fn cg_match_chain(st: CgState, arms: any[], idx: int, subj_var: string) -> string {
+  if idx >= arms.length {
+    "undefined"
+  } else {
+    let arm = arms[idx]
+    let rest = cg_match_chain(st, arms, idx + 1, subj_var)
+    let cond = cg_pattern_condition(arm.pattern, subj_var)
+    if arm.guard != null {
+      let g = cg_emit_expr(st, arm.guard)
+      if cond == "true" {
+        cond = g
+      } else {
+        cond = "(" + cond + ") && (" + g + ")"
+      }
+    }
+    let body = cg_emit_expr(st, arm.body)
+    if cond == "true" {
+      body
+    } else {
+      "(" + cond + ") ? " + body + " : " + rest
+    }
+  }
+}
+
+fn cg_emit_match(st: CgState, expr: any) -> string {
+  let subj = cg_emit_expr(st, expr.subject)
+  let chain = cg_match_chain(st, expr.arms, 0, "_m")
+  "((_m) => " + chain + ")(" + subj + ")"
+}
+
+fn cg_emit_template(st: CgState, expr: any) -> string {
+  if expr.quasis == null or expr.exprs == null {
+    expr.raw
+  } else {
+    let mut parts = ""
+    let mut i = 0
+    while i < expr.quasis.length {
+      parts = parts + expr.quasis[i]
+      if i < expr.exprs.length {
+        parts = parts + "${" + cg_emit_expr(st, expr.exprs[i]) + "}"
+      }
+      i = i + 1
+    }
+    "`" + parts + "`"
+  }
+}
+
+fn cg_emit_expr_paren(st: CgState, expr: any, parent_op: string) -> string {
+  let s = cg_emit_expr(st, expr)
+  if expr.kind == "BinaryExpr" {
+    let child_op = binop_js(expr.op)
+    if precedence(child_op) < precedence(parent_op) {
+      "(" + s + ")"
+    } else {
+      s
+    }
+  } else if expr.kind == "TernaryExpr" {
+    "(" + s + ")"
+  } else {
+    s
+  }
+}
+
+fn cg_emit_expr(st: CgState, expr: any) -> string {
+  let k = expr.kind
+  if k == "NumberLit" {
+    if expr.raw != null and expr.raw != "" { expr.raw } else { expr.value }
+  } else if k == "StringLit" {
+    expr.raw
+  } else if k == "TemplateLit" {
+    cg_emit_template(st, expr)
+  } else if k == "BoolLit" {
+    if expr.value { "true" } else { "false" }
+  } else if k == "NullLit" {
+    "null"
+  } else if k == "Identifier" {
+    cg_emit_name(st, expr.name)
+  } else if k == "UnaryExpr" {
+    let op = expr.op
+    if op == "not" { op = "!" }
+    if expr.prefix {
+      if op == "!" {
+        "!" + cg_emit_expr(st, expr.operand)
+      } else {
+        op + cg_emit_expr(st, expr.operand)
+      }
+    } else {
+      cg_emit_expr(st, expr.operand) + op
+    }
+  } else if k == "BinaryExpr" {
+    if expr.op == "=" {
+      cg_emit_expr(st, expr.left) + " = " + cg_emit_expr(st, expr.right)
+    } else if expr.op == "+=" or expr.op == "-=" or expr.op == "*=" or expr.op == "/=" or expr.op == "%=" or expr.op == "??=" {
+      cg_emit_expr(st, expr.left) + " " + expr.op + " " + cg_emit_expr(st, expr.right)
+    } else {
+      let op = binop_js(expr.op)
+      let l = cg_emit_expr_paren(st, expr.left, op)
+      let r = cg_emit_expr_paren(st, expr.right, op)
+      l + " " + op + " " + r
+    }
+  } else if k == "TernaryExpr" {
+    cg_emit_expr(st, expr.test) + " ? " + cg_emit_expr(st, expr.consequent) + " : " + cg_emit_expr(st, expr.alternate)
+  } else if k == "CallExpr" {
+    let args = ""
+    let mut i = 0
+    while i < expr.args.length {
+      if i > 0 { args = args + ", " }
+      args = args + cg_emit_expr(st, expr.args[i])
+      i = i + 1
+    }
+    if expr.callee.kind == "Identifier" and expr.callee.name == "print" {
+      "console.log(" + args + ")"
+    } else if expr.callee.kind == "Identifier" {
+      cg_emit_name(st, expr.callee.name) + "(" + args + ")"
+    } else {
+      cg_emit_expr(st, expr.callee) + "(" + args + ")"
+    }
+  } else if k == "MemberExpr" {
+    let opt = if expr.optional { "?." } else { "." }
+    cg_emit_expr(st, expr.object) + opt + expr.property
+  } else if k == "IndexExpr" {
+    let opt = if expr.optional { "?." } else { "" }
+    cg_emit_expr(st, expr.object) + opt + "[" + cg_emit_expr(st, expr.index) + "]"
+  } else if k == "MatchExpr" {
+    cg_emit_match(st, expr)
+  } else if k == "ArrayLit" {
+    let elems = ""
+    let mut i = 0
+    while i < expr.elements.length {
+      if i > 0 { elems = elems + ", " }
+      elems = elems + cg_emit_expr(st, expr.elements[i])
+      i = i + 1
+    }
+    "[" + elems + "]"
+  } else if k == "ObjectLit" {
+    "{}"
+  } else if k == "LambdaExpr" {
+    let params = ""
+    let mut i = 0
+    while i < expr.params.length {
+      if i > 0 { params = params + ", " }
+      params = params + lambda_param_name(expr.params[i])
+      i = i + 1
+    }
+    let mut s = cg_push_scope(st)
+    i = 0
+    while i < expr.params.length {
+      s = cg_declare(s, lambda_param_name(expr.params[i]))
+      i = i + 1
+    }
+    let body = cg_emit_expr(s, expr.body)
+    s = cg_pop_scope(s)
+    "(" + params + ") => " + body
+  } else if k == "BlockExpr" {
+    let mut inner = CgState([], st.indent + 1, st.scopes)
+    inner = cg_emit_block(inner, expr)
+    "(() => {\n" + cg_join_strings(inner.lines, "") + "})()"
+  } else {
+    ""
+  }
+}
+
+fn cg_emit_block(st: CgState, block: any) -> CgState {
+  let mut s = st
+  let mut i = 0
+  while i < block.stmts.length {
+    s = cg_emit_stmt(s, block.stmts[i])
+    i = i + 1
+  }
+  s
+}
+
+fn cg_emit_if_chain(st: CgState, stmt: any) -> CgState {
+  let mut s = cg_emit_line(st, "if (" + cg_emit_expr(st, stmt.test) + ") {")
+  s = CgState(s.lines, s.indent + 1, s.scopes)
+  s = cg_emit_block(s, stmt.then)
+  s = CgState(s.lines, s.indent - 1, s.scopes)
+  let mut else_block = stmt.else_
+  while else_block != null {
+    let stmts = else_block.stmts
+    if stmts.length == 1 and stmts[0].kind == "IfStmt" {
+      let inner = stmts[0]
+      s = cg_emit_line(s, "} else if (" + cg_emit_expr(s, inner.test) + ") {")
+      s = CgState(s.lines, s.indent + 1, s.scopes)
+      s = cg_emit_block(s, inner.then)
+      s = CgState(s.lines, s.indent - 1, s.scopes)
+      else_block = inner.else_
+    } else {
+      s = cg_emit_line(s, "} else {")
+      s = CgState(s.lines, s.indent + 1, s.scopes)
+      s = cg_emit_block(s, else_block)
+      s = CgState(s.lines, s.indent - 1, s.scopes)
+      else_block = null
+    }
+  }
+  cg_emit_line(s, "}")
+}
+
+fn cg_emit_stmt(st: CgState, stmt: any) -> CgState {
+  let k = stmt.kind
+  if k == "LetStmt" {
+    let val = cg_emit_expr(st, stmt.value)
+    if stmt.name == null {
+      cg_emit_line(st, val + ";")
+    } else {
+      let s = cg_declare(st, stmt.name)
+      cg_emit_line(s, "let " + stmt.name + " = " + val + ";")
+    }
+  } else if k == "ReturnStmt" {
+    cg_emit_line(st, "return " + cg_emit_expr(st, stmt.value) + ";")
+  } else if k == "ExprStmt" {
+    cg_emit_line(st, cg_emit_expr(st, stmt.value) + ";")
+  } else if k == "IfStmt" {
+    cg_emit_if_chain(st, stmt)
+  } else if k == "ForRangeStmt" {
+    let lo = cg_emit_expr(st, stmt.lo)
+    let hi = cg_emit_expr(st, stmt.hi)
+    let op = if stmt.inclusive { "<=" } else { "<" }
+    let mut s = cg_emit_line(st, "for (let " + stmt.varName + " = " + lo + "; " + stmt.varName + " " + op + " " + hi + "; " + stmt.varName + "++) {")
+    s = CgState(s.lines, s.indent + 1, s.scopes)
+    s = cg_push_scope(s)
+    s = cg_declare(s, stmt.varName)
+    s = cg_emit_block(s, stmt.body)
+    s = cg_pop_scope(s)
+    s = CgState(s.lines, s.indent - 1, s.scopes)
+    cg_emit_line(s, "}")
+  } else if k == "ForInStmt" {
+    let iter = cg_emit_expr(st, stmt.iter)
+    let mut s = cg_emit_line(st, "for (const " + stmt.varName + " of " + iter + ") {")
+    s = CgState(s.lines, s.indent + 1, s.scopes)
+    s = cg_push_scope(s)
+    s = cg_declare(s, stmt.varName)
+    s = cg_emit_block(s, stmt.body)
+    s = cg_pop_scope(s)
+    s = CgState(s.lines, s.indent - 1, s.scopes)
+    cg_emit_line(s, "}")
+  } else if k == "WhileStmt" {
+    let mut s = cg_emit_line(st, "while (" + cg_emit_expr(st, stmt.test) + ") {")
+    s = CgState(s.lines, s.indent + 1, s.scopes)
+    s = cg_emit_block(s, stmt.body)
+    s = CgState(s.lines, s.indent - 1, s.scopes)
+    cg_emit_line(s, "}")
+  } else if k == "BreakStmt" {
+    cg_emit_line(st, "break;")
+  } else if k == "ContinueStmt" {
+    cg_emit_line(st, "continue;")
+  } else {
+    st
+  }
+}
+
+fn cg_emit_jsdoc(st: CgState, params: any[], return_type: any) -> CgState {
+  let mut s = cg_emit_line(st, "/**")
+  let mut i = 0
+  while i < params.length {
+    let p = params[i]
+    let spread = if p.spread { "..." } else { "" }
+    s = cg_emit_line(s, " * @param {" + cg_type_to_js(p.type) + "} " + spread + p.name)
+    i = i + 1
+  }
+  s = cg_emit_line(s, " * @returns {" + cg_type_to_js(return_type) + "}")
+  cg_emit_line(s, " */")
+}
+
+fn cg_emit_fn(st: CgState, decl: any) -> CgState {
+  let param_str = ""
+  let mut i = 0
+  while i < decl.params.length {
+    if i > 0 { param_str = param_str + ", " }
+    let p = decl.params[i]
+    if p.spread { param_str = param_str + "..." + p.name }
+    else { param_str = param_str + p.name }
+    i = i + 1
+  }
+
+  if decl.shortForm {
+    let mut s = cg_push_scope(st)
+    i = 0
+    while i < decl.params.length {
+      s = cg_declare(s, decl.params[i].name)
+      i = i + 1
+    }
+    let body = cg_emit_expr(s, decl.body)
+    s = cg_pop_scope(s)
+    cg_emit_line(s, "const " + decl.name + " = (" + param_str + ") => " + body + ";")
+  } else {
+    let mut s = cg_emit_jsdoc(st, decl.params, decl.returnType)
+    s = cg_push_scope(s)
+    i = 0
+    while i < decl.params.length {
+      s = cg_declare(s, decl.params[i].name)
+      i = i + 1
+    }
+    let body = cg_emit_expr(s, decl.body)
+    s = cg_pop_scope(s)
+    if decl.body.kind == "BlockExpr" {
+      s = cg_emit_line(s, "const " + decl.name + " = (" + param_str + ") => {")
+      s = CgState(s.lines, s.indent + 1, s.scopes)
+      s = cg_push_scope(s)
+      i = 0
+      while i < decl.params.length {
+        s = cg_declare(s, decl.params[i].name)
+        i = i + 1
+      }
+      s = cg_emit_block(s, decl.body)
+      s = cg_pop_scope(s)
+      s = CgState(s.lines, s.indent - 1, s.scopes)
+      cg_emit_line(s, "};")
+    } else {
+      cg_emit_line(s, "const " + decl.name + " = (" + param_str + ") => " + body + ";")
+    }
+  }
+}
+
+fn cg_emit_top_level(st: CgState, decl: any) -> CgState {
+  let k = decl.kind
+  if k == "TopLevelExpr" {
+    cg_emit_line(st, cg_emit_expr(st, decl.expr) + ";")
+  } else if k == "TopLevelLet" {
+    let val = cg_emit_expr(st, decl.value)
+    if decl.name == null {
+      cg_emit_line(st, val + ";")
+    } else {
+      let s = cg_declare(st, decl.name)
+      cg_emit_line(s, "let " + decl.name + " = " + val + ";")
+    }
+  } else if k == "TopLevelStmt" {
+    cg_emit_stmt(st, decl.stmt)
+  } else if k == "FnDecl" {
+    cg_emit_fn(st, decl)
+  } else if k == "ExportDecl" {
+    cg_emit_top_level(st, decl.decl)
+  } else if k == "ImportDecl" {
+    st
+  } else {
+    st
+  }
+}
+
 export fn generate(program: Program) -> string {
-  ""
+  let mut st = CgState([], 0, [[]])
+  let mut i = 0
+  while i < program.body.length {
+    let decl = program.body[i]
+    st = cg_emit_top_level(st, decl)
+    let has_next = i + 1 < program.body.length
+    if has_next {
+      let next = program.body[i + 1]
+      if is_block_decl(decl) or is_block_decl(next) {
+        st = cg_emit_blank(st)
+      }
+    } else if is_block_decl(decl) {
+      st = cg_emit_blank(st)
+    }
+    i = i + 1
+  }
+  cg_join_strings(st.lines, "")
 }

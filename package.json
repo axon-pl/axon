@@ -45,6 +45,7 @@
     "test": "node dist/cli.js --test examples/rpg.syn && node dist/cli.js --test examples/v04_features.syn && node dist/cli.js --test examples/v095_features.syn && node dist/cli.js --test examples/v1_features.syn && node dist/cli.js --test examples/dungeon/config.syn && node dist/cli.js --test examples/bazaar/items.syn",
     "gen:lexer-goldens": "node tools/gen_lexer_goldens.js",
     "gen:ast-goldens": "node tools/gen_ast_goldens.js",
+    "gen:codegen-goldens": "node tools/gen_codegen_goldens.js",
     "test:compiler": "node tools/test_compiler_parity.js",
     "build:compiler": "node dist/cli.js --bundle compiler/driver.syn dist/compiler.synth.js"
   },
