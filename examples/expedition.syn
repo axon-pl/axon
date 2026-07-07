@@ -1,5 +1,28 @@
-// ── Expedition Hub — Synth v0.9.9 Demo ────────────────────────────────────────
-// Showcases: spread · object shorthand · stdlib method syntax · do notation
+// ── Expedition Hub — Synth Demo ───────────────────────────────────────────────
+// Showcases: record · spread · object shorthand · stdlib method syntax · do notation
+
+// ── Data types ─────────────────────────────────────────────────────────────────
+
+record Mission {
+  id:       int
+  name:     string
+  sector:   string
+  danger:   int
+  distance: int
+  ore:      int
+  fuel:     int
+  data:     int
+}
+
+record FleetStats {
+  count:     int
+  ore:       int
+  fuel:      int
+  data:      int
+  avg_d:     float
+  max_dist:  int
+  high_risk: int
+}
 
 // ── Reactive store ────────────────────────────────────────────────────────────
 
@@ -47,7 +70,7 @@ fn mission_summary(name: string, sector: string, danger: int) = { name, sector, 
 
 // ── Computed view ─────────────────────────────────────────────────────────────
 
-fn visible_missions() -> any[] {
+fn visible_missions() -> Mission[] {
   let sector     = Fleet.sector
   let max_danger = Fleet.max_danger
   let sort_key   = Fleet.sort_key
@@ -67,7 +90,7 @@ fn visible_missions() -> any[] {
 }
 
 // do notation: a sequenced computation in expression position (v0.9.9)
-fn fleet_stats(missions: any[]) -> any {
+fn fleet_stats(missions: Mission[]) -> FleetStats {
   do {
     let n         = count(missions)
     let ore       = missions.sum_by(m => m.ore)
@@ -84,22 +107,23 @@ fn fleet_stats(missions: any[]) -> any {
 
 // ── Card renderer ─────────────────────────────────────────────────────────────
 
-fn render_card(m: any) -> string {
+// Template literals (v1.0) — full expression interpolation, no string concatenation
+fn render_card(m: Mission) -> string {
   let cls   = danger_cls(m.danger)
   let label = danger_label(m.danger)
-  "<div class=\"mc\">" +
-    "<div class=\"mc-top\">" +
-      "<span class=\"mc-name\">" + m.name + "</span>" +
-      "<span class=\"mc-badge " + cls + "\">" + label + "</span>" +
-    "</div>" +
-    "<div class=\"mc-sector\">" + m.sector + " Sector</div>" +
-    "<div class=\"mc-row\">" +
-      "<span class=\"mc-stat s-dist\">📡 " + m.distance + " ly</span>" +
-      "<span class=\"mc-stat s-ore\">⛏ "  + m.ore      + "</span>" +
-      "<span class=\"mc-stat s-fuel\">⚡ " + m.fuel     + "</span>" +
-      "<span class=\"mc-stat s-data\">💾 " + m.data     + "</span>" +
-    "</div>" +
-  "</div>"
+  `<div class="mc">
+    <div class="mc-top">
+      <span class="mc-name">${m.name}</span>
+      <span class="mc-badge ${cls}">${label}</span>
+    </div>
+    <div class="mc-sector">${m.sector} Sector</div>
+    <div class="mc-row">
+      <span class="mc-stat s-dist">📡 ${m.distance} ly</span>
+      <span class="mc-stat s-ore">⛏ ${m.ore}</span>
+      <span class="mc-stat s-fuel">⚡ ${m.fuel}</span>
+      <span class="mc-stat s-data">💾 ${m.data}</span>
+    </div>
+  </div>`
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────

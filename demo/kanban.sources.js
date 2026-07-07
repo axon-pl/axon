@@ -1,3 +1,5 @@
+const Card = (id, title, col, type, priority, pts) => ({ id, title, col, type, priority, pts });
+const Column = (id, label) => ({ id, label });
 let initial_cols = [{ id: "backlog", label: "Backlog" }, { id: "progress", label: "In Progress" }, { id: "review", label: "Review" }, { id: "done", label: "Done" }];
 let initial_cards = [{
   id: 1,
@@ -146,7 +148,21 @@ const render_card = (c) => {
   let icon = type_icon(c.type);
   let pcls = priority_cls(c.priority);
   let plbl = priority_label(c.priority);
-  return "<div class=\"kcard type-" + c.type + "\">" + "<div class=\"kcard-head\">" + "<span class=\"kcard-icon\">" + icon + "</span>" + "<span class=\"kcard-badge " + pcls + "\">" + plbl + "</span>" + "</div>" + "<div class=\"kcard-title\">" + c.title + "</div>" + "<div class=\"kcard-foot\">" + "<span class=\"kcard-pts\">" + c.pts + " pts</span>" + "<div class=\"kcard-moves\">" + "<button class=\"mv-btn\" title=\"Move left\"  onclick=\"move_card_js(" + c.id + ",-1)\">‹</button>" + "<button class=\"mv-btn mv-del\" title=\"Remove\" onclick=\"remove_card(" + c.id + ")\">✕</button>" + "<button class=\"mv-btn\" title=\"Move right\" onclick=\"move_card_js(" + c.id + ",1)\">›</button>" + "</div>" + "</div>" + "</div>";
+  return `<div class="kcard type-${c.type}">
+    <div class="kcard-head">
+      <span class="kcard-icon">${icon}</span>
+      <span class="kcard-badge ${pcls}">${plbl}</span>
+    </div>
+    <div class="kcard-title">${c.title}</div>
+    <div class="kcard-foot">
+      <span class="kcard-pts">${c.pts} pts</span>
+      <div class="kcard-moves">
+        <button class="mv-btn" title="Move left"  onclick="move_card_js(${c.id},-1)">‹</button>
+        <button class="mv-btn mv-del" title="Remove" onclick="remove_card(${c.id})">✕</button>
+        <button class="mv-btn" title="Move right" onclick="move_card_js(${c.id},1)">›</button>
+      </div>
+    </div>
+  </div>`;
 };
 const render_lane = (col_obj) => {
   let col = col_obj.id;
@@ -156,7 +172,17 @@ const render_lane = (col_obj) => {
   let pts = $sum_by(cards, c => c.pts);
   let parts = $map(cards, c => render_card(c));
   let html = parts.join("");
-  return "<div class=\"lane\" data-col=\"" + col + "\">" + "<div class=\"lane-header\">" + "<h2 class=\"lane-title\">" + label + " <span class=\"col-count\">" + n + "</span></h2>" + "<div class=\"lane-meta\">" + "<span class=\"lane-pts\">" + pts + " pts</span>" + "<button class=\"add-card-btn\" title=\"Add card\" onclick=\"showAddCard('" + col + "')\">+</button>" + "</div>" + "</div>" + "<div class=\"lane-cards\">" + (html == "" ? "<div class=\"empty-col\">— empty —</div>" : html) + "</div>" + "</div>";
+  let body = html == "" ? "<div class=\"empty-col\">— empty —</div>" : html;
+  return `<div class="lane" data-col="${col}">
+    <div class="lane-header">
+      <h2 class="lane-title">${label} <span class="col-count">${n}</span></h2>
+      <div class="lane-meta">
+        <span class="lane-pts">${pts} pts</span>
+        <button class="add-card-btn" title="Add card" onclick="showAddCard('${col}')">+</button>
+      </div>
+    </div>
+    <div class="lane-cards">${body}</div>
+  </div>`;
 };
 const render = () => {
   let lane_parts = $map(Board.cols, c => render_lane(c));

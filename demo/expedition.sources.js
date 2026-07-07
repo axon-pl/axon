@@ -1,3 +1,5 @@
+const Mission = (id, name, sector, danger, distance, ore, fuel, data) => ({ id, name, sector, danger, distance, ore, fuel, data });
+const FleetStats = (count, ore, fuel, data, avg_d, max_dist, high_risk) => ({ count, ore, fuel, data, avg_d, max_dist, high_risk });
 const Fleet = (() => {
   let _state = { sector: "All", max_danger: 5, sort_key: "distance" };
   const _subs = [];
@@ -159,7 +161,19 @@ const fleet_stats = (missions) => {
 const render_card = (m) => {
   let cls = danger_cls(m.danger);
   let label = danger_label(m.danger);
-  return "<div class=\"mc\">" + "<div class=\"mc-top\">" + "<span class=\"mc-name\">" + m.name + "</span>" + "<span class=\"mc-badge " + cls + "\">" + label + "</span>" + "</div>" + "<div class=\"mc-sector\">" + m.sector + " Sector</div>" + "<div class=\"mc-row\">" + "<span class=\"mc-stat s-dist\">📡 " + m.distance + " ly</span>" + "<span class=\"mc-stat s-ore\">⛏ " + m.ore + "</span>" + "<span class=\"mc-stat s-fuel\">⚡ " + m.fuel + "</span>" + "<span class=\"mc-stat s-data\">💾 " + m.data + "</span>" + "</div>" + "</div>";
+  return `<div class="mc">
+    <div class="mc-top">
+      <span class="mc-name">${m.name}</span>
+      <span class="mc-badge ${cls}">${label}</span>
+    </div>
+    <div class="mc-sector">${m.sector} Sector</div>
+    <div class="mc-row">
+      <span class="mc-stat s-dist">📡 ${m.distance} ly</span>
+      <span class="mc-stat s-ore">⛏ ${m.ore}</span>
+      <span class="mc-stat s-fuel">⚡ ${m.fuel}</span>
+      <span class="mc-stat s-data">💾 ${m.data}</span>
+    </div>
+  </div>`;
 };
 const render = () => {
   let missions = visible_missions();

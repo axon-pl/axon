@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Synth Language Reference — v0.9.5</title>
+  <title>Synth Language Reference — v1.0.0</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -698,7 +698,7 @@
     <span class="top-header-title">Synth</span>
     <span class="top-header-sub">Language Reference</span>
     <div class="header-badges">
-      <span class="hbadge hbadge-ver">v0.9.5</span>
+      <span class="hbadge hbadge-ver">v1.0.0</span>
       <span class="hbadge hbadge-ai">AI-native</span>
     </div>
   </header>
@@ -1087,8 +1087,15 @@
         <h2 class="section-title">Strings</h2>
         <div class="section-rule"></div>
 
-        <h3 class="subsection">String interpolation</h3>
-        <p>Any string containing <code>{ident}</code> or <code>{ident.prop}</code> is automatically treated as an interpolated string. No extra syntax required.</p>
+        <h3 class="subsection">Template literals <span class="mono">`…${expr}…`</span> <span style="font-size:0.7rem;color:var(--gold)">v1.0</span></h3>
+        <p>Backtick template literals support <strong>full Synth expression interpolation</strong> — arithmetic, function calls, stdlib method syntax, anything. Each <code>${…}</code> is parsed and compiled as a Synth expression, so <code>${items.count()}</code> correctly compiles to <code>${$count(items)}</code>. Templates may span multiple lines. This is the recommended interpolation syntax.</p>
+        <div class="code-block">
+          <div class="code-label"><span class="dot"></span>synth</div>
+          <pre id="string-template-code"></pre>
+        </div>
+
+        <h3 class="subsection">String interpolation <span class="mono">"{ident}"</span></h3>
+        <p>Any quoted string containing <code>{ident}</code> or <code>{ident.prop}</code> is automatically treated as an interpolated string. Limited to bare identifiers and property chains — for arbitrary expressions, use template literals.</p>
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="string-interp-code"></pre>
@@ -1102,10 +1109,10 @@
         </div>
 
         <div class="callout callout-warn">
-          <div class="callout-head">Curly braces in strings</div>
-          Synth treats <code>{name}</code> inside any string as interpolation. To emit a literal
-          curly brace, avoid bare identifiers inside braces or use a variable name that won't
-          collide. This is intentional — it removes the need for a separate template syntax.
+          <div class="callout-head">Curly braces in quoted strings</div>
+          Synth treats <code>{name}</code> inside <code>"…"</code> strings as interpolation. To emit a literal
+          curly brace, use a backtick template literal — braces inside templates are only special
+          when written as <code>${…}</code>.
         </div>
       </section>
 
@@ -1145,11 +1152,11 @@
         </div>
 
         <div class="callout callout-note">
-          <div class="callout-head">For loops (v0.5.2+)</div>
+          <div class="callout-head">Loops (v0.5.2+, while v0.9.8+)</div>
           Synth supports <code>for i in lo..hi</code> (exclusive range), <code>for i in lo..=hi</code> (inclusive range),
-          and <code>for x in array</code> (forEach). Use <code>break</code> / <code>continue</code> for
-          loop control. The standard library also provides <code>map</code>, <code>filter</code>, and <code>fold</code>
-          for functional iteration. <code>while</code> loops are not supported — use recursion or <code>for</code>.
+          <code>for x in array</code> (forEach), and <code>while condition { body }</code> (v0.9.8+).
+          Use <code>break</code> / <code>continue</code> for loop control. The standard library also provides
+          <code>map</code>, <code>filter</code>, and <code>fold</code> for functional iteration.
         </div>
       </section>
 
@@ -1336,37 +1343,68 @@
         <h2 class="section-title">Standard Library</h2>
         <div class="section-rule"></div>
 
-        <p>The Synth stdlib is a small set of higher-order functions prepended to every generated file. All functions are pure.</p>
+        <p>The Synth stdlib ships as <code>synth.stdlib.js</code> — 61 pure functions emitted with a <code>$</code> prefix in generated JS (e.g. <code>map</code> → <code>$map</code>) to avoid name collisions. Most list and string functions can also be called with <strong>method syntax</strong>: <code>xs.map(f)</code> compiles to <code>$map(xs, f)</code>.</p>
 
         <div class="doc-table-wrap"><table class="doc-table">
           <thead><tr><th>Function</th><th>Signature</th><th>Description</th></tr></thead>
           <tbody>
+            <tr><td colspan="3" style="padding:6px 12px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--cyan);opacity:0.8;background:rgba(0,255,255,0.04)">Lists</td></tr>
             <tr><td>map(xs, f)</td><td>list → fn → list</td><td>Transform each element</td></tr>
             <tr><td>filter(xs, f)</td><td>list → fn → list</td><td>Keep elements where f returns true</td></tr>
-            <tr><td>reduce(xs, f, init)</td><td>list → fn → any → any</td><td>Fold left</td></tr>
+            <tr><td>fold(xs, init, f)</td><td>list → any → fn → any</td><td>Fold left with initial accumulator</td></tr>
             <tr><td>find(xs, f)</td><td>list → fn → any</td><td>First matching element or undefined</td></tr>
-            <tr><td>some(xs, f)</td><td>list → fn → bool</td><td>True if any element matches</td></tr>
-            <tr><td>every(xs, f)</td><td>list → fn → bool</td><td>True if all elements match</td></tr>
+            <tr><td>find_index(xs, f)</td><td>list → fn → int</td><td>Index of first match, or −1</td></tr>
+            <tr><td>any(xs, f)</td><td>list → fn → bool</td><td>True if any element matches</td></tr>
+            <tr><td>all(xs, f)</td><td>list → fn → bool</td><td>True if all elements match</td></tr>
+            <tr><td>count(xs, f?)</td><td>list → fn? → int</td><td>Length, or count of matching elements</td></tr>
             <tr><td>sum(xs)</td><td>list&lt;number&gt; → number</td><td>Sum of all elements</td></tr>
-            <tr><td>max(xs)</td><td>list&lt;number&gt; → number</td><td>Maximum value</td></tr>
-            <tr><td>min(xs)</td><td>list&lt;number&gt; → number</td><td>Minimum value</td></tr>
+            <tr><td>sum_by(xs, f)</td><td>list → fn → number</td><td>Sum of f(x) over all elements</td></tr>
+            <tr><td>min(xs) / max(xs)</td><td>list&lt;number&gt; → number</td><td>Minimum / maximum value</td></tr>
+            <tr><td>min_by(xs, f) / max_by(xs, f)</td><td>list → fn → any</td><td>Element with the smallest / largest key</td></tr>
+            <tr><td>sort_by(xs, f)</td><td>list → fn → list</td><td>Copy sorted ascending by key (original untouched)</td></tr>
+            <tr><td>sort_by_desc(xs, f)</td><td>list → fn → list</td><td>Copy sorted descending by key</td></tr>
+            <tr><td>first(xs) / last(xs)</td><td>list → any</td><td>First / last element</td></tr>
+            <tr><td>take(xs, n) / drop(xs, n)</td><td>list → int → list</td><td>First n elements / all but first n</td></tr>
             <tr><td>flat(xs)</td><td>list → list</td><td>Flatten one level</td></tr>
-            <tr><td>keys(obj)</td><td>object → list&lt;string&gt;</td><td>Object.keys</td></tr>
-            <tr><td>values(obj)</td><td>object → list&lt;any&gt;</td><td>Object.values</td></tr>
-            <tr><td>entries(obj)</td><td>object → list&lt;[k,v]&gt;</td><td>Object.entries</td></tr>
-            <tr><td>range(n)</td><td>int → list&lt;int&gt;</td><td>[0, 1, …, n-1]</td></tr>
+            <tr><td>flat_map(xs, f)</td><td>list → fn → list</td><td>Map then flatten one level</td></tr>
+            <tr><td>uniq(xs)</td><td>list → list</td><td>Remove duplicates (Set semantics)</td></tr>
+            <tr><td>chunk(xs, n)</td><td>list → int → list&lt;list&gt;</td><td>Split into groups of n</td></tr>
+            <tr><td>set_at(xs, i, v)</td><td>list → int → any → list</td><td>Copy with element i replaced</td></tr>
+            <tr><td>reverse(xs)</td><td>list → list</td><td>Copy reversed</td></tr>
+            <tr><td>zip(xs, ys)</td><td>list → list → list&lt;[a,b]&gt;</td><td>Pair up two lists</td></tr>
+            <tr><td>range(lo, hi)</td><td>int → int → list&lt;int&gt;</td><td>[lo, lo+1, …, hi−1]</td></tr>
+            <tr><td>groupBy(xs, f)</td><td>list → fn → Map</td><td>Group elements by key</td></tr>
+            <tr><td colspan="3" style="padding:6px 12px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--cyan);opacity:0.8;background:rgba(0,255,255,0.04)">Strings</td></tr>
+            <tr><td>trim(s)</td><td>string → string</td><td>Strip surrounding whitespace</td></tr>
+            <tr><td>split(s, sep)</td><td>string → string → list</td><td>Split on separator</td></tr>
+            <tr><td>starts_with(s, p) / ends_with(s, p)</td><td>string → string → bool</td><td>Prefix / suffix test</td></tr>
+            <tr><td>contains(s, sub)</td><td>string → string → bool</td><td>Substring test</td></tr>
+            <tr><td>to_upper(s) / to_lower(s)</td><td>string → string</td><td>Case conversion</td></tr>
+            <tr><td>replace_all(s, from, to)</td><td>string×3 → string</td><td>Replace every occurrence</td></tr>
+            <tr><td>pad_start(s, len, ch?) / pad_end(s, len, ch?)</td><td>string → int → string</td><td>Pad to length</td></tr>
+            <tr><td colspan="3" style="padding:6px 12px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--cyan);opacity:0.8;background:rgba(0,255,255,0.04)">Math &amp; Conversion</td></tr>
             <tr><td>clamp(v, lo, hi)</td><td>number×3 → number</td><td>Constrain to [lo, hi]</td></tr>
-            <tr><td>el(tag, attrs, ...)</td><td>string → obj → DOM</td><td>Create DOM element</td></tr>
-            <tr><td>mount(el, sel)</td><td>DOM → string → void</td><td>Mount element at CSS selector</td></tr>
-            <tr><td>__synth_tests</td><td>list</td><td>Registered @test declarations</td></tr>
-            <tr><td>__runSynthTests()</td><td>() → void</td><td>Execute all tests, print summary</td></tr>
+            <tr><td>abs / round / floor / ceil / sqrt</td><td>number → number</td><td>Standard math functions</td></tr>
+            <tr><td>pow(base, exp)</td><td>number → number → number</td><td>Exponentiation</td></tr>
+            <tr><td>random()</td><td>() → float</td><td>Uniform random in [0, 1)</td></tr>
+            <tr><td>random_int(lo, hi)</td><td>int → int → int</td><td>Random integer in [lo, hi]</td></tr>
+            <tr><td>parse_int(s, radix?)</td><td>string → int?</td><td><strong>v1.0</strong> Parse integer; null on invalid input</td></tr>
+            <tr><td>parse_float(s)</td><td>string → float?</td><td><strong>v1.0</strong> Parse float; null on invalid input</td></tr>
+            <tr><td colspan="3" style="padding:6px 12px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--cyan);opacity:0.8;background:rgba(0,255,255,0.04)">Objects</td></tr>
+            <tr><td>pick(obj, keys)</td><td>object → list → object</td><td>New object with only the given keys</td></tr>
+            <tr><td>omit(obj, keys)</td><td>object → list → object</td><td>New object without the given keys</td></tr>
+            <tr><td colspan="3" style="padding:6px 12px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--cyan);opacity:0.8;background:rgba(0,255,255,0.04)">Composition</td></tr>
+            <tr><td>pipe(...fns)</td><td>fn* → fn</td><td>Left-to-right function composition</td></tr>
             <tr><td colspan="3" style="padding:6px 12px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--cyan);opacity:0.8;background:rgba(0,255,255,0.04)">Result helpers — v0.6</td></tr>
             <tr><td>ok(v)</td><td>T → Result&lt;T&gt;</td><td>Wrap a success value in <code>Ok</code></td></tr>
             <tr><td>err(msg)</td><td>string → Result</td><td>Wrap an error message in <code>Err</code></td></tr>
-            <tr><td>is_ok(r)</td><td>Result → bool</td><td>True if result is <code>Ok</code></td></tr>
-            <tr><td>is_err(r)</td><td>Result → bool</td><td>True if result is <code>Err</code></td></tr>
+            <tr><td>is_ok(r) / is_err(r)</td><td>Result → bool</td><td>Test result variant</td></tr>
             <tr><td>unwrap(r)</td><td>Result&lt;T&gt; → T</td><td>Extract value; throws if <code>Err</code></td></tr>
             <tr><td>unwrap_or(r, fallback)</td><td>Result&lt;T&gt;, T → T</td><td>Extract value or return fallback</td></tr>
+            <tr><td colspan="3" style="padding:6px 12px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--cyan);opacity:0.8;background:rgba(0,255,255,0.04)">Async &amp; IO</td></tr>
+            <tr><td>delay(ms)</td><td>int → Promise</td><td>Promise-based sleep for <code>await</code></td></tr>
+            <tr><td>println(...args)</td><td>any* → void</td><td>console.log with trailing blank line</td></tr>
+            <tr><td>__synth_tests / __runSynthTests()</td><td>—</td><td>Registered <code>@test</code> declarations and browser test runner</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -1502,7 +1540,7 @@ Watching main.syn for changes… (Ctrl+C to stop)
         <p>Runs only the static checker. Returns <code>{ warnings }</code>. Useful for lightweight lint-on-type without full codegen.</p>
 
         <h3 class="subsection-title"><code>SynthCompiler.version</code></h3>
-        <p>String — the compiler version, e.g. <code>"0.9.0"</code>.</p>
+        <p>String — the compiler version, e.g. <code>"1.0.0"</code>.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot dot-axn"></span>example</div>
@@ -1819,9 +1857,77 @@ main()</pre>
 
         <div class="version-card vc-current">
           <div class="version-header">
+            <span class="version-tag">v1.0.0</span>
+            <span class="version-name">Stable Release</span>
+            <span class="version-status vs-current">Current</span>
+          </div>
+          <ul class="version-features">
+            <li><strong>Template literals</strong> — <code>`Hello ${name}, score ${pts * 2}`</code>; full Synth expression interpolation including stdlib method syntax</li>
+            <li><strong><code>and</code>/<code>or</code> precedence fix</strong> — parenthesized boolean sub-expressions are preserved correctly in generated JS</li>
+            <li><strong>Object literals in lambdas</strong> — <code>x =&gt; { id: x, val: x * 2 }</code> auto-detected; no <code>do</code> wrapper needed</li>
+            <li><strong>Reserved words as parameter names</strong> — <code>fn f(type: string)</code> and other keywords now valid in parameter position</li>
+            <li><strong>New stdlib</strong> — <code>find</code>, <code>find_index</code>, <code>parse_int</code>, <code>parse_float</code></li>
+            <li><strong>npm publish</strong> — <code>npm install -g synth-lang</code>; VS Code extension for <code>.syn</code> highlighting</li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
+            <span class="version-tag">v0.9.9</span>
+            <span class="version-name">Ergonomics II</span>
+            <span class="version-status vs-stable">Stable</span>
+          </div>
+          <ul class="version-features">
+            <li><strong>Spread operator</strong> — <code>[...xs, x]</code> and <code>{ ...obj, key: val }</code> in arrays and objects</li>
+            <li><strong>Object shorthand</strong> — <code>{ x, y }</code> for <code>{ x: x, y: y }</code></li>
+            <li><strong>Rest parameters</strong> — <code>fn sum_all(...nums)</code></li>
+            <li><strong>Stdlib method syntax</strong> — <code>value.fn(args)</code> compiles to <code>$fn(value, args)</code>; enables chaining</li>
+            <li><strong><code>do</code> notation</strong> — block expressions with implicit last-value result; async IIFE when body contains <code>await</code></li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
+            <span class="version-tag">v0.9.8</span>
+            <span class="version-name">Control Flow</span>
+            <span class="version-status vs-stable">Stable</span>
+          </div>
+          <ul class="version-features">
+            <li><strong><code>while</code> loops</strong> — <code>while condition { body }</code> with <code>break</code>/<code>continue</code> support</li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
+            <span class="version-tag">v0.9.7</span>
+            <span class="version-name">The Stdlib Update</span>
+            <span class="version-status vs-stable">Stable</span>
+          </div>
+          <ul class="version-features">
+            <li><strong>List helpers</strong> — <code>take</code>, <code>drop</code>, <code>uniq</code>, <code>chunk</code>, <code>set_at</code>, <code>reverse</code>, <code>sum_by</code>, <code>min_by</code>, <code>max_by</code>, <code>sort_by</code>, <code>sort_by_desc</code>, <code>flat_map</code>, <code>zip</code></li>
+            <li><strong>String helpers</strong> — <code>trim</code>, <code>split</code>, <code>starts_with</code>, <code>ends_with</code>, <code>contains</code>, <code>to_upper</code>, <code>to_lower</code>, <code>replace_all</code>, <code>pad_start</code>, <code>pad_end</code></li>
+            <li><strong>Math helpers</strong> — <code>clamp</code>, <code>abs</code>, <code>round</code>, <code>floor</code>, <code>ceil</code>, <code>pow</code>, <code>sqrt</code>, <code>random</code>, <code>random_int</code></li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
+            <span class="version-tag">v0.9.6</span>
+            <span class="version-name">Compound Ops</span>
+            <span class="version-status vs-stable">Stable</span>
+          </div>
+          <ul class="version-features">
+            <li><strong>Compound assignment</strong> — <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>%=</code>, <code>??=</code></li>
+            <li><strong><code>--compact</code> flag</strong> — strip blank lines and JSDoc from output; reduces token usage for AI tools</li>
+            <li><strong><code>$</code> stdlib prefix</strong> — generated calls use <code>$map</code> instead of <code>synth_map</code>; smaller output</li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
             <span class="version-tag">v0.9.5</span>
             <span class="version-name">The Ergonomics Update</span>
-            <span class="version-status vs-current">Current</span>
+            <span class="version-status vs-stable">Stable</span>
           </div>
           <ul class="version-features">
             <li><strong><code>enum</code> type</strong> — <code>enum Color = Red | Green | Blue</code>; compiles to <code>Object.freeze({ Red: 'Red', … })</code>; supports <code>Enum.Variant</code> pattern matching in <code>match</code></li>
@@ -2117,7 +2223,7 @@ main()</pre>
   </div>
 
   <footer class="page-footer">
-    Synth v0.9.5 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
+    Synth v1.0.0 · Designed by AI for AI · Transpiles to JavaScript · <code>@intent</code> · <code>@pure</code> · <code>|&gt;</code>
   </footer>
 
   <script>
@@ -2403,7 +2509,7 @@ console.log(badge(Priority.Critical))    // → "🔴 CRITICAL"
 `);
 
     setCode('enum-js-code', `
-// Generated by Synth v0.9.5 transpiler
+// Generated by Synth v1.0.0 transpiler
 /** @enum {string} Status */
 const Status = Object.freeze({ Backlog: 'Backlog', Active: 'Active', Done: 'Done', Cancelled: 'Cancelled' });
 
@@ -2561,13 +2667,28 @@ let { atk, bonus, mitigation, isCrit, finalDmg } =
   damage_breakdown(str, def, bonus, roll)
 `);
 
+    setCode('string-template-code', `
+// Backtick templates — full Synth expressions inside \${…}
+let banner = \`Hero: \${hero.name} — Score: \${score}\`
+let detail = \`Doubled: \${score * 2} | Percent: \${floor(score / max_score * 100)}%\`
+
+// Stdlib method syntax works inside interpolations
+let report = \`Players: \${"alice,bob,carol".split(",").count()} active\`
+
+// Multiline templates
+let card = \`
+  [\${rank}] \${name}
+  \${pts} pts\`
+`);
+
     setCode('string-interp-code', `
 // {ident} and {ident.prop} are interpolated automatically
 let msg  = "Hello, {name}!"
 let line = "HP: {hero.hp} / {hero.maxHp}"
 let stat = "+{bonus} {element} bonus"
 
-// No explicit template syntax needed — if it contains {ident}, it interpolates
+// Limited to identifiers and property chains —
+// use backtick templates for arbitrary expressions
 `);
 
     setCode('string-triple-code', `
@@ -3102,7 +3223,7 @@ if result.errors.length > 0 {
 let { warnings } = SynthCompiler.check(source)
 
 // Version string
-console.log(SynthCompiler.version)   // "0.9.0"
+console.log(SynthCompiler.version)   // "1.0.0"
 `);
 
   </script>

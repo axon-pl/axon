@@ -414,7 +414,7 @@ export class Parser {
     this.expect('LBRACE')
     const fields: FieldDecl[] = []
     while (!this.check('RBRACE') && !this.isEOF()) {
-      const fieldName = this.expect('IDENT').value
+      const fieldName = this.expectIdentOrKeyword().value
       this.expect('COLON')
       const type = this.parseTypeExpr()
       fields.push({ name: fieldName, type })

@@ -1171,14 +1171,14 @@
       <a class="demo-card" href="expedition.html" style="border-color:#6470ff;background:linear-gradient(135deg,rgba(100,112,255,0.1),rgba(0,212,255,0.05))">
         <div class="demo-card-icon">🛸</div>
         <div class="demo-card-title">Expedition Hub</div>
-        <div class="demo-card-desc">Space fleet mission tracker showcasing all four v0.9.9 features: spread, object shorthand, stdlib method syntax, and <code>do</code> notation.</div>
-        <div class="demo-card-meta"><span>v0.9.9</span> spread · method syntax · do notation</div>
+        <div class="demo-card-desc">Space fleet mission tracker — typed <code>record</code> missions, spread, object shorthand, stdlib method syntax, <code>do</code> notation, and v1.0 template literals.</div>
+        <div class="demo-card-meta"><span>v1.0</span> record · templates · method syntax · do notation</div>
       </a>
       <a class="demo-card" href="kanban.html" style="border-color:#c060ff;background:linear-gradient(135deg,rgba(192,60,255,0.1),rgba(255,45,120,0.05))">
         <div class="demo-card-icon">🎮</div>
         <div class="demo-card-title">Neon Kanban <span style="font-size:0.7rem;opacity:0.7;font-weight:400">New</span></div>
-        <div class="demo-card-desc">Synthwave game-dev task board. Move cards across Backlog → In Progress → Review → Done. Filter by type. Live progress bar.</div>
-        <div class="demo-card-meta"><span>v0.9.9</span> store · match · @memo · spread</div>
+        <div class="demo-card-desc">Synthwave game-dev task board. Typed <code>record</code> cards and columns, v1.0 template literals, add/move/remove cards, live progress bar.</div>
+        <div class="demo-card-meta"><span>v1.0</span> record · templates · store · @memo</div>
       </a>
       <a class="demo-card" href="dashboard.html" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(176,96,255,0.1),rgba(0,232,208,0.05))">
         <div class="demo-card-icon">📊</div>
@@ -1240,8 +1240,8 @@
   <!-- ── Roadmap v2 ────────────────────────────────────────────────────────── -->
   <section style="max-width:860px;margin:0 auto 24px;padding:0 32px;">
     <div class="section-label">Roadmap</div>
-    <h2 class="section-title" style="margin-bottom:8px;">Almost there.</h2>
-    <p style="color:var(--text-dim);font-size:15px;margin-bottom:40px;">3 milestones stand between Synth and v1.0.</p>
+    <h2 class="section-title" style="margin-bottom:8px;">Shipped.</h2>
+    <p style="color:var(--text-dim);font-size:15px;margin-bottom:40px;">v1.0 is here. Next up: the AI-native constructs that motivated the whole project.</p>
   </section>
   <div class="roadmap-v2">
 
@@ -1249,17 +1249,17 @@
     <div class="rm-progress-wrap">
       <div class="rm-progress-meta">
         <span class="rm-progress-label">v0.1 ───────────────────── v1.0</span>
-        <span class="rm-progress-pct">88% complete</span>
+        <span class="rm-progress-pct">100% complete</span>
       </div>
       <div class="rm-bar-track">
-        <div class="rm-bar-fill" style="width:88%"></div>
+        <div class="rm-bar-fill" style="width:100%"></div>
       </div>
     </div>
 
     <!-- History chip -->
     <div class="rm-history">
       <div class="rm-history-check">✓</div>
-      <div class="rm-history-text"><strong>11 milestones shipped</strong> · v0.1 through v0.9.8</div>
+      <div class="rm-history-text"><strong>14 milestones shipped</strong> · v0.1 through v1.0.0</div>
       <div class="rm-history-chips">
         <span class="rm-chip">Foundation</span>
         <span class="rm-chip">Guards</span>
@@ -1272,6 +1272,9 @@
         <span class="rm-chip">Compound Ops</span>
         <span class="rm-chip">Stdlib</span>
         <span class="rm-chip">While Loops</span>
+        <span class="rm-chip">Ergonomics II</span>
+        <span class="rm-chip">Templates</span>
+        <span class="rm-chip">v1.0 Stable</span>
       </div>
     </div>
 
@@ -1280,37 +1283,37 @@
 
       <div class="rm-card rm-card-now">
         <div class="rm-card-badge rm-badge-now">★ Now</div>
-        <div class="rm-card-ver rm-ver-now">v0.9.8</div>
-        <div class="rm-card-title">Control Flow</div>
-        <div class="rm-card-desc"><code>while</code> loops with <code>break</code> and <code>continue</code> — completing Synth's iteration model.</div>
+        <div class="rm-card-ver rm-ver-now">v1.0.0</div>
+        <div class="rm-card-title">Stable Release</div>
+        <div class="rm-card-desc">Template literals, precedence fixes, expanded stdlib, npm publish, VS Code extension. Synth shipped.</div>
         <div class="rm-card-features">
-          <span class="rm-feat">while</span>
-          <span class="rm-feat">break</span>
-          <span class="rm-feat">continue</span>
+          <span class="rm-feat">template literals</span>
+          <span class="rm-feat">npm publish</span>
+          <span class="rm-feat">66 tests</span>
         </div>
       </div>
 
       <div class="rm-card rm-card-next">
         <div class="rm-card-badge rm-badge-next">Next</div>
-        <div class="rm-card-ver rm-ver-next">v0.9.9</div>
-        <div class="rm-card-title">Polish &amp; Docs</div>
-        <div class="rm-card-desc">Final ergonomic fixes, improved error messages, and a complete docs site.</div>
+        <div class="rm-card-ver rm-ver-next">v1.1</div>
+        <div class="rm-card-title">The AI-Native Update</div>
+        <div class="rm-card-desc"><code>likely</code> match arms — pattern matching by semantic similarity. Arms become soft classifiers backed by embeddings.</div>
         <div class="rm-card-features">
-          <span class="rm-feat">error messages</span>
-          <span class="rm-feat">docs site</span>
-          <span class="rm-feat">bugfixes</span>
+          <span class="rm-feat">likely arms</span>
+          <span class="rm-feat">embedding API</span>
+          <span class="rm-feat">intent router</span>
         </div>
       </div>
 
       <div class="rm-card rm-card-goal">
         <div class="rm-card-badge rm-badge-goal">🎯 Goal</div>
-        <div class="rm-card-ver rm-ver-goal">v1.0</div>
-        <div class="rm-card-title">Stable Release</div>
-        <div class="rm-card-desc">Stable API, full test suite, production-ready tooling. Synth ships.</div>
+        <div class="rm-card-ver rm-ver-goal">v1.2</div>
+        <div class="rm-card-title">Spec Extraction</div>
+        <div class="rm-card-desc"><code>synth spec</code> — extract <code>@intent</code>, <code>refine</code>, and constraints as structured JSON for LLM consumption.</div>
         <div class="rm-card-features">
-          <span class="rm-feat">stable API</span>
-          <span class="rm-feat">npm publish</span>
-          <span class="rm-feat">full coverage</span>
+          <span class="rm-feat">synth spec</span>
+          <span class="rm-feat">queryable intent</span>
+          <span class="rm-feat">LSP</span>
         </div>
       </div>
 

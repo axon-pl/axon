@@ -1,5 +1,21 @@
 // ── Neon Kanban — Synth Demo ─────────────────────────────────────────────────
-// Game-dev task board. Showcases: store · match · @memo · spread · stdlib methods
+// Game-dev task board. Showcases: record · store · match · @memo · spread · stdlib methods
+
+// ── Data types ─────────────────────────────────────────────────────────────────
+
+record Card {
+  id:       int
+  title:    string
+  col:      string
+  type:     string
+  priority: string
+  pts:      int
+}
+
+record Column {
+  id:    string
+  label: string
+}
 
 let initial_cols = [
   { id: "backlog",  label: "Backlog" },
@@ -28,10 +44,10 @@ let initial_cards = [
 ]
 
 store Board {
-  cards:   any[] = initial_cards
-  cols:    any[] = initial_cols
-  filter:  string = "All"
-  next_id: int   = 17
+  cards:   Card[]   = initial_cards
+  cols:    Column[] = initial_cols
+  filter:  string   = "All"
+  next_id: int      = 17
 }
 
 // ── Card label helpers ─────────────────────────────────────────────────────────
@@ -86,36 +102,37 @@ fn set_filter(f: string) {
 
 // ── Views ──────────────────────────────────────────────────────────────────────
 
-fn type_matches(c: any) -> bool =
+fn type_matches(c: Card) -> bool =
   Board.filter == "All" or c.type == Board.filter
 
-fn col_cards(col: string) -> any[] =
+fn col_cards(col: string) -> Card[] =
   Board.cards.filter(c => c.col == col and type_matches(c))
 
 // ── HTML renderers ─────────────────────────────────────────────────────────────
 
-fn render_card(c: any) -> string {
+// Template literals (v1.0) — full expression interpolation, no string concatenation
+fn render_card(c: Card) -> string {
   let icon = type_icon(c.type)
   let pcls = priority_cls(c.priority)
   let plbl = priority_label(c.priority)
-  "<div class=\"kcard type-" + c.type + "\">" +
-    "<div class=\"kcard-head\">" +
-      "<span class=\"kcard-icon\">" + icon + "</span>" +
-      "<span class=\"kcard-badge " + pcls + "\">" + plbl + "</span>" +
-    "</div>" +
-    "<div class=\"kcard-title\">" + c.title + "</div>" +
-    "<div class=\"kcard-foot\">" +
-      "<span class=\"kcard-pts\">" + c.pts + " pts</span>" +
-      "<div class=\"kcard-moves\">" +
-        "<button class=\"mv-btn\" title=\"Move left\"  onclick=\"move_card_js(" + c.id + ",-1)\">‹</button>" +
-        "<button class=\"mv-btn mv-del\" title=\"Remove\" onclick=\"remove_card(" + c.id + ")\">✕</button>" +
-        "<button class=\"mv-btn\" title=\"Move right\" onclick=\"move_card_js(" + c.id + ",1)\">›</button>" +
-      "</div>" +
-    "</div>" +
-  "</div>"
+  `<div class="kcard type-${c.type}">
+    <div class="kcard-head">
+      <span class="kcard-icon">${icon}</span>
+      <span class="kcard-badge ${pcls}">${plbl}</span>
+    </div>
+    <div class="kcard-title">${c.title}</div>
+    <div class="kcard-foot">
+      <span class="kcard-pts">${c.pts} pts</span>
+      <div class="kcard-moves">
+        <button class="mv-btn" title="Move left"  onclick="move_card_js(${c.id},-1)">‹</button>
+        <button class="mv-btn mv-del" title="Remove" onclick="remove_card(${c.id})">✕</button>
+        <button class="mv-btn" title="Move right" onclick="move_card_js(${c.id},1)">›</button>
+      </div>
+    </div>
+  </div>`
 }
 
-fn render_lane(col_obj: any) -> string {
+fn render_lane(col_obj: Column) -> string {
   let col   = col_obj.id
   let label = col_obj.label
   let cards = col_cards(col)
@@ -123,18 +140,17 @@ fn render_lane(col_obj: any) -> string {
   let pts   = cards.sum_by(c => c.pts)
   let parts = cards.map(c => render_card(c))
   let html  = parts.join("")
-  "<div class=\"lane\" data-col=\"" + col + "\">" +
-    "<div class=\"lane-header\">" +
-      "<h2 class=\"lane-title\">" + label + " <span class=\"col-count\">" + n + "</span></h2>" +
-      "<div class=\"lane-meta\">" +
-        "<span class=\"lane-pts\">" + pts + " pts</span>" +
-        "<button class=\"add-card-btn\" title=\"Add card\" onclick=\"showAddCard('" + col + "')\">+</button>" +
-      "</div>" +
-    "</div>" +
-    "<div class=\"lane-cards\">" +
-      (html == "" ? "<div class=\"empty-col\">— empty —</div>" : html) +
-    "</div>" +
-  "</div>"
+  let body  = html == "" ? "<div class=\"empty-col\">— empty —</div>" : html
+  `<div class="lane" data-col="${col}">
+    <div class="lane-header">
+      <h2 class="lane-title">${label} <span class="col-count">${n}</span></h2>
+      <div class="lane-meta">
+        <span class="lane-pts">${pts} pts</span>
+        <button class="add-card-btn" title="Add card" onclick="showAddCard('${col}')">+</button>
+      </div>
+    </div>
+    <div class="lane-cards">${body}</div>
+  </div>`
 }
 
 fn render() {
