@@ -246,6 +246,25 @@
     .synth-tag { font-size: 0.7rem; color: var(--muted); text-align: center; padding: 0.7rem; border-top: 1px solid var(--border); flex-shrink: 0; }
     .synth-tag a { color: var(--accent); text-decoration: none; }
     .synth-tag a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .site-header,
+      .prog-wrap,
+      .filter-bar {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+      .site-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .header-title h1 { font-size: 1.1rem; }
+      .filter-bar { gap: 0.35rem; }
+      .filter-btn { font-size: 0.72rem; padding: 0.24rem 0.65rem; }
+      .lane { flex: 0 0 min(78vw, 240px); }
+      .board { min-height: calc(100vh - 210px); }
+      .modal { width: min(92vw, 360px); margin: 1rem; }
+    }
   </style>
 </head>
 <body>

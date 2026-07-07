@@ -2,25 +2,32 @@
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "Synth",
   "scopeName": "source.synth",
-  "fileTypes": ["axn"],
+  "fileTypes": ["syn"],
 
   "patterns": [
     { "include": "#block-comment" },
     { "include": "#line-comment" },
+    { "include": "#triple-string" },
+    { "include": "#template-literal" },
     { "include": "#annotation-effects" },
     { "include": "#annotation-intent" },
     { "include": "#annotation-flag" },
     { "include": "#fn-declaration" },
     { "include": "#record-declaration" },
     { "include": "#type-declaration" },
+    { "include": "#interface-declaration" },
+    { "include": "#enum-declaration" },
     { "include": "#control-keywords" },
     { "include": "#declaration-keywords" },
+    { "include": "#async-keywords" },
+    { "include": "#logical-keywords" },
     { "include": "#builtin-types" },
     { "include": "#type-reference" },
     { "include": "#constants" },
     { "include": "#string" },
     { "include": "#number" },
     { "include": "#pipeline-operator" },
+    { "include": "#nullish-operators" },
     { "include": "#match-arm-separator" },
     { "include": "#arrow-lambda" },
     { "include": "#arrow-return" },
@@ -39,22 +46,60 @@
       "begin": "/\\*",
       "end": "\\*/",
       "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.synth" } },
-      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.synth" } },
-      "patterns": [
-        { "name": "comment.block.synth", "match": "." }
-      ]
+      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.synth" } }
     },
 
     "line-comment": {
       "name": "comment.line.double-slash.synth",
-      "match": "//.*$",
-      "captures": {
-        "0": { "name": "comment.line.double-slash.synth" }
-      }
+      "match": "//.*$"
+    },
+
+    "triple-string": {
+      "name": "string.quoted.triple.synth",
+      "begin": "\"\"\"",
+      "end": "\"\"\"",
+      "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.synth" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.string.end.synth" } },
+      "patterns": [
+        { "name": "constant.character.escape.synth", "match": "\\\\." }
+      ]
+    },
+
+    "template-literal": {
+      "name": "string.template.synth",
+      "begin": "`",
+      "end": "`",
+      "beginCaptures": { "0": { "name": "punctuation.definition.template.begin.synth" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.template.end.synth" } },
+      "patterns": [
+        {
+          "name": "meta.template.expression.synth",
+          "begin": "\\$\\{",
+          "end": "\\}",
+          "beginCaptures": { "0": { "name": "punctuation.definition.template-expression.begin.synth" } },
+          "endCaptures":   { "0": { "name": "punctuation.definition.template-expression.end.synth" } },
+          "patterns": [
+            { "include": "#template-expression-inner" }
+          ]
+        },
+        { "name": "constant.character.escape.synth", "match": "\\\\." }
+      ]
+    },
+
+    "template-expression-inner": {
+      "patterns": [
+        { "include": "#line-comment" },
+        { "include": "#string" },
+        { "include": "#number" },
+        { "include": "#constants" },
+        { "include": "#builtin-types" },
+        { "include": "#control-keywords" },
+        { "include": "#declaration-keywords" },
+        { "include": "#comparison-operators" }
+      ]
     },
 
     "annotation-effects": {
-      "comment": "@effects [dom.write, state.mutable, rng, ...] — effects list gets its own color",
       "match": "(@effects)\\s*(\\[[^\\]]*\\])?",
       "captures": {
         "1": { "name": "storage.modifier.annotation.synth" },
@@ -63,7 +108,6 @@
     },
 
     "annotation-intent": {
-      "comment": "@intent \"...\" — string value is part of the annotation, highlight together",
       "begin": "(@intent)\\s*(\")",
       "end": "\"",
       "beginCaptures": {
@@ -77,22 +121,20 @@
     },
 
     "annotation-flag": {
-      "comment": "Stand-alone boolean annotations: @pure @total @memo @exhaustive",
       "name": "storage.modifier.annotation.synth",
-      "match": "@(pure|total|memo|exhaustive)\\b"
+      "match": "@(pure|total|memo|exhaustive|test|throws)\\b"
     },
 
     "fn-declaration": {
-      "comment": "fn functionName — highlights keyword and function name separately",
-      "match": "\\b(fn)\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)",
+      "match": "\\b(async\\s+)?(fn)\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)",
       "captures": {
-        "1": { "name": "keyword.declaration.function.synth" },
-        "2": { "name": "entity.name.function.synth" }
+        "1": { "name": "keyword.control.async.synth" },
+        "2": { "name": "keyword.declaration.function.synth" },
+        "3": { "name": "entity.name.function.synth" }
       }
     },
 
     "record-declaration": {
-      "comment": "record RecordName",
       "match": "\\b(record)\\s+([A-Z][a-zA-Z0-9_$]*)",
       "captures": {
         "1": { "name": "keyword.declaration.type.synth" },
@@ -101,7 +143,6 @@
     },
 
     "type-declaration": {
-      "comment": "type TypeName = ...",
       "match": "\\b(type)\\s+([A-Z][a-zA-Z0-9_$]*)",
       "captures": {
         "1": { "name": "keyword.declaration.type.synth" },
@@ -109,26 +150,48 @@
       }
     },
 
+    "interface-declaration": {
+      "match": "\\b(interface)\\s+([A-Z][a-zA-Z0-9_$]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.type.synth" },
+        "2": { "name": "entity.name.type.synth" }
+      }
+    },
+
+    "enum-declaration": {
+      "match": "\\b(enum)\\s+([A-Z][a-zA-Z0-9_$]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.type.synth" },
+        "2": { "name": "entity.name.type.synth" }
+      }
+    },
+
     "control-keywords": {
-      "comment": "if else match return — control flow",
       "name": "keyword.control.synth",
-      "match": "\\b(if|else|match|return)\\b"
+      "match": "\\b(if|else|match|return|while|for|in|break|continue|when)\\b"
     },
 
     "declaration-keywords": {
-      "comment": "let new where — declaration and constraint keywords",
       "name": "keyword.other.synth",
-      "match": "\\b(let|new|where)\\b"
+      "match": "\\b(let|new|where|mut|refine|infer|store|on|import|export|from|as|module|do|typeof|instanceof)\\b"
+    },
+
+    "async-keywords": {
+      "name": "keyword.control.async.synth",
+      "match": "\\b(async|await)\\b"
+    },
+
+    "logical-keywords": {
+      "name": "keyword.operator.word.synth",
+      "match": "\\b(and|or|not)\\b"
     },
 
     "builtin-types": {
-      "comment": "int float string bool void any — primitive type names",
       "name": "support.type.primitive.synth",
-      "match": "\\b(int|float|string|bool|void|any)\\b"
+      "match": "\\b(int|float|string|bool|void|any|list)\\b"
     },
 
     "type-reference": {
-      "comment": "Capitalized identifiers used as type names: Hero, HP, StatValue, etc.",
       "name": "support.type.synth",
       "match": "\\b([A-Z][a-zA-Z0-9_$]*)\\b"
     },
@@ -139,7 +202,6 @@
     },
 
     "string": {
-      "comment": "Double-quoted strings with {ident} and {ident.prop} interpolation",
       "name": "string.quoted.double.synth",
       "begin": "\"",
       "end": "\"",
@@ -147,101 +209,93 @@
       "endCaptures":   { "0": { "name": "punctuation.definition.string.end.synth" } },
       "patterns": [
         {
-          "comment": "String interpolation: {ident} or {ident.prop.nested}",
           "name": "meta.interpolation.synth",
           "match": "\\{[a-zA-Z_$][a-zA-Z0-9_$]*(?:\\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\\}",
           "captures": {
             "0": { "name": "variable.other.interpolated.synth" }
           }
         },
-        {
-          "comment": "Escape sequences",
-          "name": "constant.character.escape.synth",
-          "match": "\\\\."
-        }
+        { "name": "constant.character.escape.synth", "match": "\\\\." }
       ]
     },
 
     "number": {
       "patterns": [
         {
+          "name": "constant.numeric.hex.synth",
+          "match": "\\b0x[0-9A-Fa-f_]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.synth",
+          "match": "\\b0b[01_]+\\b"
+        },
+        {
           "name": "constant.numeric.float.synth",
-          "match": "\\b[0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?\\b"
+          "match": "\\b[0-9]+(?:_[0-9]+)*\\.[0-9]+(?:_[0-9]+)*([eE][+-]?[0-9]+)?\\b"
         },
         {
           "name": "constant.numeric.integer.synth",
-          "match": "\\b[0-9]+\\b"
+          "match": "\\b[0-9]+(?:_[0-9]+)*\\b"
         }
       ]
     },
 
     "pipeline-operator": {
-      "comment": "|> — the core composition operator, gets its own distinct scope",
       "name": "keyword.operator.pipeline.synth",
       "match": "\\|>"
     },
 
+    "nullish-operators": {
+      "patterns": [
+        { "name": "keyword.operator.nullish.synth", "match": "\\?\\?" },
+        { "name": "keyword.operator.optional.synth", "match": "\\?\\." }
+      ]
+    },
+
     "match-arm-separator": {
-      "comment": "| at the start of a match arm (not |>)",
       "name": "punctuation.separator.match-arm.synth",
       "match": "(?<=[\\s{(,])\\|(?!>)|^\\s*\\|(?!>)"
     },
 
     "arrow-lambda": {
-      "comment": "=> in lambda expressions and match arms",
       "name": "keyword.operator.arrow.synth",
       "match": "=>"
     },
 
     "arrow-return": {
-      "comment": "-> in function return type annotations: fn foo :: () -> int",
       "name": "keyword.operator.return-type.synth",
       "match": "->"
     },
 
     "type-annotation-sep": {
-      "comment": ":: separates a function name from its full type signature",
       "name": "keyword.operator.type-annotation.synth",
       "match": "::"
     },
 
     "spread": {
-      "comment": "... spread operator in object/array literals",
       "name": "keyword.operator.spread.synth",
       "match": "\\.\\.\\."
     },
 
     "field-shorthand": {
-      "comment": ".fieldName accessor shorthand in pipelines: filter(.alive), map(.name)",
       "name": "variable.other.field-shorthand.synth",
       "match": "(?<=[(,\\s])\\.[a-zA-Z_$][a-zA-Z0-9_$]*(?=[,)\\s])"
     },
 
     "hash-pattern": {
-      "comment": "#email #url — semantic regex pattern references in where clauses",
       "name": "constant.other.pattern-ref.synth",
       "match": "#[a-zA-Z_][a-zA-Z0-9_]*"
     },
 
     "comparison-operators": {
       "patterns": [
-        {
-          "name": "keyword.operator.comparison.synth",
-          "match": "===|!==|>=|<=|>(?!>)|<(?!<)"
-        },
-        {
-          "name": "keyword.operator.logical.synth",
-          "match": "&&|\\|\\|"
-        },
-        {
-          "name": "keyword.operator.assignment.synth",
-          "match": "(?<!=)=(?![=>])"
-        }
+        { "name": "keyword.operator.comparison.synth", "match": "===|!==|>=|<=|>(?!>)|<(?!<)" },
+        { "name": "keyword.operator.logical.synth", "match": "&&|\\|\\|" },
+        { "name": "keyword.operator.assignment.synth", "match": "(?<!=)=(?![=>])" }
       ]
     },
 
     "wildcard": {
-      "comment": "_ wildcard in match patterns",
       "name": "variable.language.wildcard.synth",
       "match": "(?<=[\\s|])_(?=[\\s=>]|$)"
     }

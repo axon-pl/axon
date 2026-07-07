@@ -199,6 +199,38 @@
     }
     .synth-tag a { color: var(--accent); text-decoration: none; }
     .synth-tag a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .site-header,
+      .stats-bar,
+      .controls,
+      .grid-wrap {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      .site-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .header-title h1 { font-size: 1.15rem; }
+      .header-title p { font-size: 0.72rem; }
+      .stat-item {
+        flex: 1 1 50%;
+        min-width: 50%;
+        border-right: none;
+      }
+      .stats-bar { justify-content: center; }
+      .fleet-total {
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+        padding-top: 0.4rem;
+      }
+      #grid { grid-template-columns: 1fr; }
+      .grid-wrap { padding-top: 1rem; padding-bottom: 1rem; }
+      .ctrl-group { flex: 1 1 100%; }
+      input[type=range] { width: 100%; max-width: none; }
+    }
   </style>
 </head>
 <body>

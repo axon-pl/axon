@@ -2,7 +2,7 @@
   "name": "synth-language",
   "displayName": "Synth Language",
   "description": "Syntax highlighting, bracket matching, and language support for the Synth programming language (.syn files)",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "publisher": "synth-lang",
   "license": "MIT",
   "engines": {
@@ -21,11 +21,7 @@
         "id": "synth",
         "aliases": ["Synth", "synth"],
         "extensions": [".syn"],
-        "configuration": "./language-configuration.json",
-        "icon": {
-          "light": "./icon.svg",
-          "dark": "./icon.svg"
-        }
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [

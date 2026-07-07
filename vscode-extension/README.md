@@ -2,9 +2,21 @@
 
 Syntax highlighting and language support for [Synth](https://github.com/synth-pl/synth) — an AI-native programming language that transpiles to JavaScript.
 
+## Install
+
+From this directory:
+
+```powershell
+.\install.ps1
+```
+
+This installs v1.0.1 into **both** Cursor and VS Code extension folders, removes legacy installs, then prompts you to reload the editor window.
+
+> Grammar-only extensions must not declare `activationEvents` without a `main` entry — Cursor rejects them otherwise.
+
 ## Features
 
-- Syntax highlighting for `.syn` files
+- Syntax highlighting for `.syn` files (v1.0: template literals, triple-quoted strings, `store`/`on`, `async`/`await`, `and`/`or`/`not`, `??`/`?.`, hex/binary numbers)
 - Bracket matching and auto-closing
 - Comment toggling (`//` line comments)
 - Language icons

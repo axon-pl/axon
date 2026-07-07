@@ -45,7 +45,7 @@
   }
 
   .hdr {
-    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding-bottom: 10px; border-bottom: 1px solid #1e1e3a;
   }
   .logo { font-size: 1rem; font-weight: bold; letter-spacing: .2em; color: var(--cyan); text-shadow: 0 0 12px #00e5ff99; }
@@ -54,7 +54,8 @@
   .hdr-right a { color: var(--cyan); text-decoration: none; }
 
   .stat-bar {
-    width: 800px; display: flex; gap: 8px;
+    width: 100%; max-width: 800px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
   }
   .stat-pill {
     flex: 1; background: var(--surf); border: 1px solid #1e1e3a; border-radius: 6px;
@@ -68,20 +69,24 @@
   .purple { color: var(--purple); text-shadow: 0 0 8px #b84fff66; }
 
   .canvas-wrap {
-    position: relative; width: 800px; height: 520px;
+    position: relative;
+    width: 100%; max-width: 800px;
+    aspect-ratio: 800 / 520;
     border: 1px solid #2a2a4a; border-radius: 8px; overflow: hidden;
     box-shadow: 0 0 40px #00e5ff1a, 0 0 80px #b84fff0d;
     cursor: crosshair;
+    touch-action: none;
   }
   .canvas-wrap::after {
     content: ''; position: absolute; inset: 0;
     background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.05) 3px, rgba(0,0,0,.05) 4px);
     pointer-events: none; z-index: 2;
   }
-  canvas { display: block; }
+  canvas { display: block; width: 100%; height: 100%; }
 
   .controls {
-    width: 800px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    width: 100%; max-width: 800px;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
   }
   .btn {
     background: var(--surf); border: 1px solid #2a2a4a; border-radius: 6px;
@@ -108,7 +113,9 @@
 
   .footer { font-size: .6rem; color: var(--muted); letter-spacing: .06em; text-align: center; line-height: 1.8; }
   .footer a { color: var(--cyan); text-decoration: none; }
+
 </style>
+<link rel="stylesheet" href="game-mobile.css">
 </head>
 <body>
 <div class="wrap">
@@ -145,7 +152,7 @@
   </div>
 
   <div class="footer">
-    Click or drag to draw · Space to play/pause · Built with <a href="playground.html">Synth</a>
+    Click, drag, or touch to draw · Space to play/pause · Built with <a href="playground.html">Synth</a>
   </div>
 
 </div>
@@ -226,34 +233,51 @@ document.addEventListener('keydown', e => {
   if (e.code === 'Space') { e.preventDefault(); toggleRun() }
 })
 
-// Draw on canvas
+// Draw on canvas (mouse + touch)
 let painting = false
 let paintVal = true
 
-canvas.addEventListener('mousedown', e => {
-  painting = true
+function cellAt(clientX, clientY) {
   const CS = get_cellsize()
   const rect = canvas.getBoundingClientRect()
   const sx = W / rect.width
   const sy = H / rect.height
-  const c = Math.floor((e.clientX - rect.left) * sx / CS)
-  const r = Math.floor((e.clientY - rect.top)  * sy / CS)
+  const c = Math.floor((clientX - rect.left) * sx / CS)
+  const r = Math.floor((clientY - rect.top)  * sy / CS)
+  return { c, r }
+}
+
+function beginPaint(clientX, clientY) {
+  painting = true
+  const { c, r } = cellAt(clientX, clientY)
   const cells = get_cells()
   const COLS  = get_cols()
   paintVal = !(cells[r * COLS + c])
   paint(c, r, paintVal)
-})
-canvas.addEventListener('mousemove', e => {
+}
+
+function movePaint(clientX, clientY) {
   if (!painting) return
-  const CS = get_cellsize()
-  const rect = canvas.getBoundingClientRect()
-  const sx = W / rect.width
-  const sy = H / rect.height
-  const c = Math.floor((e.clientX - rect.left) * sx / CS)
-  const r = Math.floor((e.clientY - rect.top)  * sy / CS)
+  const { c, r } = cellAt(clientX, clientY)
   paint(c, r, paintVal)
-})
+}
+
+canvas.addEventListener('mousedown', e => beginPaint(e.clientX, e.clientY))
+canvas.addEventListener('mousemove', e => movePaint(e.clientX, e.clientY))
 window.addEventListener('mouseup', () => { painting = false })
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault()
+  const t = e.touches[0]
+  beginPaint(t.clientX, t.clientY)
+}, { passive: false })
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault()
+  const t = e.touches[0]
+  movePaint(t.clientX, t.clientY)
+}, { passive: false })
+canvas.addEventListener('touchend', () => { painting = false })
+canvas.addEventListener('touchcancel', () => { painting = false })
 </script>
 </body>
 </html>

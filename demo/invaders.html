@@ -41,7 +41,7 @@
   .logo span { color: var(--pink); text-shadow: 0 0 12px #ff2d7899; }
   .hdr-right { font-size: .62rem; color: var(--muted); letter-spacing: .08em; text-align: right; line-height: 1.5; }
   .hdr-right a { color: var(--cyan); text-decoration: none; }
-  .score-bar { width: 800px; display: flex; gap: 8px; }
+  .score-bar { width: 100%; max-width: 800px; display: flex; gap: 8px; }
   .score-pill { flex: 1; background: var(--surf); border: 1px solid #1e1e3a; border-radius: 6px; padding: 7px 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .pill-label { font-size: .55rem; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
   .pill-val { font-size: 1rem; font-weight: bold; }
@@ -53,7 +53,7 @@
   .pip { width: 10px; height: 10px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 6px var(--pink); transition: opacity .3s; }
   .pip.dead { background: #2a1530; box-shadow: none; opacity: .4; }
   .canvas-wrap {
-    position: relative; width: 800px; height: 520px;
+    position: relative; width: 100%; max-width: 800px; aspect-ratio: 800 / 520;
     border: 1px solid #2a2a4a; border-radius: 8px; overflow: hidden;
     box-shadow: 0 0 40px #00e5ff1a, 0 0 80px #b84fff0d;
   }
@@ -62,10 +62,11 @@
     background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.06) 3px, rgba(0,0,0,.06) 4px);
     pointer-events: none; z-index: 2;
   }
-  canvas { display: block; cursor: none; }
+  canvas { display: block; width: 100%; height: 100%; cursor: none; }
   .footer { font-size: .6rem; color: var(--muted); letter-spacing: .06em; text-align: center; line-height: 1.8; }
   .footer a { color: var(--cyan); text-decoration: none; }
 </style>
+<link rel="stylesheet" href="game-mobile.css">
 </head>
 <body>
 <div class="wrap">
@@ -92,7 +93,7 @@
     <canvas id="c" width="800" height="520"></canvas>
   </div>
   <div class="footer">
-    Mouse to aim · Click or Space to fire · Arrow keys to move · Built with <a href="playground.html">Synth</a>
+    Touch or mouse to aim · Tap or Space to fire · Arrow keys to move · Built with <a href="playground.html">Synth</a>
   </div>
 </div>
 
@@ -298,15 +299,34 @@ function loop(now) {
 requestAnimationFrame(loop)
 
 // ── Controls ──────────────────────────────────────────────────────────────────
-canvas.addEventListener('mousemove', e => {
+function aimAt(clientX) {
   const rect = canvas.getBoundingClientRect()
-  move_player((e.clientX - rect.left) * W / rect.width)
-})
-canvas.addEventListener('click', e => {
+  move_player((clientX - rect.left) * W / rect.width)
+}
+
+function tapAction() {
   const p = Game.phase
   if (p === 'title' || p === 'gameover') start_game()
   else if (p === 'waveclear') next_wave()
   else fire()
+}
+
+canvas.addEventListener('mousemove', e => aimAt(e.clientX))
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault()
+  if (e.touches[0]) aimAt(e.touches[0].clientX)
+}, { passive: false })
+
+let usedTouch = false
+canvas.addEventListener('touchstart', () => { usedTouch = true }, { passive: true })
+canvas.addEventListener('touchend', e => {
+  e.preventDefault()
+  tapAction()
+  setTimeout(() => { usedTouch = false }, 400)
+}, { passive: false })
+canvas.addEventListener('click', () => {
+  if (usedTouch) return
+  tapAction()
 })
 document.addEventListener('keydown', e => {
   const p = Game.phase

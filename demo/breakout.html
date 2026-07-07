@@ -94,7 +94,8 @@
   /* ── Score bar ──────────────────────────────────────────────────────────── */
 
   .score-bar {
-    width: 800px;
+    width: 100%;
+    max-width: 800px;
     display: flex;
     gap: 8px;
   }
@@ -146,8 +147,9 @@
 
   .canvas-wrap {
     position: relative;
-    width: 800px;
-    height: 520px;
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 800 / 520;
     border: 1px solid #2a2a4a;
     border-radius: 8px;
     overflow: hidden;
@@ -169,6 +171,8 @@
 
   canvas {
     display: block;
+    width: 100%;
+    height: 100%;
     cursor: none;
   }
 
@@ -183,12 +187,8 @@
   }
 
   .footer a { color: var(--cyan); text-decoration: none; }
-
-  @media (max-width: 840px) {
-    .score-bar, .canvas-wrap, canvas { width: 100%; }
-    .canvas-wrap { height: auto; aspect-ratio: 800/520; }
-  }
 </style>
+<link rel="stylesheet" href="game-mobile.css">
 </head>
 <body>
 <div class="wrap">
@@ -526,11 +526,16 @@ function loop(now) {
 requestAnimationFrame(loop)
 
 // ── Controls ───────────────────────────────────────────────────────────────
-canvas.addEventListener('mousemove', e => {
+function pointerX(clientX) {
   const rect = canvas.getBoundingClientRect()
-  const scaleX = W / rect.width
-  move_paddle((e.clientX - rect.left) * scaleX)
-})
+  return (clientX - rect.left) * (W / rect.width)
+}
+
+canvas.addEventListener('mousemove', e => move_paddle(pointerX(e.clientX)))
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault()
+  if (e.touches[0]) move_paddle(pointerX(e.touches[0].clientX))
+}, { passive: false })
 
 canvas.addEventListener('click', e => {
   const phase = Game.phase
