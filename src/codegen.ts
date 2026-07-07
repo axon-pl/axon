@@ -60,9 +60,11 @@ export class Codegen {
   private validatedTypes: Set<string> = new Set()
   private unionVariants: Map<string, string[]> = new Map()
   private compact = false
+  private scopeStack: Set<string>[] = []
 
   generate(program: Program, emitStdlib = false, compact = false): string {
     this.compact = compact
+    this.scopeStack = [new Set()]
     // Pre-pass: collect constrained types and tagged union variants
     for (const decl of program.body) {
       if (decl.kind === 'TypeAlias' && decl.constraint) {
@@ -126,8 +128,12 @@ export class Codegen {
       // v0.5: top-level let binding (e.g. let state = {...})
       case 'TopLevelLet': {
         const val = this.emitExpr(decl.value)
-        if (decl.name) this.emitLine(`let ${decl.name} = ${val};`)
-        else           this.emitLine(`${val};`)
+        if (decl.name) {
+          this.emitLine(`let ${decl.name} = ${val};`)
+          this.declareLocal(decl.name)
+        } else {
+          this.emitLine(`${val};`)
+        }
         break
       }
       // v0.5.2: top-level for loop / statement
@@ -291,7 +297,10 @@ export class Codegen {
     const asyncPrefix = decl.isAsync ? 'async ' : ''
 
     if (decl.shortForm) {
+      this.pushScope()
+      for (const p of decl.params) this.declareLocal(p.name)
       const exprStr = this.emitExpr(decl.body)
+      this.popScope()
       const wrapped = this.arrowBodyWrap(decl.body, exprStr)
       this.emitLine(`const ${decl.name} = ${asyncPrefix}(${paramStr}) => ${wrapped};`)
       return
@@ -312,16 +321,22 @@ export class Codegen {
       this.emitLine(`const ${decl.name} = ${asyncPrefix}(${paramStr}) => {`)
       this.indent++
       for (const v of paramValidations) this.emitLine(v)
+      this.pushScope()
+      for (const p of decl.params) this.declareLocal(p.name)
       if (body.kind === 'BlockExpr') {
         this.emitBlock(body)
       } else {
         const exprStr = this.emitExpr(body)
         this.emitLine(`return ${this.arrowBodyWrap(body, exprStr)};`)
       }
+      this.popScope()
       this.indent--
       this.emitLine(`};`)
     } else {
+      this.pushScope()
+      for (const p of decl.params) this.declareLocal(p.name)
       const exprStr = this.emitExpr(body)
+      this.popScope()
       const wrapped = this.arrowBodyWrap(body, exprStr)
       if (exprStr.includes('\n')) {
         this.emitLine(`const ${decl.name} = ${asyncPrefix}(${paramStr}) => {`)
@@ -347,12 +362,15 @@ export class Codegen {
     this.emitLine(`if (__cache.has(__key)) return __cache.get(__key);`)
     this.emitLine(`const __result = (() => {`)
     this.indent++
+    this.pushScope()
+    for (const p of decl.params) this.declareLocal(p.name)
     if (decl.body.kind === 'BlockExpr') {
       this.emitBlock(decl.body)
     } else {
       const exprStr = this.emitExpr(decl.body)
       this.emitLine(`return ${exprStr};`)
     }
+    this.popScope()
     this.indent--
     this.emitLine(`})();`)
     this.emitLine(`__cache.set(__key, __result);`)
@@ -455,18 +473,20 @@ export class Codegen {
           const inner = this.emitExpr(stmt.value.value)
           this.emitLine(`const ${tmp} = ${inner};`)
           this.emitLine(`if (${tmp}.tag === 'Err') return ${tmp};`)
-          if (stmt.name !== null) this.emitLine(`let ${stmt.name} = ${tmp}.value;`)
+          if (stmt.name !== null) {
+            this.emitLine(`let ${stmt.name} = ${tmp}.value;`)
+            this.declareLocal(stmt.name)
+          }
         } else {
           const val = this.emitExpr(stmt.value)
           if (stmt.name === null) {
             this.emitLine(`${val};`)
           } else {
             this.emitLine(`let ${stmt.name} = ${val};`)
+            this.declareLocal(stmt.name)
           }
         }
         break
-        // Note: let mut emits the same JS `let` — JS `let` is already mutable.
-        // The `mutable` flag is used by the checker to enforce Synth's immutability rules.
       }
       // v0.4: destructuring let { a, b } = expr  /  let [a, b] = expr
       case 'DestructureStmt': {
@@ -476,6 +496,7 @@ export class Codegen {
         } else {
           this.emitLine(`const [${stmt.names.join(', ')}] = ${val};`)
         }
+        for (const name of stmt.names) this.declareLocal(name)
         break
       }
       case 'ReturnStmt': {
@@ -518,7 +539,10 @@ export class Codegen {
         const op  = stmt.inclusive ? '<=' : '<'
         this.emitLine(`for (let ${stmt.varName} = ${lo}; ${stmt.varName} ${op} ${hi}; ${stmt.varName}++) {`)
         this.indent++
+        this.pushScope()
+        this.declareLocal(stmt.varName)
         this.emitBlock(stmt.body)
+        this.popScope()
         this.indent--
         this.emitLine(`}`)
         break
@@ -528,7 +552,10 @@ export class Codegen {
         const iter = this.emitExpr(stmt.iter)
         this.emitLine(`for (const ${stmt.varName} of ${iter}) {`)
         this.indent++
+        this.pushScope()
+        this.declareLocal(stmt.varName)
         this.emitBlock(stmt.body)
+        this.popScope()
         this.indent--
         this.emitLine(`}`)
         break
@@ -578,7 +605,7 @@ export class Codegen {
       case 'ResultPropagateExpr': return `$unwrap(${this.emitExpr(expr.value)})`
       // v0.8: await expr
       case 'AwaitExpr': return `await ${this.emitExpr(expr.value)}`
-      case 'Identifier':  return STDLIB_ALL.has(expr.name) ? `$${expr.name}` : expr.name
+      case 'Identifier':  return this.emitName(expr.name)
 
       case 'UnaryExpr': {
         const unaryOp = expr.op === 'not' ? '!' : expr.op
@@ -630,6 +657,11 @@ export class Codegen {
         if (expr.callee.kind === 'Identifier' && expr.callee.name === 'print') {
           return `console.log(${args})`
         }
+        if (expr.callee.kind === 'Identifier') {
+          const callee = this.emitName(expr.callee.name)
+          if (expr.optional) return `${callee}?.(${args})`
+          return `${callee}(${args})`
+        }
         if (expr.callee.kind === 'MemberExpr' && STDLIB_METHODS.has(expr.callee.property)) {
           const obj = this.emitExpr(expr.callee.object)
           const fn = `$${expr.callee.property}`
@@ -663,13 +695,17 @@ export class Codegen {
       }
 
       case 'LambdaExpr': {
+        const paramNames = expr.params.map(p => typeof p === 'string' ? p : p.name)
         const params = this.emitLambdaParams(expr.params)
         const prefix = expr.isAsync ? 'async ' : ''
         if (expr.body.kind === 'BlockExpr') {
-          const blockStr = this.captureBlock(expr.body)
+          const blockStr = this.captureBlock(expr.body, paramNames)
           return `${prefix}(${params}) => {\n${blockStr}}`
         }
+        this.pushScope()
+        for (const name of paramNames) this.declareLocal(name)
         const rawBody = this.emitExpr(expr.body)
+        this.popScope()
         const body = this.arrowBodyWrap(expr.body, rawBody)
         const needsParens = params.length === 0 || params.includes(',') || params.includes(' ') || params.startsWith('[') || params.startsWith('{')
         return needsParens
@@ -684,7 +720,9 @@ export class Codegen {
         const savedOut = this.out
         this.out = []
         this.indent++
+        this.pushScope()
         this.emitBlock(expr)
+        this.popScope()
         this.indent--
         const inner = this.out.join('')
         this.out = savedOut
@@ -696,7 +734,9 @@ export class Codegen {
         const savedOut = this.out
         this.out = []
         this.indent++
+        this.pushScope()
         this.emitBlock(expr.body)
+        this.popScope()
         this.indent--
         const inner = this.out.join('')
         this.out = savedOut
@@ -774,7 +814,7 @@ export class Codegen {
 
   private applyPipeStep(step: Expr, acc: string): string {
     if (step.kind === 'Identifier') {
-      const fn = STDLIB_ALL.has(step.name) ? `$${step.name}` : step.name
+      const fn = this.emitName(step.name)
       return `${fn}(${acc})`
     }
     if (step.kind === 'CallExpr') {
@@ -803,12 +843,18 @@ export class Codegen {
       // e.g. | n when n >= 90 => "A"  →  ((n) => n >= 90 ? "A" : rest)(_m)
       if (arm.pattern.kind === 'IdentPat' && /^[a-z_$]/.test(arm.pattern.name) && arm.pattern.name !== '_') {
         const name = arm.pattern.name
+        this.pushScope()
+        this.declareLocal(name)
         const rawBody = this.emitExpr(arm.body)
+        let innerExpr: string
         if (arm.guard) {
           const g = this.emitExpr(arm.guard)
-          return `((${name}) => (${g}) ? ${rawBody} : ${rest})(${subjVar})`
+          innerExpr = `((${name}) => (${g}) ? ${rawBody} : ${rest})(${subjVar})`
+        } else {
+          innerExpr = `((${name}) => ${rawBody})(${subjVar})`
         }
-        return `((${name}) => ${rawBody})(${subjVar})`
+        this.popScope()
+        return innerExpr
       }
 
       // v0.4: TagPat with field bindings — destructure fields, expose in guard + body.
@@ -816,10 +862,13 @@ export class Codegen {
       if (arm.pattern.kind === 'TagPat' && arm.pattern.bindings.length > 0) {
         const cond = this.patternToCondition(arm.pattern, subjVar)
         const bindStr = arm.pattern.bindings.join(', ')
+        this.pushScope()
+        for (const b of arm.pattern.bindings) this.declareLocal(b)
         const rawBody = this.emitExpr(arm.body)
         const innerExpr = arm.guard
           ? `(({ ${bindStr} }) => (${this.emitExpr(arm.guard)}) ? ${rawBody} : ${rest})(${subjVar})`
           : `(({ ${bindStr} }) => ${rawBody})(${subjVar})`
+        this.popScope()
         return `(${cond}) ? ${innerExpr} : ${rest}`
       }
 
@@ -895,12 +944,15 @@ export class Codegen {
     this.emitLine(`}`)
   }
 
-  private captureBlock(block: BlockExpr): string {
+  private captureBlock(block: BlockExpr, locals: string[] = []): string {
     const savedOut = this.out
     const savedIndent = this.indent
     this.out = []
     this.indent = savedIndent + 1
+    this.pushScope()
+    for (const name of locals) this.declareLocal(name)
     this.emitBlock(block)
+    this.popScope()
     const result = this.out.join('')
     this.out = savedOut
     this.indent = savedIndent
@@ -908,6 +960,31 @@ export class Codegen {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
+
+  private pushScope(): void {
+    this.scopeStack.push(new Set())
+  }
+
+  private popScope(): void {
+    this.scopeStack.pop()
+  }
+
+  private declareLocal(name: string): void {
+    const scope = this.scopeStack[this.scopeStack.length - 1]
+    if (scope) scope.add(name)
+  }
+
+  private isLocal(name: string): boolean {
+    for (let i = this.scopeStack.length - 1; i >= 0; i--) {
+      if (this.scopeStack[i].has(name)) return true
+    }
+    return false
+  }
+
+  private emitName(name: string): string {
+    if (this.isLocal(name)) return name
+    return STDLIB_ALL.has(name) ? `$${name}` : name
+  }
 
   // v0.4: emit string interpolation AND multiline strings as template literals.
   // Supports {ident} and {ident.prop.sub} expressions. Falls back to plain JS
