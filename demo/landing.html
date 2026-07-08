@@ -450,6 +450,14 @@
       flex-shrink: 0;
     }
 
+    .synthwave-text {
+      background: linear-gradient(90deg, var(--cyan), var(--pink), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+
     .self-host-cta {
       display: inline-flex;
       align-items: center;
@@ -1351,7 +1359,8 @@
     <h2 class="section-title">The compiler is written in Synth.</h2>
     <p class="self-host-lead">
       The full toolchain — lexer, parser, type checker, code generator, and formatter — lives in
-      <code>compiler/*.syn</code> and compiles itself. No TypeScript in the pipeline. Just Synth compiling Synth.
+      <code>compiler/*.syn</code> and compiles itself.
+      <span class="synthwave-text">Pure Synth</span> end to end. Synth compiling Synth.
     </p>
 
     <div class="self-host-grid">
@@ -1363,7 +1372,7 @@
         </p>
         <ul class="self-host-stats">
           <li><strong>8 modules</strong> — token, lexer, ast, parser, checker, codegen, formatter, driver</li>
-          <li><strong>Zero TypeScript</strong> — the compiler source and CLI are Synth-only; JS is emitted output, not hand-written implementation</li>
+          <li><strong class="synthwave-text">Pure Synth</strong> — compiler source and CLI written in the language they implement; JavaScript is emitted output, not hand-written source</li>
           <li><strong>Fixed-point proof</strong> — v1 → v2 → v3 bootstrap chain is byte-identical; further self-compilation changes nothing</li>
           <li><strong>Runs in the browser</strong> — the playground loads the same bootstrap bundle client-side via <code>SynthCompiler.compile()</code></li>
         </ul>
