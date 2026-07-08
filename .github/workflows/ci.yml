@@ -23,8 +23,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build compiler
-        run: npx tsc
+      - name: Build TypeScript compiler
+        run: npm run build
 
-      - name: Run Synth tests
+      - name: Build bootstrap toolchain
+        run: npm run build:toolchain
+
+      - name: Compiler parity + bootstrap fixed-point
+        run: npm run test:ci
+
+      - name: Run Synth example tests
         run: npm test
