@@ -2,12 +2,15 @@
   "name": "synth-lang",
   "version": "1.0.0",
   "description": "Synth — AI-native programming language that transpiles to JavaScript",
-  "main": "dist/cli.js",
+  "main": "tools/synth_bootstrap_cli.js",
   "bin": {
-    "synth": "dist/cli.js"
+    "synth": "tools/synth_bootstrap_cli.js"
   },
   "files": [
-    "dist/",
+    "bootstrap/",
+    "compiler/",
+    "tools/",
+    "demo/",
     "examples/",
     "README.md",
     "LICENSE"
@@ -34,41 +37,36 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "tsc",
-    "synth": "node dist/cli.js",
-    "transpile-demo": "node dist/cli.js examples/controls.syn demo/controls.synth.js",
-    "build-demo": "node dist/cli.js examples/controls.syn demo/controls.synth.js && node tools/embed_sources.js",
-    "build-music": "node dist/cli.js examples/music.syn demo/music.synth.js && node tools/embed_music.js",
-    "build-combat": "node dist/cli.js examples/combat.syn demo/combat.synth.js && node tools/embed_combat.js",
-    "build-rpg": "node dist/cli.js examples/rpg.syn demo/rpg.synth.js && node tools/embed_rpg.js",
-    "build-rpg-standalone": "node dist/cli.js examples/rpg.syn demo/rpg.synth.js && node tools/embed_rpg.js && node tools/build_standalone_rpg.js",
-    "test": "node dist/cli.js --test examples/rpg.syn && node dist/cli.js --test examples/v04_features.syn && node dist/cli.js --test examples/v095_features.syn && node dist/cli.js --test examples/v1_features.syn && node dist/cli.js --test examples/dungeon/config.syn && node dist/cli.js --test examples/bazaar/items.syn",
+    "synth": "node tools/synth_bootstrap_cli.js",
+    "test": "node tools/synth_bootstrap_cli.js --test examples/rpg.syn",
+    "test:examples": "node tools/synth_bootstrap_cli.js --test examples/rpg.syn && node tools/synth_bootstrap_cli.js --test examples/v04_features.syn && node tools/synth_bootstrap_cli.js --test examples/v095_features.syn && node tools/synth_bootstrap_cli.js --test examples/v1_features.syn && node tools/synth_bootstrap_cli.js --test examples/dungeon/config.syn && node tools/synth_bootstrap_cli.js --test examples/bazaar/items.syn",
     "gen:lexer-goldens": "node tools/gen_lexer_goldens.js",
     "gen:ast-goldens": "node tools/gen_ast_goldens.js",
     "gen:codegen-goldens": "node tools/gen_codegen_goldens.js",
     "gen:checker-goldens": "node tools/gen_checker_goldens.js",
-    "test:compiler": "node tools/test_compiler_parity.js",
     "gen:bootstrap-goldens": "node tools/gen_bootstrap_goldens.js",
+    "test:compiler": "node tools/test_compiler_parity.js",
     "build:bootstrap": "node tools/build_bootstrap_bundle.js",
     "build:bootstrap2": "node tools/build_bootstrap_bundle.js --compiler dist/compiler.bootstrap.js --out dist/compiler.bootstrap2.js",
     "build:bootstrap3": "node tools/build_bootstrap_bundle.js --compiler dist/compiler.bootstrap2.js --out dist/compiler.bootstrap3.js",
+    "build:browser-bootstrap": "node tools/build_browser_bundle.js --input dist/compiler.bootstrap.js --out demo/compiler.bootstrap.js --backend bootstrap --version 1.0.0-bootstrap",
+    "build:toolchain": "npm run build:bootstrap && npm run build:browser-bootstrap",
+    "update:seed": "node tools/update_seed.js",
     "test:bootstrap": "node tools/test_bootstrap.js",
     "test:double-bootstrap": "node tools/test_double_bootstrap.js",
     "test:fixed-point": "node tools/test_fixed_point.js",
     "test:playground-bootstrap": "node tools/test_playground_bootstrap.js",
     "test:toolchain": "npm run test:double-bootstrap && npm run test:fixed-point && npm run test:playground-bootstrap && node tools/synth_bootstrap_cli.js --test compiler/ast_test.syn",
     "test:ci": "npm run test:compiler && npm run test:toolchain",
-    "synth:bootstrap": "node tools/synth_bootstrap_cli.js",
-    "build:stage1": "node dist/cli.js --bundle compiler/driver.syn dist/compiler.synth.js",
-    "build:browser-bootstrap": "node tools/build_browser_bundle.js --input dist/compiler.bootstrap.js --out demo/compiler.bootstrap.js --backend bootstrap --version 1.0.0-bootstrap",
-    "build:browser-stage1": "node tools/build_browser_bundle.js --input dist/compiler.synth.js --out demo/compiler.synth.js --backend synth --version 1.0.0-selfhost",
-    "build:toolchain": "npm run build:stage1 && npm run build:bootstrap && npm run build:browser-bootstrap && npm run build:browser-stage1",
-    "build:compiler": "npm run build:toolchain",
-    "build:synth-browser": "node tools/build_browser_bundle.js --input dist/compiler.synth.js --out demo/compiler.synth.js --backend synth --version 1.0.0-selfhost"
+    "transpile-demo": "node tools/synth_bootstrap_cli.js examples/controls.syn demo/controls.synth.js",
+    "build-demo": "node tools/synth_bootstrap_cli.js examples/controls.syn demo/controls.synth.js && node tools/embed_sources.js",
+    "build-music": "node tools/synth_bootstrap_cli.js examples/music.syn demo/music.synth.js && node tools/embed_music.js",
+    "build-combat": "node tools/synth_bootstrap_cli.js examples/combat.syn demo/combat.synth.js && node tools/embed_combat.js",
+    "build-rpg": "node tools/synth_bootstrap_cli.js examples/rpg.syn demo/rpg.synth.js && node tools/embed_rpg.js",
+    "build-rpg-standalone": "node tools/synth_bootstrap_cli.js examples/rpg.syn demo/rpg.synth.js && node tools/embed_rpg.js && node tools/build_standalone_rpg.js"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "gpt-tokenizer": "^3.4.0",
-    "typescript": "^5.4.0"
+    "gpt-tokenizer": "^3.4.0"
   }
 }

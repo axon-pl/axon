@@ -1,17 +1,15 @@
-// Phase 7 bootstrap harness:
-// 1. Stage-1 Synth compiles each compiler/*.syn module → valid JS
-// 2. Bootstrap bundle (Synth-compiled modules) passes fixture parity vs goldens
+// Bootstrap harness: seed compiler compiles each module; rebuilt bundle passes parity.
 // Run: npm run test:bootstrap
 
 const fs   = require('fs')
 const path = require('path')
 const { execSync } = require('child_process')
-const { ROOT, loadBundle, validateJs } = require('./bootstrap_common')
+const { ROOT, validateJs } = require('./bootstrap_common')
+const { loadOracle, compilerPath } = require('./oracle')
 const { runBundleParityTests } = require('./parity_common')
 
 const COMPILER_DIR = path.join(ROOT, 'compiler')
 const GOLDENS_DIR  = path.join(ROOT, 'compiler', 'goldens')
-const STAGE1       = path.join(ROOT, 'dist', 'compiler.synth.js')
 const BOOTSTRAP    = path.join(ROOT, 'dist', 'compiler.bootstrap.js')
 
 const MODULES = [
@@ -21,10 +19,11 @@ const MODULES = [
   'parser.syn',
   'checker.syn',
   'codegen.syn',
+  'formatter.syn',
   'driver.syn',
 ]
 
-function testSelfHostModules(stage1) {
+function testSelfHostModules(compiler) {
   let failed = false
   console.log('\n── self-host: compile each compiler module ──')
 
@@ -32,7 +31,7 @@ function testSelfHostModules(stage1) {
     const name = path.basename(file, '.syn')
     const src = fs.readFileSync(path.join(COMPILER_DIR, file), 'utf8')
     try {
-      const result = stage1.compile(src)
+      const result = compiler.compile(src)
       const err = validateJs(result.js || '')
       if (err) {
         failed = true
@@ -43,7 +42,7 @@ function testSelfHostModules(stage1) {
       const goldenPath = path.join(GOLDENS_DIR, `bootstrap_${name}.js`)
       if (fs.existsSync(goldenPath)) {
         const golden = fs.readFileSync(goldenPath, 'utf8')
-        goldenNote = ` (synth ${result.js.length}B vs TS ${golden.length}B, ${(result.js.length / golden.length * 100).toFixed(0)}%)`
+        goldenNote = ` (${result.js.length}B vs golden ${golden.length}B)`
       }
       console.log(`ok  ${file} → valid JS${goldenNote}`)
     } catch (e) {
@@ -55,14 +54,14 @@ function testSelfHostModules(stage1) {
 }
 
 function main() {
-  if (!fs.existsSync(STAGE1)) {
-    console.error('missing dist/compiler.synth.js — run npm run build:compiler')
+  if (!fs.existsSync(compilerPath())) {
+    console.error('missing bootstrap compiler — run npm run build:toolchain')
     process.exit(1)
   }
 
   let failed = false
-  const stage1 = loadBundle(STAGE1)
-  failed = testSelfHostModules(stage1) || failed
+  const compiler = loadOracle()
+  failed = testSelfHostModules(compiler) || failed
 
   console.log('\n── build bootstrap bundle ──')
   execSync(`node "${path.join(__dirname, 'build_bootstrap_bundle.js')}"`, { stdio: 'inherit' })
@@ -73,6 +72,7 @@ function main() {
   }
 
   console.log('\n── bootstrap bundle parity ──')
+  const { loadBundle } = require('./bootstrap_common')
   let bootstrap
   try {
     bootstrap = loadBundle(BOOTSTRAP)

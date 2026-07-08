@@ -1,13 +1,11 @@
-// Generate bootstrap goldens: TS oracle JS for each compiler/*.syn module.
-// Run: npm run gen:bootstrap-goldens
+// Generate bootstrap goldens: bootstrap oracle JS for each compiler/*.syn module.
 
 const fs = require('fs')
 const path = require('path')
-const { execSync } = require('child_process')
+const { loadOracle } = require('./oracle')
 
 const COMPILER_DIR = path.join(__dirname, '..', 'compiler')
 const GOLDENS_DIR  = path.join(__dirname, '..', 'compiler', 'goldens')
-const CLI          = path.join(__dirname, '..', 'dist', 'cli.js')
 
 const MODULES = [
   'token.syn',
@@ -16,6 +14,7 @@ const MODULES = [
   'parser.syn',
   'checker.syn',
   'codegen.syn',
+  'formatter.syn',
   'driver.syn',
 ]
 
@@ -24,13 +23,11 @@ function main() {
     fs.mkdirSync(GOLDENS_DIR, { recursive: true })
   }
 
+  const compiler = loadOracle()
   for (const file of MODULES) {
     const name = path.basename(file, '.syn')
-    const input = path.join(COMPILER_DIR, file)
-    const js = execSync(`node "${CLI}" "${input}"`, {
-      encoding: 'utf8',
-      maxBuffer: 50 * 1024 * 1024,
-    })
+    const src = fs.readFileSync(path.join(COMPILER_DIR, file), 'utf8')
+    const js = compiler.compile(src).js
     const outPath = path.join(GOLDENS_DIR, `bootstrap_${name}.js`)
     fs.writeFileSync(outPath, js)
     console.log(`wrote ${path.relative(process.cwd(), outPath)} (${js.length} bytes)`)

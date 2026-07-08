@@ -5,6 +5,7 @@ import { tokenize } from "./lexer"
 import { parse } from "./parser"
 import { check } from "./checker"
 import { generate } from "./codegen"
+import { format_source } from "./formatter"
 
 export record CompileResult {
   js:       string
@@ -21,4 +22,8 @@ export fn compile(source: string) -> CompileResult {
 
 export fn check_source(source: string) -> any[] {
   check(parse(tokenize(source)))
+}
+
+export fn format(source: string) -> FormatResult {
+  format_source(source)
 }

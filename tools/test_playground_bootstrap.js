@@ -5,9 +5,8 @@
 const fs   = require('fs')
 const path = require('path')
 const vm   = require('vm')
-const { ROOT, loadBundle, validateJs } = require('./bootstrap_common')
-
-const BOOTSTRAP = path.join(ROOT, 'dist', 'compiler.bootstrap.js')
+const { ROOT, validateJs } = require('./bootstrap_common')
+const { loadOracle, compilerPath } = require('./oracle')
 const PLAYGROUND = path.join(ROOT, 'demo', 'playground.html')
 
 function extractExamples(html) {
@@ -33,12 +32,12 @@ function extractExamples(html) {
 }
 
 function main() {
-  if (!fs.existsSync(BOOTSTRAP)) {
-    console.error('missing dist/compiler.bootstrap.js — run npm run build:toolchain')
+  if (!fs.existsSync(compilerPath())) {
+    console.error('missing bootstrap compiler — run npm run build:toolchain')
     process.exit(1)
   }
 
-  const compiler = loadBundle(BOOTSTRAP)
+  const compiler = loadOracle()
   const html = fs.readFileSync(PLAYGROUND, 'utf8')
   const examples = extractExamples(html)
   const names = Object.keys(examples).sort()

@@ -436,7 +436,7 @@
 <header class="page-header">
   <div class="header-logo">⬡</div>
   <div class="header-title">Synth Playground</div>
-  <div class="header-badge" id="compiler-badge" title="Active compiler backend">TS</div>
+  <div class="header-badge" id="compiler-badge" title="Bootstrap compiler">bootstrap</div>
   <div class="header-sep"></div>
   <label class="header-example-label" for="example-select">Examples:</label>
   <select class="header-examples" id="example-select" onchange="loadExample(this.value)">
@@ -458,12 +458,11 @@
     <option value="while">While Loops</option>
     <option value="multilambda">Recipe Difficulty Ranker</option>
   </select>
-  <a class="header-nav" id="compiler-toggle" href="playground.html">self-host</a>
   <a class="header-nav" href="landing.html">← Synth</a>
 </header>
 
-<div class="selfhost-banner" id="selfhost-banner" hidden>
-  Bootstrap compiler active — Synth compiling Synth. Switch back via <strong>← TS compiler</strong> if anything looks off.
+<div class="selfhost-banner" id="selfhost-banner">
+  Bootstrap compiler — Synth source compiled by Synth.
 </div>
 
 <div class="toolbar">
@@ -512,17 +511,8 @@
   </div>
 </div>
 
-<!-- ── Compiler bundle (TS default; ?compiler=bootstrap for Synth-on-Synth) ─── -->
-<script>
-(function () {
-  const mode = new URLSearchParams(location.search).get('compiler')
-  let script = 'synth.compiler.js?v=1.0.0-f46cb5b'
-  if (mode === 'bootstrap') script = 'compiler.bootstrap.js'
-  else if (mode === 'synth') script = 'compiler.synth.js'
-  window.__SYNTH_COMPILER_MODE__ = mode || 'typescript'
-  document.write('<script src="' + script + '"><\/script>')
-})()
-</script>
+<!-- ── Compiler bundle (bootstrap — Synth compiling Synth) ─────────────────── -->
+<script src="compiler.bootstrap.js"></script>
 
 <script>
 // ── Example snippets ─────────────────────────────────────────────────────────
@@ -1445,39 +1435,11 @@ const resultOut = document.getElementById('result-output')
 const statusPill = document.getElementById('status-pill')
 const lineCol   = document.getElementById('line-col')
 const compilerBadge = document.getElementById('compiler-badge')
-
-const compilerBackend = (window.SynthCompiler && window.SynthCompiler.backend)
-  || (window.__SYNTH_COMPILER_MODE__ === 'bootstrap' ? 'bootstrap'
-    : window.__SYNTH_COMPILER_MODE__ === 'synth' ? 'synth' : 'typescript')
+const compilerBackend = (window.SynthCompiler && window.SynthCompiler.backend) || 'bootstrap'
 if (compilerBadge) {
-  if (compilerBackend === 'bootstrap') {
-    compilerBadge.textContent = 'bootstrap'
-    compilerBadge.title = 'Bootstrap compiler — Synth source compiled by Synth. TS is oracle-only.'
-    compilerBadge.style.borderColor = 'rgba(0,229,160,0.5)'
-    compilerBadge.style.color = 'var(--green)'
-  } else if (compilerBackend === 'synth') {
-    compilerBadge.textContent = 'stage-1'
-    compilerBadge.title = 'Stage-1 self-host (TS-built compiler). Prefer ?compiler=bootstrap for the full loop.'
-    compilerBadge.style.borderColor = 'rgba(255,176,32,0.5)'
-    compilerBadge.style.color = 'var(--amber)'
-  } else {
-    compilerBadge.textContent = 'TS v1.0'
-    compilerBadge.title = 'TypeScript reference compiler. Add ?compiler=bootstrap for the bootstrap build.'
-  }
-}
-const compilerToggle = document.getElementById('compiler-toggle')
-const selfhostBanner = document.getElementById('selfhost-banner')
-if (compilerToggle) {
-  if (compilerBackend === 'bootstrap' || compilerBackend === 'synth') {
-    compilerToggle.textContent = '← TS compiler'
-    compilerToggle.href = 'playground.html'
-    compilerToggle.title = 'Switch back to the TypeScript reference compiler'
-    if (selfhostBanner) selfhostBanner.hidden = compilerBackend !== 'bootstrap'
-  } else {
-    compilerToggle.textContent = 'bootstrap'
-    compilerToggle.href = 'playground.html?compiler=bootstrap'
-    compilerToggle.title = 'Run the bootstrap compiler (Synth compiling Synth)'
-  }
+  compilerBadge.textContent = compilerBackend === 'bootstrap' ? 'bootstrap' : compilerBackend
+  compilerBadge.style.borderColor = 'rgba(0,229,160,0.5)'
+  compilerBadge.style.color = 'var(--green)'
 }
 
 function updateEditorHl() {

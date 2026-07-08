@@ -6,8 +6,8 @@ const fs   = require('fs')
 const path = require('path')
 const vm   = require('vm')
 const { ROOT, loadBundle, bundleSynProject, validateJs, extractStdlib } = require('./bootstrap_common')
+const { compilerPath } = require('./oracle')
 
-const BOOTSTRAP = path.join(ROOT, 'dist', 'compiler.bootstrap.js')
 const STDLIB    = path.join(ROOT, 'demo', 'synth.stdlib.js')
 
 function usage() {
@@ -18,9 +18,10 @@ function usage() {
     synth-bootstrap <input.syn> [output.js]     Transpile a single file
     synth-bootstrap --bundle <input.syn> [out]  Bundle multi-file project
     synth-bootstrap --test <input.syn>          Run @test declarations
-    synth-bootstrap --check <input.syn>           Static analysis only
+    synth-bootstrap --check <input.syn>         Static analysis only
+    synth-bootstrap --fmt <input.syn>           Format Synth source in-place
 
-  Runtime: dist/compiler.bootstrap.js (Synth-compiled compiler)
+  Runtime: bootstrap/seed.js or dist/compiler.bootstrap.js
   `)
 }
 
@@ -28,7 +29,7 @@ function loadStdlibForTests() {
   if (fs.existsSync(STDLIB)) {
     return fs.readFileSync(STDLIB, 'utf8').replace(/^(\/\/[^\n]*\n)+/, '')
   }
-  return extractStdlib(fs.readFileSync(BOOTSTRAP, 'utf8'))
+  return extractStdlib(fs.readFileSync(compilerPath(), 'utf8'))
 }
 
 function transpileFile(compiler, source) {
@@ -54,12 +55,39 @@ function main() {
     process.exit(0)
   }
 
-  if (!fs.existsSync(BOOTSTRAP)) {
-    console.error('missing dist/compiler.bootstrap.js — run npm run build:toolchain')
+  let compiler
+  try {
+    compiler = loadBundle(compilerPath())
+  } catch (e) {
+    console.error('missing bootstrap compiler — run npm run build:toolchain')
     process.exit(1)
   }
 
-  const compiler = loadBundle(BOOTSTRAP)
+  if (args[0] === '--fmt') {
+    const inputPath = path.resolve(args[1] ?? '')
+    if (!fs.existsSync(inputPath)) {
+      console.error(`Error: File not found: ${inputPath}`)
+      process.exit(1)
+    }
+    const source = fs.readFileSync(inputPath, 'utf8')
+    try {
+      if (typeof compiler.format !== 'function') {
+        console.error('Error: bootstrap bundle has no format export')
+        process.exit(1)
+      }
+      const result = compiler.format(source)
+      if (result.changed) {
+        fs.writeFileSync(inputPath, result.formatted, 'utf8')
+        console.log(`✓ Formatted ${path.basename(inputPath)}`)
+      } else {
+        console.log(`✓ ${path.basename(inputPath)} — already formatted`)
+      }
+    } catch (e) {
+      console.error(`Error: ${e.message}`)
+      process.exit(1)
+    }
+    return
+  }
 
   if (args[0] === '--check') {
     const inputPath = path.resolve(args[1] ?? '')
@@ -97,7 +125,7 @@ function main() {
       let js
       let warnings
       if (hasImports(source)) {
-        const bundle = bundleSynProject(BOOTSTRAP, inputPath, { headerComments: false })
+        const bundle = bundleSynProject(compilerPath(), inputPath, { headerComments: false })
         js = bundle.js
         warnings = bundle.warnings
       } else {
@@ -140,7 +168,7 @@ function main() {
       process.exit(1)
     }
     try {
-      const bundle = bundleSynProject(BOOTSTRAP, inputPath)
+      const bundle = bundleSynProject(compilerPath(), inputPath)
       if (bundle.warnings.length > 0) {
         console.warn('⚠  Synth checker warnings:')
         bundle.warnings.forEach(w => console.warn(w))

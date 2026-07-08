@@ -87,10 +87,10 @@ fn safe_power :: (hero: Character) -> int {
 
 // ── 4. Record destructuring let ──────────────────────────────────────────────
 
-record Point { x: float, y: float }
+record Vec2 { x: float, y: float }
 record Rect3 { x: float, y: float, w: float, h: float }
 
-fn distance :: (a: Point, b: Point) -> float {
+fn distance :: (a: Vec2, b: Vec2) -> float {
   @pure @total
   @intent "Destructure both points to compute Euclidean distance"
   let { x: ax, y: ay } = a

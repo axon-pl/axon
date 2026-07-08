@@ -1,0 +1,210 @@
+// ── Formatter — canonical Synth source layout ────────────────────────────────
+
+import { tokenize } from "./lexer"
+
+export record FormatResult {
+  formatted: string
+  changed:   bool
+}
+
+fn nl() -> string { String.fromCharCode(10) }
+fn cr() -> string { String.fromCharCode(13) }
+
+fn normalise_newlines(source: string) -> string {
+  let crlf = cr() + nl()
+  let mut s = source
+  while s.contains(crlf) {
+    s = s.replace(crlf, nl())
+  }
+  s
+}
+
+fn no_space_before(tok_type: string) -> bool {
+  tok_type == "RPAREN" or tok_type == "RBRACKET" or tok_type == "RBRACE"
+    or tok_type == "COMMA" or tok_type == "SEMICOLON"
+    or tok_type == "DOT" or tok_type == "OPTIONAL_CHAIN"
+    or tok_type == "PIPE"
+}
+
+fn no_space_after(tok_type: string) -> bool {
+  tok_type == "LPAREN" or tok_type == "LBRACKET"
+    or tok_type == "DOT" or tok_type == "OPTIONAL_CHAIN"
+    or tok_type == "AT" or tok_type == "BANG" or tok_type == "MINUS"
+}
+
+fn space_before(tok_type: string) -> bool {
+  tok_type == "LBRACE" or tok_type == "THIN_ARROW" or tok_type == "FAT_ARROW"
+    or tok_type == "DOUBLE_COLON" or tok_type == "PIPE_OP"
+    or tok_type == "AND" or tok_type == "OR"
+    or tok_type == "EQ" or tok_type == "STRICT_EQ" or tok_type == "NEQ"
+    or tok_type == "STRICT_NEQ" or tok_type == "LTE" or tok_type == "GTE"
+    or tok_type == "ASSIGN" or tok_type == "NULL_COALESCE"
+    or tok_type == "KW_ELSE"
+}
+
+fn space_after(tok_type: string) -> bool {
+  tok_type == "COMMA" or tok_type == "COLON"
+    or tok_type == "THIN_ARROW" or tok_type == "FAT_ARROW"
+    or tok_type == "DOUBLE_COLON" or tok_type == "PIPE_OP"
+    or tok_type == "AND" or tok_type == "OR"
+    or tok_type == "EQ" or tok_type == "STRICT_EQ" or tok_type == "NEQ"
+    or tok_type == "STRICT_NEQ" or tok_type == "LTE" or tok_type == "GTE"
+    or tok_type == "ASSIGN" or tok_type == "NULL_COALESCE"
+    or tok_type == "KW_FN" or tok_type == "KW_TYPE" or tok_type == "KW_RECORD"
+    or tok_type == "KW_LET" or tok_type == "KW_MATCH" or tok_type == "KW_IF"
+    or tok_type == "KW_ELSE" or tok_type == "KW_RETURN"
+    or tok_type == "KW_FOR" or tok_type == "KW_IN" or tok_type == "KW_ASYNC"
+    or tok_type == "KW_AWAIT" or tok_type == "KW_IMPORT" or tok_type == "KW_EXPORT"
+    or tok_type == "KW_FROM" or tok_type == "KW_INTERFACE" or tok_type == "KW_REFINE"
+    or tok_type == "KW_INFER" or tok_type == "KW_MUT" or tok_type == "KW_WHEN"
+    or tok_type == "KW_AS" or tok_type == "KW_NEW" or tok_type == "KW_WHERE"
+}
+
+fn is_op_type(tok_type: string) -> bool {
+  tok_type == "ASSIGN" or tok_type == "PLUS" or tok_type == "MINUS"
+    or tok_type == "STAR" or tok_type == "SLASH" or tok_type == "PERCENT"
+    or tok_type == "COMMA" or tok_type == "LPAREN" or tok_type == "LBRACKET"
+    or tok_type == "PIPE_OP" or tok_type == "FAT_ARROW" or tok_type == "THIN_ARROW"
+    or tok_type == "COLON"
+}
+
+fn needs_space(prev_type: string, cur_type: string) -> bool {
+  if no_space_before(cur_type) { false }
+  else if no_space_after(prev_type) { false }
+  else if space_before(cur_type) { true }
+  else if space_after(prev_type) { true }
+  else if prev_type == "PLUS" or cur_type == "PLUS" { true }
+  else if prev_type == "STAR" or cur_type == "STAR" { true }
+  else if prev_type == "SLASH" or cur_type == "SLASH" { true }
+  else if prev_type == "PERCENT" or cur_type == "PERCENT" { true }
+  else if prev_type == "LT" or cur_type == "LT" { false }
+  else if prev_type == "GT" or cur_type == "GT" { false }
+  else if cur_type == "MINUS" {
+    not is_op_type(prev_type)
+  } else if prev_type == "MINUS" {
+    not (cur_type == "IDENT" or cur_type == "NUMBER" or cur_type == "LPAREN")
+  } else if cur_type == "LPAREN" { false }
+  else if cur_type == "LBRACKET" and prev_type == "IDENT" { false }
+  else if cur_type == "RBRACE" { prev_type != "LBRACE" }
+  else if prev_type == "LBRACE" { cur_type != "RBRACE" }
+  else if cur_type == "PIPE" or prev_type == "PIPE" { true }
+  else { true }
+}
+
+fn filter_eof_tokens(tokens: any[]) -> any[] {
+  let mut out = []
+  let mut i = 0
+  while i < tokens.length {
+    if tokens[i].type != "EOF" {
+      out = out.concat([tokens[i]])
+    }
+    i = i + 1
+  }
+  out
+}
+
+fn tokens_for_line(tokens: any[], line: int) -> any[] {
+  let mut out = []
+  let mut i = 0
+  while i < tokens.length {
+    if tokens[i].line == line {
+      out = out.concat([tokens[i]])
+    }
+    i = i + 1
+  }
+  out
+}
+
+fn max_token_line(tokens: any[]) -> int {
+  let mut m = 0
+  let mut i = 0
+  while i < tokens.length {
+    if tokens[i].line > m { m = tokens[i].line }
+    i = i + 1
+  }
+  m
+}
+
+fn repeat_str(ch: string, n: int) -> string {
+  let mut s = ""
+  let mut i = 0
+  while i < n {
+    s = s + ch
+    i = i + 1
+  }
+  s
+}
+
+fn format_line_tokens(toks: any[]) -> string {
+  let mut line_out = ""
+  let mut j = 0
+  while j < toks.length {
+    let tok = toks[j]
+    if j == 0 {
+      line_out = tok.value
+    } else {
+      let prev = toks[j - 1]
+      let sep = if needs_space(prev.type, tok.type) { " " } else { "" }
+      line_out = line_out + sep + tok.value
+    }
+    j = j + 1
+  }
+  line_out
+}
+
+fn adjust_depth_after_tokens(toks: any[], first_is_rbrace: bool, depth: int) -> int {
+  let mut d = depth
+  let mut k = 0
+  while k < toks.length {
+    let t = toks[k]
+    if t.type == "LBRACE" {
+      d = d + 1
+    } else if t.type == "RBRACE" {
+      if not (first_is_rbrace and k == 0) {
+        if d > 0 { d = d - 1 } else { d = 0 }
+      }
+    }
+    k = k + 1
+  }
+  d
+}
+
+export fn format_source(source: string) -> FormatResult {
+  let normalised = normalise_newlines(source)
+  let tokens = filter_eof_tokens(tokenize(normalised))
+  if tokens.length == 0 {
+    FormatResult("", false)
+  } else {
+    let max_line = max_token_line(tokens)
+    let mut depth = 0
+    let mut result_lines = []
+    let mut line = 1
+    while line <= max_line {
+      let toks = tokens_for_line(tokens, line)
+      if toks.length == 0 {
+        result_lines = result_lines.concat([""])
+      } else {
+        let first_tok = toks[0]
+        if first_tok.type == "RBRACE" {
+          if depth > 0 { depth = depth - 1 } else { depth = 0 }
+        }
+        let line_body = format_line_tokens(toks)
+        let indent = repeat_str(" ", depth * 2)
+        result_lines = result_lines.concat([indent + line_body])
+        depth = adjust_depth_after_tokens(toks, first_tok.type == "RBRACE", depth)
+      }
+      line = line + 1
+    }
+    let mut formatted = ""
+    let mut ri = 0
+    while ri < result_lines.length {
+      if ri > 0 { formatted = formatted + nl() }
+      formatted = formatted + result_lines[ri]
+      ri = ri + 1
+    }
+    if normalised.endsWith(nl()) {
+      formatted = formatted + nl()
+    }
+    FormatResult(formatted, formatted != normalised)
+  }
+}

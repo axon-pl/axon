@@ -10,7 +10,7 @@ const ENTRY   = path.join(COMPILER, 'driver.syn')
 
 function loadBundle(bundlePath) {
   const body = fs.readFileSync(bundlePath, 'utf8')
-    + '\nmodule.exports = { compile, tokenize, parse, generate, check, check_source };'
+    + '\nmodule.exports = { compile, tokenize, parse, generate, check, check_source, format };'
   const module = { exports: {} }
   new vm.Script(body, { filename: bundlePath }).runInNewContext({
     module,

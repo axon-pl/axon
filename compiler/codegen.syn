@@ -335,6 +335,8 @@ fn cg_emit_expr(st: CgState, expr: any) -> string {
     if expr.prefix {
       if op == "!" {
         "!" + cg_emit_expr(st, expr.operand)
+      } else if op == "typeof" or op == "await" {
+        op + " " + cg_emit_expr(st, expr.operand)
       } else {
         op + cg_emit_expr(st, expr.operand)
       }

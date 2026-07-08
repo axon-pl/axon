@@ -29,7 +29,7 @@ fn level_title :: (class: string, level: int) -> string {
 ```
 
 ```
-node dist/cli.js --test examples/rpg.syn
+node tools/synth_bootstrap_cli.js --test examples/rpg.syn
   ✓ level_title: mage lv10 = Archmage
   ✓ hp_status_label: 0 = DEAD
   15 passed, 0 failed, 15 total
@@ -66,7 +66,8 @@ Or run from source:
 git clone https://github.com/synth-pl/synth
 cd synth
 npm install
-npx tsc
+npm run build:toolchain
+node tools/synth_bootstrap_cli.js --test examples/rpg.syn
 ```
 
 ---
