@@ -367,6 +367,207 @@
       color: var(--purple);
     }
 
+    /* ── Self-host section ───────────────────────────────────────────────── */
+    .self-host {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px 80px;
+    }
+
+    .self-host-lead {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 15px;
+      max-width: 640px;
+      margin: -32px auto 40px;
+      line-height: 1.65;
+    }
+
+    .self-host-lead code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      background: rgba(176,96,255,0.1);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: var(--purple);
+    }
+
+    .self-host-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .self-host-copy {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 28px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .self-host-copy p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .self-host-copy p strong { color: var(--text); font-weight: 600; }
+
+    .self-host-copy code {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      background: rgba(176,96,255,0.1);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: var(--purple);
+    }
+
+    .self-host-stats {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .self-host-stats li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .self-host-stats li::before {
+      content: '✦';
+      color: var(--green);
+      font-size: 10px;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .self-host-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: auto;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green);
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .self-host-cta:hover { opacity: 0.85; }
+
+    .self-host-visual {
+      background: var(--bg-code);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 24px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.25);
+    }
+
+    .sh-pipeline-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .sh-pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .sh-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(176,96,255,0.06);
+      border: 1px solid rgba(176,96,255,0.14);
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--cyan);
+    }
+
+    .sh-step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255,45,120,0.15);
+      border: 1px solid rgba(255,45,120,0.35);
+      color: var(--pink);
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sh-step-text { flex: 1; min-width: 0; }
+    .sh-step-text em { color: var(--text-dim); font-style: normal; }
+
+    .sh-arrow {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 1;
+      padding: 4px 0;
+    }
+
+    .sh-step.sh-step-done {
+      border-color: rgba(0,229,160,0.35);
+      background: rgba(0,229,160,0.06);
+    }
+    .sh-step.sh-step-done .sh-step-num {
+      background: rgba(0,229,160,0.15);
+      border-color: rgba(0,229,160,0.4);
+      color: var(--green);
+    }
+
+    .sh-modules-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .sh-modules {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .sh-mod {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: rgba(176,96,255,0.08);
+      border: 1px solid rgba(176,96,255,0.18);
+      color: var(--purple);
+    }
+
+    .sh-mod.sh-mod-entry {
+      border-color: rgba(0,229,160,0.35);
+      color: var(--green);
+      background: rgba(0,229,160,0.08);
+    }
+
     /* ── Demos section ───────────────────────────────────────────────────── */
     .demos {
       max-width: 1100px;
@@ -896,6 +1097,11 @@
       .pillar-grid { grid-template-columns: 1fr; }
       .section-title { margin-bottom: 28px; }
 
+      /* Self-host */
+      .self-host { padding: 0 16px 48px; }
+      .self-host-grid { grid-template-columns: 1fr; }
+      .self-host-lead { margin-top: -20px; padding: 0 4px; }
+
       /* Demos */
       .demos { padding: 0 16px 48px; }
       .demo-grid { grid-template-columns: 1fr; }
@@ -1139,6 +1345,70 @@
     </div>
   </section>
 
+  <!-- ── Self-hosted compiler ────────────────────────────────────────────── -->
+  <section class="self-host" id="self-hosted">
+    <div class="section-label">Self-Hosted</div>
+    <h2 class="section-title">The compiler is written in Synth.</h2>
+    <p class="self-host-lead">
+      The full toolchain — lexer, parser, type checker, code generator, and formatter — lives in
+      <code>compiler/*.syn</code> and compiles itself. No TypeScript in the pipeline. Just Synth compiling Synth.
+    </p>
+
+    <div class="self-host-grid">
+      <div class="self-host-copy">
+        <p>
+          Synth v1.0.0 ships a <strong>bootstrap compiler</strong>: eight modules written entirely in the
+          language they implement. A seed bundle compiles those sources into JavaScript, and that output
+          recompiles them again — byte-for-byte identical, three generations deep. That's the fixed point.
+        </p>
+        <ul class="self-host-stats">
+          <li><strong>8 modules</strong> — token, lexer, ast, parser, checker, codegen, formatter, driver</li>
+          <li><strong>Zero TypeScript</strong> — the compiler source and CLI are Synth-only; JS is emitted output, not hand-written implementation</li>
+          <li><strong>Fixed-point proof</strong> — v1 → v2 → v3 bootstrap chain is byte-identical; further self-compilation changes nothing</li>
+          <li><strong>Runs in the browser</strong> — the playground loads the same bootstrap bundle client-side via <code>SynthCompiler.compile()</code></li>
+        </ul>
+        <a class="self-host-cta" href="playground.html">Open the bootstrap playground →</a>
+      </div>
+
+      <div class="self-host-visual">
+        <div class="sh-pipeline-label">Bootstrap chain</div>
+        <div class="sh-pipeline">
+          <div class="sh-step">
+            <span class="sh-step-num">1</span>
+            <span class="sh-step-text">bootstrap/seed.js <em>— committed compiler seed</em></span>
+          </div>
+          <div class="sh-arrow">↓</div>
+          <div class="sh-step">
+            <span class="sh-step-num">2</span>
+            <span class="sh-step-text">compile <em>compiler/*.syn</em> → dist/compiler.bootstrap.js</span>
+          </div>
+          <div class="sh-arrow">↓</div>
+          <div class="sh-step">
+            <span class="sh-step-num">3</span>
+            <span class="sh-step-text">recompile with v2 <em>— double bootstrap</em></span>
+          </div>
+          <div class="sh-arrow">↓</div>
+          <div class="sh-step sh-step-done">
+            <span class="sh-step-num">✓</span>
+            <span class="sh-step-text">v2 === v3 <em>— fixed point reached</em></span>
+          </div>
+        </div>
+
+        <div class="sh-modules-label">compiler/*.syn</div>
+        <div class="sh-modules">
+          <span class="sh-mod">token.syn</span>
+          <span class="sh-mod">lexer.syn</span>
+          <span class="sh-mod">ast.syn</span>
+          <span class="sh-mod">parser.syn</span>
+          <span class="sh-mod">checker.syn</span>
+          <span class="sh-mod">codegen.syn</span>
+          <span class="sh-mod">formatter.syn</span>
+          <span class="sh-mod sh-mod-entry">driver.syn</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ── Demos ─────────────────────────────────────────────────────────────── -->
   <section class="demos">
     <div class="section-label">Demos</div>
@@ -1183,14 +1453,14 @@
       <a class="demo-card" href="dashboard.html" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(176,96,255,0.1),rgba(0,232,208,0.05))">
         <div class="demo-card-icon">📊</div>
         <div class="demo-card-title">Synth Dashboard <span style="font-size:0.7rem;opacity:0.7;font-weight:400">New</span></div>
-        <div class="demo-card-desc">Live sprint tracker showcasing v0.9.5 features: <code>enum</code> status/priority, numeric separators, multi-line lambdas, and reactive tick simulation.</div>
-        <div class="demo-card-meta"><span>v0.9.5</span> enum · numeric literals · multi-line lambdas</div>
+        <div class="demo-card-desc">Live sprint tracker with <code>enum</code> status/priority, numeric separators, multi-line lambdas, and reactive tick simulation.</div>
+        <div class="demo-card-meta"><span>v1.0.0</span> enum · numeric literals · multi-line lambdas</div>
       </a>
       <a class="demo-card" href="playground.html" style="border-color:var(--pink);background:linear-gradient(135deg,rgba(255,45,120,0.07),rgba(176,96,255,0.07))">
         <div class="demo-card-icon">▶</div>
         <div class="demo-card-title">Synth Playground</div>
         <div class="demo-card-desc">Live in-browser IDE — type Synth, see transpiled JS and live output instantly. 13 preloaded examples covering all language features.</div>
-        <div class="demo-card-meta"><span>v0.9</span> browser compiler · live eval · formatter</div>
+        <div class="demo-card-meta"><span>v1.0.0</span> browser compiler · live eval · formatter</div>
       </a>
       <a class="demo-card" href="chronicle.html">
         <div class="demo-card-icon">📜</div>
@@ -1274,6 +1544,7 @@
         <span class="rm-chip">While Loops</span>
         <span class="rm-chip">Ergonomics II</span>
         <span class="rm-chip">Templates</span>
+        <span class="rm-chip">Self-Hosted</span>
         <span class="rm-chip">v1.0 Stable</span>
       </div>
     </div>
@@ -1285,9 +1556,10 @@
         <div class="rm-card-badge rm-badge-now">★ Now</div>
         <div class="rm-card-ver rm-ver-now">v1.0.0</div>
         <div class="rm-card-title">Stable Release</div>
-        <div class="rm-card-desc">Template literals, precedence fixes, expanded stdlib, npm publish, VS Code extension. Synth shipped.</div>
+        <div class="rm-card-desc">Template literals, self-hosted compiler, npm publish, VS Code extension. Synth shipped.</div>
         <div class="rm-card-features">
           <span class="rm-feat">template literals</span>
+          <span class="rm-feat">self-hosted</span>
           <span class="rm-feat">npm publish</span>
           <span class="rm-feat">66 tests</span>
         </div>
@@ -1639,11 +1911,11 @@ on Kingdom.change { render() }
 `);
 
     setCode('code-tooling', `
-// synth --check src/game.syn          static analysis, no JS emitted   (v0.9)
-// synth --fmt   src/game.syn --write  reformat in-place                (v0.9)
-// synth --watch src/game.syn out.js   recompile on every save          (v0.9)
+// synth --check src/game.syn          static analysis, no JS emitted   (v1.0.0)
+// synth --fmt   src/game.syn --write  reformat in-place                (v1.0.0)
+// synth --watch src/game.syn out.js   recompile on every save          (v1.0.0)
 
-// ── Browser compiler bundle — runs the full compiler client-side (v0.9) ──────
+// ── Browser compiler bundle — runs the full compiler client-side (v1.0.0) ──────
 // &lt;script src="synth.compiler.js"&gt;&lt;/script&gt;
 
 fn greet(name: string) -> string = "Hello, {name}!"
@@ -1660,7 +1932,7 @@ fn run_demo() {
   // result.js         — transpiled JavaScript string
   // result.errors     — [{ message, line, col, kind }]   multi-error (v0.9.5)
   // result.warnings   — [{ severity, message, line, col }]
-  // SynthCompiler.version   — "0.9.7"
+  // SynthCompiler.version   — "1.0.0"
 }
 
 run_demo()

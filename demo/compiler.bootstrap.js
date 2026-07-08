@@ -4,7 +4,7 @@
 // API: SynthCompiler.compile(src) → { js, errors, warnings }
 //      SynthCompiler.check(src)   → { warnings, errors }
 //      SynthCompiler.stdlib       → stdlib JS string
-//      SynthCompiler.version      → "1.0.0-bootstrap"
+//      SynthCompiler.version      → "1.0.0"
 //      SynthCompiler.backend      → "bootstrap"
 (function (global) {
   "use strict";
@@ -5858,7 +5858,7 @@ const format = (source) => format_source(source);
   global.SynthCompiler = {
     compile,
     check,
-    version: '1.0.0-bootstrap',
+    version: '1.0.0',
     backend: 'bootstrap',
     stdlib: SYNTH_STDLIB,
   }

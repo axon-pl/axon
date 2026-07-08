@@ -1,10 +1,3 @@
-/** @typedef {{
- *   type: string,
- *   value: string,
- *   line: number,
- *   col: number
- * }} Token
- */
 const Token = (type, value, line, col) => ({ type, value, line, col });
 
 /**

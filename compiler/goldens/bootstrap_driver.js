@@ -1,9 +1,4 @@
 
-/** @typedef {{
- *   js: string,
- *   warnings: *
- * }} CompileResult
- */
 const CompileResult = (js, warnings) => ({ js, warnings });
 
 /**
@@ -23,4 +18,10 @@ const compile = (source) => {
  * @returns {*}
  */
 const check_source = (source) => check(parse(tokenize(source)));
+
+/**
+ * @param {string} source
+ * @returns {FormatResult}
+ */
+const format = (source) => format_source(source);
 

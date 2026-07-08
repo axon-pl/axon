@@ -1,20 +1,4 @@
 
-/** @typedef {{
- *   diagnostics: *,
- *   unions: *,
- *   purity_fn: string,
- *   purity_line: number,
- *   purity_on: boolean,
- *   exhaustive_fn: string,
- *   exhaustive_line: number,
- *   exhaustive_on: boolean,
- *   throws_fn: string,
- *   throws_line: number,
- *   throws_on: boolean,
- *   throws_ok: boolean,
- *   throws_err: boolean
- * }} ChkState
- */
 const ChkState = (diagnostics, unions, purity_fn, purity_line, purity_on, exhaustive_fn, exhaustive_line, exhaustive_on, throws_fn, throws_line, throws_on, throws_ok, throws_err) => ({ diagnostics, unions, purity_fn, purity_line, purity_on, exhaustive_fn, exhaustive_line, exhaustive_on, throws_fn, throws_line, throws_on, throws_ok, throws_err });
 
 /**
@@ -24,7 +8,7 @@ const ChkState = (diagnostics, unions, purity_fn, purity_line, purity_on, exhaus
  * @returns {ChkState}
  */
 const chk_warn = (st, message, line) => {
-  let d = { severity: "warning", message: message, line: line };
+  let d = {severity: "warning", message: message, line: line};
   return ChkState(st.diagnostics.concat([d]), st.unions, st.purity_fn, st.purity_line, st.purity_on, st.exhaustive_fn, st.exhaustive_line, st.exhaustive_on, st.throws_fn, st.throws_line, st.throws_on, st.throws_ok, st.throws_err);
 };
 
@@ -244,11 +228,11 @@ const collect_unions = (st, program) => {
   while (i < program.body.length) {
     let decl = program.body[i];
     if (decl.kind == "TaggedUnionDecl") {
-      let info = { name: decl.name, variants: union_variant_names(decl) };
+      let info = {name: decl.name, variants: union_variant_names(decl)};
       s = ChkState(s.diagnostics, s.unions.concat([info]), s.purity_fn, s.purity_line, s.purity_on, s.exhaustive_fn, s.exhaustive_line, s.exhaustive_on, s.throws_fn, s.throws_line, s.throws_on, s.throws_ok, s.throws_err);
     } else if (decl.kind == "ExportDecl" && decl.decl.kind == "TaggedUnionDecl") {
       let u = decl.decl;
-      let info = { name: u.name, variants: union_variant_names(u) };
+      let info = {name: u.name, variants: union_variant_names(u)};
       s = ChkState(s.diagnostics, s.unions.concat([info]), s.purity_fn, s.purity_line, s.purity_on, s.exhaustive_fn, s.exhaustive_line, s.exhaustive_on, s.throws_fn, s.throws_line, s.throws_on, s.throws_ok, s.throws_err);
     }
     i = i + 1;

@@ -29,27 +29,10 @@ const dq_char = () => String.fromCharCode(34);
  */
 const sq_char = () => String.fromCharCode(39);
 
-/** @typedef {{
- *   src: string,
- *   pos: number,
- *   line: number,
- *   col: number
- * }} LexState
- */
 const LexState = (src, pos, line, col) => ({ src, pos, line, col });
 
-/** @typedef {{
- *   st: LexState,
- *   value: string
- * }} LexStr
- */
 const LexStr = (st, value) => ({ st, value });
 
-/** @typedef {{
- *   st: LexState,
- *   tokens: Token[]
- * }} LexEmit
- */
 const LexEmit = (st, tokens) => ({ st, tokens });
 
 /**
@@ -80,7 +63,7 @@ const lx_advance = (st) => {
 
 /**
  * @param {LexState} st
- * @param {Token[]} tokens
+ * @param {Token} tokens
  * @param {string} tok_type
  * @param {string} value
  * @param {number} len
@@ -134,7 +117,7 @@ const is_bin_digit = (ch) => ch >= "0" && ch <= "1" || ch == "_";
 const is_regex_flag = (ch) => ch == "g" || ch == "i" || ch == "m" || ch == "s" || ch == "u" || ch == "y";
 
 /**
- * @param {Token[]} tokens
+ * @param {Token} tokens
  * @returns {boolean}
  */
 const is_regex_start = (tokens) => {
@@ -216,7 +199,7 @@ const lx_escape_char = (esc) => {
 
 /**
  * @param {LexState} st
- * @param {Token[]} tokens
+ * @param {Token} tokens
  * @returns {LexEmit}
  */
 const lx_read_triple_quote = (st, tokens) => {
@@ -257,7 +240,7 @@ const lx_read_triple_quote = (st, tokens) => {
 
 /**
  * @param {LexState} st
- * @param {Token[]} tokens
+ * @param {Token} tokens
  * @param {string} quote
  * @returns {LexEmit}
  */
@@ -283,7 +266,7 @@ const lx_read_string = (st, tokens, quote) => {
 
 /**
  * @param {LexState} st
- * @param {Token[]} tokens
+ * @param {Token} tokens
  * @returns {LexEmit}
  */
 const lx_read_template = (st, tokens) => {
@@ -316,7 +299,7 @@ const lx_read_template = (st, tokens) => {
 
 /**
  * @param {LexState} st
- * @param {Token[]} tokens
+ * @param {Token} tokens
  * @returns {LexEmit}
  */
 const lx_read_regex = (st, tokens) => {
@@ -354,7 +337,7 @@ const lx_read_regex = (st, tokens) => {
 
 /**
  * @param {LexState} st
- * @param {Token[]} tokens
+ * @param {Token} tokens
  * @returns {LexEmit}
  */
 const lx_read_number = (st, tokens) => {
@@ -404,7 +387,7 @@ const lx_read_number = (st, tokens) => {
 
 /**
  * @param {LexState} st
- * @param {Token[]} tokens
+ * @param {Token} tokens
  * @returns {LexEmit}
  */
 const lx_read_ident = (st, tokens) => {
@@ -424,7 +407,7 @@ const lx_read_ident = (st, tokens) => {
 
 /**
  * @param {LexState} st
- * @param {Token[]} tokens
+ * @param {Token} tokens
  * @returns {LexEmit}
  */
 const lx_try_multi = (st, tokens) => {
@@ -489,7 +472,7 @@ const lx_try_multi = (st, tokens) => {
 
 /**
  * @param {string} src
- * @returns {Token[]}
+ * @returns {Token}
  */
 const tokenize = (src) => {
   let st = LexState(src, 0, 1, 1);

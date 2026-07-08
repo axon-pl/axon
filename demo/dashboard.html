@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Synth Dashboard — v0.9.5 Demo</title>
+  <title>Synth Dashboard — v1.0.0 Demo</title>
   <script src="synth.compiler.js?v=1.0.0-f46cb5b"></script>
   <style>
     :root {
@@ -216,7 +216,7 @@
 
 <header>
   <div class="logo">⬡ Synth<span class="logo-sub">Dashboard</span></div>
-  <div class="badge">v0.9.5</div>
+  <div class="badge">v1.0.0</div>
   <div class="spacer"></div>
   <button class="tick-btn" id="auto-tick-btn" onclick="toggleAutoTick()">▶ Auto-tick</button>
   <button class="tick-btn" onclick="manualTick()">⟳ Tick</button>
@@ -278,7 +278,7 @@
 
   <!-- Source panel -->
   <div class="card src-panel">
-    <div class="card-title">Source — Synth v0.9.5</div>
+    <div class="card-title">Source — Synth v1.0.0</div>
     <div class="src-tabs">
       <button class="src-tab active" onclick="showSrc('types')">Types &amp; Enums</button>
       <button class="src-tab" onclick="showSrc('logic')">Business Logic</button>
@@ -290,7 +290,7 @@
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
-// Synth v0.9.5 Dashboard Demo — compiled at page load via SynthCompiler
+// Synth v1.0.0 Dashboard Demo — compiled at page load via SynthCompiler
 // Shows: enum, numeric separators, multi-line lambdas, multi-error reporting
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -577,7 +577,7 @@ if (compiledJS) {
       { id: 10, title: 'Performance profiling',   status: T.Backlog, priority: P.Medium,   points: 13 },
     ];
     render();
-    logEvent('success', 'Dashboard ready — Synth v0.9.5 compiled successfully');
+    logEvent('success', 'Dashboard ready — Synth v1.0.0 compiled successfully');
     logEvent('info', `Compiler: ${SynthCompiler.version} · TaskStatus.Active = "${sim.TaskStatus.Active}"`);
   }
 }

@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Synth Playground — v0.9.8</title>
+  <title>Synth Playground — v1.0.0</title>
   <style>
     /* ── Synthwave palette ─────────────────────────────────────────────────── */
     :root {
@@ -436,7 +436,7 @@
 <header class="page-header">
   <div class="header-logo">⬡</div>
   <div class="header-title">Synth Playground</div>
-  <div class="header-badge" id="compiler-badge" title="Bootstrap compiler">bootstrap</div>
+  <div class="header-badge" id="compiler-badge" title="Synth compiler">v1.0.0</div>
   <div class="header-sep"></div>
   <label class="header-example-label" for="example-select">Examples:</label>
   <select class="header-examples" id="example-select" onchange="loadExample(this.value)">
@@ -462,7 +462,7 @@
 </header>
 
 <div class="selfhost-banner" id="selfhost-banner">
-  Bootstrap compiler — Synth source compiled by Synth.
+  Synth v1.0.0 — bootstrap compiler, Synth source compiled by Synth.
 </div>
 
 <div class="toolbar">
@@ -1436,8 +1436,14 @@ const statusPill = document.getElementById('status-pill')
 const lineCol   = document.getElementById('line-col')
 const compilerBadge = document.getElementById('compiler-badge')
 const compilerBackend = (window.SynthCompiler && window.SynthCompiler.backend) || 'bootstrap'
+function formatCompilerVersion() {
+  const raw = (window.SynthCompiler && window.SynthCompiler.version) || '1.0.0'
+  return 'v' + raw.replace(/-bootstrap$|-selfhost$/, '')
+}
 if (compilerBadge) {
-  compilerBadge.textContent = compilerBackend === 'bootstrap' ? 'bootstrap' : compilerBackend
+  const ver = formatCompilerVersion()
+  compilerBadge.textContent = ver
+  compilerBadge.title = `Synth compiler ${ver} (${compilerBackend})`
   compilerBadge.style.borderColor = 'rgba(0,229,160,0.5)'
   compilerBadge.style.color = 'var(--green)'
 }
