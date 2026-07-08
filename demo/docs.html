@@ -754,7 +754,7 @@
         <a class="nav-link" href="#cli">CLI</a>
         <a class="nav-link" href="#enums" style="color:var(--accent)"><code>enum</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.9.5</span></a>
         <a class="nav-link" href="#numeric-literals" style="color:var(--accent)">Numeric Literals <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.9.5</span></a>
-        <a class="nav-link" href="#cli-v09" style="color:var(--pink)"><code>--check</code> / <code>--fmt</code> / <code>--watch</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v1.0.0</span></a>
+        <a class="nav-link" href="#cli-v09" style="color:var(--pink)"><code>--check</code> / <code>--fmt</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v1.0.0</span></a>
         <a class="nav-link" href="#browser-api" style="color:var(--pink)">Browser Compiler API <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v1.0.0</span></a>
       </div>
       <div class="nav-group">
@@ -782,8 +782,8 @@
         <div class="callout callout-ai">
           <div class="callout-head">AI-native design</div>
           Every Synth feature exists because it makes AI-generated code safer or more legible —
-          not because it mirrors conventions from human-ergonomic languages. OOP, mutable state,
-          and implicit dispatch are absent by design.
+          not because it mirrors conventions from human-ergonomic languages. OOP and implicit
+          dispatch are absent by design; mutation is explicit via <code>let mut</code> and <code>store</code>.
         </div>
 
         <div class="pill-row">
@@ -811,7 +811,7 @@
         <h2 class="section-title">Quick Start</h2>
         <div class="section-rule"></div>
 
-        <p>Synth ships as a Node.js CLI. Install from source and run the compiler against any <code>.syn</code> file.</p>
+        <p>Synth ships as a Node.js CLI. Install from npm or build from source, then run the bootstrap compiler against any <code>.syn</code> file.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot dot-js"></span>shell</div>
@@ -835,12 +835,12 @@
           <thead><tr><th>Goal</th><th>What it means in practice</th></tr></thead>
           <tbody>
             <tr><td>Unambiguous grammar</td><td>Every construct has exactly one parse. No statement/expression duality. No semicolon insertion edge cases.</td></tr>
-            <tr><td>Intent over ceremony</td><td><code>@intent</code> is a first-class declaration, not a comment. It becomes queryable metadata in generated JS.</td></tr>
-            <tr><td>Constraints at the type level</td><td>Types carry <code>where</code> predicates. Guard clauses are injected automatically — they are never forgotten.</td></tr>
-            <tr><td>Explicit effects</td><td><code>@pure</code>, <code>@total</code>, <code>@effects</code> are compiler-checked contracts, not documentation.</td></tr>
+            <tr><td>Intent over ceremony</td><td><code>@intent</code> is a first-class source annotation — machine-readable purpose metadata for humans and downstream tools.</td></tr>
+            <tr><td>Constraints at the type level</td><td>Types carry <code>where</code> predicates. The compiler can emit <code>__validate_*</code> helpers for constrained parameters.</td></tr>
+            <tr><td>Explicit effects</td><td><code>@pure</code>, <code>@exhaustive</code>, and <code>@throws</code> are checker-enforced. <code>@effects</code> is required on <code>async fn</code>.</td></tr>
             <tr><td>Flat, scannable structure</td><td>No class hierarchies. No <code>this</code>. Data is records; behaviour is functions that take records.</td></tr>
-            <tr><td>Exhaustive by default</td><td>Pattern matches warn when not exhaustive. Tagged unions are fully covered or the checker complains.</td></tr>
-            <tr><td>AI-first output</td><td>Generated JS embeds JSDoc with all Synth metadata — intent, constraints, effects — so downstream tools can reason about it.</td></tr>
+            <tr><td>Opt-in exhaustiveness</td><td>Add <code>@exhaustive</code> on a function to require full tagged-union coverage in its <code>match</code> body.</td></tr>
+            <tr><td>AI-first output</td><td>Generated JS embeds JSDoc with type signatures. Intent and constraint metadata live in Synth source today.</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -916,7 +916,7 @@
         </div>
 
         <h3 class="subsection">Constrained types with <span class="mono">where</span></h3>
-        <p>Any type alias can carry a <code>where</code> predicate. Functions parameterised by a constrained type automatically receive injected guard clauses — no manual validation needed.</p>
+        <p>Any type alias can carry a <code>where</code> predicate. For constrained parameters, the compiler may emit <code>__validate_*</code> helpers at function entry.</p>
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>synth</div>
           <pre id="type-constrained-code"></pre>
@@ -924,8 +924,9 @@
 
         <div class="callout callout-tip">
           <div class="callout-head">Auto-injected guards</div>
-          The transpiler emits a <code>__validate_TypeName</code> check at function entry for every
-          constrained-type parameter. You never write the guard manually — the constraint is the source of truth.
+          The transpiler can emit a <code>__validate_TypeName</code> check at function entry for
+          constrained-type parameters. Coverage depends on how the parameter is used — the
+          constraint definition remains the source of truth.
         </div>
       </section>
 
@@ -1210,8 +1211,8 @@
         <h2 class="section-title"><code>@pure</code> &amp; <code>@total</code></h2>
         <div class="section-rule"></div>
 
-        <p><code>@pure</code> declares that a function has no side effects — it does not access globals, mutate state, or call effectful methods. The checker verifies this statically.</p>
-        <p><code>@total</code> declares that a function is defined for all inputs and will always return a value (no throws, no unbounded recursion).</p>
+        <p><code>@pure</code> declares that a function has no side effects — it should not access globals, mutate state, or call effectful methods. The checker verifies this and emits warnings on violations.</p>
+        <p><code>@total</code> documents that a function is defined for all inputs. It is a declaration for readers and downstream tools — not currently enforced by the checker.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>synth</div>
@@ -1221,8 +1222,8 @@
         <div class="callout callout-warn">
           <div class="callout-head">Checker enforcement</div>
           A <code>@pure</code> function that references <code>console</code>, <code>Math.random</code>,
-          or any other global with side effects will produce a compiler warning. These are warnings,
-          not hard errors, in v0.4 — errors are planned for v0.9.
+          or any other global with side effects will produce a compiler warning. Violations are
+          warnings, not hard errors, as of v1.0.1.
         </div>
       </section>
 
@@ -1232,7 +1233,7 @@
         <h2 class="section-title"><code>@intent</code></h2>
         <div class="section-rule"></div>
 
-        <p>The single most important annotation in Synth. <code>@intent</code> is a machine-readable natural language description of what a function is <em>for</em> — not what it does mechanically, but why it exists. It is preserved as a JSDoc <code>@intent</code> tag in generated output.</p>
+        <p>The single most important annotation in Synth. <code>@intent</code> is a machine-readable natural language description of what a function is <em>for</em> — not what it does mechanically, but why it exists. It lives in Synth source today; JSDoc emission is planned for a future release.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>synth</div>
@@ -1253,7 +1254,7 @@
         <h2 class="section-title"><code>@effects</code></h2>
         <div class="section-rule"></div>
 
-        <p>Declares the set of side effects a function produces. In v0.4 this is a documentation annotation; it becomes a compiler-enforced contract in v0.8 (The Async &amp; Reactive Update).</p>
+        <p>Declares the set of side effects a function produces. As of v1.0.1, the checker warns when an <code>async fn</code> lacks an <code>@effects</code> declaration. It does not yet verify that the body matches the declared effect list.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>synth</div>
@@ -1287,7 +1288,7 @@
         <h2 class="section-title"><code>@exhaustive</code></h2>
         <div class="section-rule"></div>
 
-        <p>Placed on a <code>match</code> expression to opt into strict exhaustiveness checking. The checker verifies that all variants of a tagged union are covered.</p>
+        <p>Opt-in exhaustiveness checking for functions whose body is a <code>match</code> expression. Place <code>@exhaustive</code> on the function declaration — the checker verifies that all variants of a tagged union are covered.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>synth</div>
@@ -1427,8 +1428,7 @@
             <tr><td><code>synth --test input.syn</code></td><td>Run all <code>@test</code> declarations and print pass/fail summary. Exits with code 1 on failure.</td></tr>
             <tr><td><code>synth --bundle entry.syn out.js</code></td><td><strong>v0.5</strong> Bundle a multi-file project. Resolves all imports recursively, topo-sorts modules, emits one JS file.</td></tr>
             <tr><td><code>synth --check input.syn</code></td><td><strong>v1.0.0</strong> Static analysis only — no JS emitted. Reports checker warnings and parse errors.</td></tr>
-            <tr><td><code>synth --fmt input.syn [--write]</code></td><td><strong>v1.0.0</strong> Format source. Without <code>--write</code>, formatted source goes to stdout. With <code>--write</code>, rewrites file in-place.</td></tr>
-            <tr><td><code>synth --watch input.syn [out.js]</code></td><td><strong>v1.0.0</strong> Watch file and recompile on every save. Ctrl+C to stop.</td></tr>
+            <tr><td><code>synth --fmt input.syn</code></td><td><strong>v1.0.0</strong> Format source in-place. Rewrites the file with canonical spacing and indentation.</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -1463,7 +1463,7 @@
         <h2 class="section-title">New CLI Commands</h2>
         <div class="section-rule"></div>
 
-        <p class="section-lead">Static analysis, formatting, and live recompilation ship with the v1.0.1 toolchain.</p>
+        <p class="section-lead">Static analysis and formatting ship with the v1.0.1 bootstrap toolchain.</p>
 
         <h3 class="subsection-title"><code>synth --check</code></h3>
         <p>Runs the static checker without emitting any output file. Useful in CI or as a pre-commit hook.</p>
@@ -1477,24 +1477,12 @@ $ synth --check src/main.syn
         </div>
 
         <h3 class="subsection-title"><code>synth --fmt</code></h3>
-        <p>Canonical formatter. Normalises 2-space indentation, spacing around operators (<code>=</code>, <code>-&gt;</code>, <code>=&gt;</code>, <code>::</code>, <code>|&gt;</code>, binary arithmetic), brace padding, and trailing whitespace. Does not modify <code>&lt;</code>/<code>&gt;</code> spacing to preserve generic type parameters.</p>
+        <p>Canonical formatter. Normalises 2-space indentation, spacing around operators (<code>=</code>, <code>-&gt;</code>, <code>=&gt;</code>, <code>::</code>, <code>|&gt;</code>, binary arithmetic), brace padding, and trailing whitespace. Does not modify <code>&lt;</code>/<code>&gt;</code> spacing to preserve generic type parameters. Rewrites the source file in-place.</p>
         <div class="code-block">
           <div class="code-label"><span class="dot dot-js"></span>shell</div>
-          <pre>$ synth --fmt src/main.syn           # formatted source → stdout
-$ synth --fmt src/main.syn --write   # rewrite in-place
+          <pre>$ synth --fmt src/main.syn
 ✓  main.syn — formatted
 ✓  main.syn — already canonical     # if no changes needed</pre>
-        </div>
-
-        <h3 class="subsection-title"><code>synth --watch</code></h3>
-        <p>Watches a source file with <code>fs.watch</code> and recompiles on every save. Timestamped output for each recompile. Ctrl+C to stop.</p>
-        <div class="code-block">
-          <div class="code-label"><span class="dot dot-js"></span>shell</div>
-          <pre>$ synth --watch src/main.syn dist/main.js
-[14:02:11]  ✓  main.syn → main.js
-Watching main.syn for changes… (Ctrl+C to stop)
-[14:02:45]  ✓  main.syn → main.js
-[14:03:12]  ✗  [line 8:3] Expected } but got EOF</pre>
         </div>
       </section>
 
@@ -1504,11 +1492,11 @@ Watching main.syn for changes… (Ctrl+C to stop)
         <h2 class="section-title">Browser Compiler API</h2>
         <div class="section-rule"></div>
 
-        <p class="section-lead"><code>synth.compiler.js</code> is a self-contained IIFE bundle that runs the full Synth compiler client-side. Load it in any web page — no server, no build step, no dependencies.</p>
+        <p class="section-lead"><code>compiler.bootstrap.js</code> is a self-contained IIFE bundle that runs the full Synth bootstrap compiler client-side. Load it in any web page — no server, no build step, no dependencies.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot dot-axn"></span>HTML</div>
-          <pre>&lt;script src="synth.compiler.js"&gt;&lt;/script&gt;
+          <pre>&lt;script src="compiler.bootstrap.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   const { js, errors, warnings } = SynthCompiler.compile(source);
 &lt;/script&gt;</pre>
@@ -1532,12 +1520,15 @@ Watching main.syn for changes… (Ctrl+C to stop)
             <tr><td><code>message</code></td><td><code>string</code></td><td>Human-readable error message including line and column</td></tr>
             <tr><td><code>line</code></td><td><code>number</code></td><td>1-based source line number</td></tr>
             <tr><td><code>col</code></td><td><code>number</code></td><td>1-based column number</td></tr>
-            <tr><td><code>kind</code></td><td><code>"parse" | "error"</code></td><td>Error category</td></tr>
+            <tr><td><code>kind</code></td><td><code>"parse" | "error" | "codegen"</code></td><td>Error category</td></tr>
           </tbody>
         </table></div>
 
         <h3 class="subsection-title"><code>SynthCompiler.check(source)</code></h3>
-        <p>Runs only the static checker. Returns <code>{ warnings }</code>. Useful for lightweight lint-on-type without full codegen.</p>
+        <p>Runs only the static checker. Returns <code>{ warnings, errors }</code>. Useful for lightweight lint-on-type without full codegen.</p>
+
+        <h3 class="subsection-title"><code>SynthCompiler.stdlib</code> / <code>SynthCompiler.backend</code></h3>
+        <p><code>SynthCompiler.stdlib</code> is the stdlib JS source string bundled with the compiler. <code>SynthCompiler.backend</code> is <code>"bootstrap"</code> for this bundle.</p>
 
         <h3 class="subsection-title"><code>SynthCompiler.version</code></h3>
         <p>String — the compiler version, e.g. <code>"1.0.0"</code>.</p>
@@ -1958,9 +1949,8 @@ main()</pre>
           </div>
           <ul class="version-features">
             <li><strong><code>synth --check &lt;file&gt;</code></strong> — static analysis only; reports checker warnings and parse errors without emitting JS</li>
-            <li><strong><code>synth --fmt &lt;file&gt;</code></strong> — canonical formatter; normalizes indentation, operator spacing, brace padding, and trailing whitespace</li>
-            <li><strong><code>synth --watch &lt;file&gt; [output.js]</code></strong> — file watcher; recompiles automatically on every save</li>
-            <li><strong><code>synth.compiler.js</code></strong> — browser-compatible IIFE bundle; full Synth compiler running client-side via <code>SynthCompiler.compile(src)</code></li>
+            <li><strong><code>synth --fmt &lt;file&gt;</code></strong> — canonical formatter; rewrites source in-place with normalised spacing and indentation</li>
+            <li><strong><code>compiler.bootstrap.js</code></strong> — browser-compatible IIFE bundle; full bootstrap compiler running client-side via <code>SynthCompiler.compile(src)</code></li>
             <li><strong>Structured error objects</strong> — <code>compile()</code> returns <code>{ js, errors, warnings }</code> with <code>{ message, line, col, kind }</code> per error</li>
             <li><strong>Demo: Synth Playground</strong> — live in-browser IDE with split-pane editor, real-time transpilation, live result execution, and 10 preloaded examples</li>
           </ul>
@@ -2315,6 +2305,7 @@ record Hero {
   hp:     Health
   attack: int
   level:  int
+  alive:  bool
 }
 
 // Annotated pure function — intent is machine-readable
@@ -2334,23 +2325,26 @@ fn top_heroes :: (party: list<Hero>) -> list<string> =
     |> filter(.alive)
     |> map(.name)
 
-// @test — inline, runs with: node dist/cli.js --test
+// @test — inline, runs with: synth --test file.syn
 @test "mage lv10 is Archmage"   { level_title("mage", 10) === "Archmage" }
 @test "knight lv3 is Squire"    { level_title("knight", 3) === "Squire" }
 `);
 
     setCode('quickstart-code', `
-# Clone and build
-git clone https://github.com/your-org/synth
+# Install globally (recommended)
+npm install -g synth-lang
+
+# Or clone and build from source
+git clone https://github.com/synth-pl/synth
 cd synth
 npm install
-npx tsc
+npm run build:toolchain
 
 # Transpile a source file
-node dist/cli.js examples/rpg.syn demo/rpg.synth.js
+synth examples/rpg.syn demo/rpg.synth.js
 
 # Run @test declarations
-node dist/cli.js --test examples/rpg.syn
+synth --test examples/rpg.syn
 `);
 
     setCode('hello-code', `
@@ -2785,8 +2779,8 @@ fn element_bonus :: (class: string, element: string) -> int {
   }
 }
 
-// In generated JS, this becomes:
-// /** @intent Elemental affinity bonus for a hero class attacking with a given element */
+// In generated JS today, JSDoc includes @param and @returns.
+// @intent emission to JSDoc is planned for a future release.
 `);
 
     setCode('ann-effects-code', `
@@ -2824,14 +2818,14 @@ fn fib :: (n: int) -> int {
     setCode('ann-exhaustive-code', `
 type Direction = | North | South | East | West
 
+@exhaustive
 fn opposite :: (d: Direction) -> Direction =
-  @exhaustive
   match d {
     | North => South
     | South => North
     | East  => West
     | West  => East
-    // Checker error if any variant is missing
+    // Checker warns if any variant is missing
   }
 `);
 
@@ -2858,8 +2852,7 @@ fn opposite :: (d: Direction) -> Direction =
     setCode('cli-code', `
 # Single-file transpile
 synth examples/rpg.syn demo/rpg.synth.js
-#   ✓ Transpiled rpg.syn → rpg.synth.js
-#     1576 lines Synth → 2436 lines JS
+#   ✓ Transpiled rpg.syn → rpg.synth.js (bootstrap)
 
 # Run @test declarations  (auto-bundles if file has imports)
 synth --test examples/rpg.syn
@@ -2867,7 +2860,7 @@ synth --test examples/rpg.syn
 #   ────────────────────────────────────────
 #   ✓ level_title: mage lv10 = Archmage
 #   ✓ hp_status_label: 0 = DEAD
-#   15 passed, 0 failed, 15 total
+#   17 passed, 0 failed, 17 total
 
 # Bundle a multi-file project  (v0.5)
 synth --bundle examples/dungeon/main.syn demo/dungeon.sources.js
@@ -2878,14 +2871,9 @@ synth --bundle examples/dungeon/main.syn demo/dungeon.sources.js
 synth --check src/main.syn
 #   ✓  main.syn — no issues
 
-# Format source  (v1.0.0)
-synth --fmt src/main.syn --write
+# Format source in-place  (v1.0.0)
+synth --fmt src/main.syn
 #   ✓  main.syn — formatted
-
-# Watch and recompile on save  (v1.0.0)
-synth --watch src/main.syn dist/main.js
-#   [14:02:11]  ✓  main.syn → main.js
-#   Watching main.syn for changes… (Ctrl+C to stop)
 `);
 
   // ── v0.6 — Result type ───────────────────────────────────────────────────
@@ -3209,7 +3197,7 @@ on Game.change { check_game_over() }
 
   setCode('browser-api-code', `
 // Load the bundle in your HTML:
-// &lt;script src="synth.compiler.js"&gt;&lt;/script&gt;
+// &lt;script src="compiler.bootstrap.js"&gt;&lt;/script&gt;
 
 // Compile Synth source to JavaScript
 let source = \`
@@ -3231,10 +3219,11 @@ if result.errors.length > 0 {
 }
 
 // Static check only (no codegen)
-let { warnings } = SynthCompiler.check(source)
+let { warnings, errors } = SynthCompiler.check(source)
 
-// Version string
-console.log(SynthCompiler.version)   // "1.0.0"
+// Bundled stdlib source and backend identifier
+console.log(SynthCompiler.backend)   // "bootstrap"
+console.log(SynthCompiler.version)   // compiler semver, e.g. "1.0.0"
 `);
 
   </script>
