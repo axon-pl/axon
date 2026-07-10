@@ -140,10 +140,24 @@ const $likely_best = (subject, claims, threshold = 0.28) => {
   return best;
 };
 
+/** Score every claim against subject. best is -1 when nothing beats threshold. */
+const $score_claims = (subject, claims, threshold = 0.28) => {
+  const sv = $embed(subject);
+  const scores = [];
+  let best = -1, bestScore = threshold;
+  for (let i = 0; i < claims.length; i++) {
+    const score = $cosine(sv, $embed(claims[i]));
+    scores.push(score);
+    if (score > bestScore) { bestScore = score; best = i; }
+  }
+  return { scores, best, bestScore: best < 0 ? 0 : bestScore };
+};
+
 if (typeof globalThis !== 'undefined') {
   globalThis.SynthRuntime = globalThis.SynthRuntime || {};
   globalThis.SynthRuntime.embed = $embed;
   globalThis.SynthRuntime.likelyBest = $likely_best;
+  globalThis.SynthRuntime.scoreClaims = $score_claims;
   globalThis.SynthRuntime.setEmbed = (fn) => { globalThis.__synth_embed = fn; };
 }
 

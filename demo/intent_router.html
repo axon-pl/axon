@@ -17,6 +17,7 @@
       --purple: #b060ff;
       --amber: #ffb020;
       --green: #00e5a0;
+      --threshold: 0.28;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -51,30 +52,100 @@
     }
     .back-link:hover { color: var(--text); }
     .page-body {
-      max-width: 920px; width: 100%; margin: 0 auto;
-      padding: 28px 20px 40px; flex: 1;
-      display: grid; gap: 20px;
+      max-width: 1100px; width: 100%; margin: 0 auto;
+      padding: 24px 20px 40px; flex: 1;
+      display: grid; gap: 18px;
     }
     .hero-copy h1 {
-      font-size: 28px; letter-spacing: -0.4px; margin-bottom: 8px;
+      font-size: 26px; letter-spacing: -0.4px; margin-bottom: 8px;
     }
-    .hero-copy p { color: var(--muted); line-height: 1.6; font-size: 15px; }
+    .hero-copy p { color: var(--muted); line-height: 1.6; font-size: 15px; max-width: 62ch; }
     .hero-copy code {
       font-family: 'Courier New', monospace; font-size: 13px;
       color: var(--cyan); background: rgba(0,212,255,0.08);
       border: 1px solid rgba(0,212,255,0.2); padding: 1px 6px; border-radius: 4px;
     }
+    .stage {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 16px;
+      min-height: 480px;
+    }
+    @media (max-width: 860px) {
+      .stage { grid-template-columns: 1fr; }
+      .page-header { flex-wrap: wrap; }
+      .header-badge { margin-left: 0; }
+    }
     .panel {
       background: var(--panel); border: 1px solid var(--border);
-      border-radius: 12px; padding: 18px;
+      border-radius: 12px; padding: 16px;
+      display: flex; flex-direction: column; min-height: 0;
     }
     .panel-label {
       font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
       color: var(--muted); font-family: 'Courier New', monospace; margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
-    .composer { display: flex; gap: 10px; flex-wrap: wrap; }
+    .panel-hint {
+      font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--muted); opacity: 0.85;
+    }
+    .chat {
+      flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+      padding: 4px 2px 12px; min-height: 280px; max-height: 420px;
+    }
+    .bubble {
+      max-width: 88%; padding: 10px 13px; border-radius: 12px;
+      font-size: 14px; line-height: 1.45; animation: rise 0.28s ease-out;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .bubble.user {
+      align-self: flex-end;
+      background: rgba(0,212,255,0.12);
+      border: 1px solid rgba(0,212,255,0.28);
+      color: var(--text);
+      border-bottom-right-radius: 4px;
+    }
+    .bubble.bot {
+      align-self: flex-start;
+      background: #0a0118;
+      border: 1px solid rgba(176,96,255,0.2);
+      border-bottom-left-radius: 4px;
+    }
+    .bubble-meta {
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      margin-bottom: 6px;
+    }
+    .path-badge {
+      font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.06em;
+      padding: 2px 7px; border-radius: 4px; font-weight: 700;
+    }
+    .path-badge.exact {
+      color: var(--green); background: rgba(0,229,160,0.12);
+      border: 1px solid rgba(0,229,160,0.35);
+    }
+    .path-badge.likely {
+      color: var(--cyan); background: rgba(0,212,255,0.12);
+      border: 1px solid rgba(0,212,255,0.35);
+    }
+    .path-badge.fallback {
+      color: var(--amber); background: rgba(255,176,32,0.12);
+      border: 1px solid rgba(255,176,32,0.35);
+    }
+    .intent-chip {
+      font-family: 'Courier New', monospace; font-size: 11px; color: var(--purple);
+    }
+    .bubble.bot .reply { color: var(--text); }
+    .bubble.empty {
+      align-self: center; text-align: center; color: var(--muted);
+      border: 1px dashed var(--border); background: transparent; max-width: 100%;
+      margin-top: 40px;
+    }
+    .composer { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; }
     #msg {
-      flex: 1; min-width: 220px;
+      flex: 1; min-width: 180px;
       background: #0a0118; border: 1px solid var(--border); color: var(--text);
       border-radius: 8px; padding: 12px 14px; font-size: 15px; outline: none;
     }
@@ -92,35 +163,65 @@
       font-size: 12px; cursor: pointer;
     }
     .chip:hover { border-color: var(--cyan); color: var(--cyan); }
-    .result-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    .board-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 10px; margin-bottom: 8px;
     }
-    @media (max-width: 640px) {
-      .result-grid { grid-template-columns: 1fr; }
-      .page-header { flex-wrap: wrap; }
-      .header-badge { margin-left: 0; }
+    .threshold-label {
+      font-family: 'Courier New', monospace; font-size: 11px; color: var(--amber);
     }
-    .result-card {
-      background: #0a0118; border: 1px solid var(--border);
-      border-radius: 10px; padding: 14px;
+    .claims { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .claim {
+      background: #0a0118; border: 1px solid rgba(176,96,255,0.14);
+      border-radius: 10px; padding: 10px 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .result-k { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-family: 'Courier New', monospace; }
-    .result-v { font-size: 16px; font-weight: 600; }
-    .result-v.intent { color: var(--cyan); }
-    .result-v.reply { color: var(--text); font-weight: 500; line-height: 1.45; }
-    .log {
-      max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+    .claim.winner {
+      border-color: rgba(0,212,255,0.55);
+      box-shadow: 0 0 0 1px rgba(0,212,255,0.15), 0 0 18px rgba(0,212,255,0.08);
     }
-    .log-row {
-      display: grid; grid-template-columns: 1fr auto; gap: 10px;
-      padding: 10px 12px; border-radius: 8px; background: #0a0118;
-      border: 1px solid rgba(176,96,255,0.12); font-size: 13px;
+    .claim.below { opacity: 0.72; }
+    .claim-top {
+      display: flex; justify-content: space-between; gap: 8px; align-items: baseline;
+      margin-bottom: 6px;
     }
-    .log-msg { color: var(--muted); }
-    .log-intent {
-      font-family: 'Courier New', monospace; color: var(--amber); white-space: nowrap;
+    .claim-intent {
+      font-family: 'Courier New', monospace; font-size: 12px; color: var(--cyan); font-weight: 700;
     }
-    .source-panel { margin-top: 4px; }
+    .claim-score {
+      font-family: 'Courier New', monospace; font-size: 12px; color: var(--muted);
+    }
+    .claim.winner .claim-score { color: var(--cyan); }
+    .claim-phrase {
+      font-size: 11px; color: var(--muted); margin-bottom: 8px; line-height: 1.35;
+    }
+    .bar-track {
+      position: relative; height: 10px; border-radius: 5px;
+      background: rgba(176,96,255,0.12); overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; width: 0%; border-radius: 5px;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+      transition: width 0.22s ease-out;
+    }
+    .claim.winner .bar-fill {
+      background: linear-gradient(90deg, #00e5a0, var(--cyan));
+    }
+    .bar-threshold {
+      position: absolute; top: 0; bottom: 0; width: 2px;
+      background: var(--amber);
+      left: calc(var(--threshold) * 100%);
+      box-shadow: 0 0 6px rgba(255,176,32,0.5);
+      pointer-events: none;
+    }
+    .preview-status {
+      margin-top: 12px; font-size: 12px; color: var(--muted); line-height: 1.45;
+      font-family: 'Courier New', monospace; min-height: 2.8em;
+    }
+    .preview-status strong { color: var(--text); font-weight: 600; }
+    .note {
+      margin-top: 8px; font-size: 12px; color: var(--muted); line-height: 1.5;
+    }
     .source-panel summary {
       cursor: pointer; color: var(--muted); font-size: 13px; margin-bottom: 8px;
     }
@@ -132,9 +233,6 @@
     .kw { color: #ff79c6; font-weight: 600; }
     .str { color: #f1fa8c; }
     .cmt { color: #6272a4; font-style: italic; }
-    .note {
-      margin-top: 10px; font-size: 12px; color: var(--muted); line-height: 1.5;
-    }
   </style>
   <link rel="stylesheet" href="site-footer.css">
 </head>
@@ -151,49 +249,50 @@
 
   <main class="page-body">
     <section class="hero-copy">
-      <h1>Route by meaning, not exact strings.</h1>
+      <h1>Watch soft arms compete in real time.</h1>
       <p>
         Exact arms still win first (<code>"quit"</code>). Soft <code>likely "…"</code> arms
-        compete by embedding similarity. Plug in a real model with
-        <code>SynthRuntime.setEmbed(fn)</code> — demos use a tiny offline embedder by default.
+        fight by cosine similarity against a live threshold of <code>0.28</code>.
+        Plug in a real model with <code>SynthRuntime.setEmbed(fn)</code> — this demo uses
+        the offline bag-of-words embedder.
       </p>
     </section>
 
-    <section class="panel">
-      <div class="panel-label">Try a message</div>
-      <div class="composer">
-        <input id="msg" type="text" placeholder="Type something like “I need my money back”" />
-        <button class="btn" id="send">Route</button>
-      </div>
-      <div class="chips" id="chips"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-label">Latest route</div>
-      <div class="result-grid">
-        <div class="result-card">
-          <div class="result-k">Intent</div>
-          <div class="result-v intent" id="out-intent">—</div>
+    <div class="stage">
+      <section class="panel">
+        <div class="panel-label">
+          <span>Conversation</span>
+          <span class="panel-hint">Enter to send</span>
         </div>
-        <div class="result-card">
-          <div class="result-k">Label</div>
-          <div class="result-v" id="out-label">—</div>
+        <div class="chat" id="chat">
+          <div class="bubble empty" id="chat-empty">
+            Type a message or tap a sample — exact hits skip the scoreboard,
+            soft matches light up the winning claim.
+          </div>
         </div>
-      </div>
-      <div class="result-card" style="margin-top:12px">
-        <div class="result-k">Reply</div>
-        <div class="result-v reply" id="out-reply">Send a message to see soft routing.</div>
-      </div>
-      <p class="note">
-        Default embedder is lexical (hashed bag-of-words). Swap it for OpenAI / local embeddings
-        without changing the Synth source.
-      </p>
-    </section>
+        <div class="composer">
+          <input id="msg" type="text" placeholder="Try “I need my money back”" autocomplete="off" />
+          <button class="btn" id="send" type="button">Route</button>
+        </div>
+        <div class="chips" id="chips"></div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-label">History</div>
-      <div class="log" id="log"></div>
-    </section>
+      <section class="panel">
+        <div class="panel-label">
+          <span>Likely competition</span>
+          <span class="threshold-label">threshold 0.28 ▌</span>
+        </div>
+        <div class="board-head">
+          <span class="panel-hint">Live scores while you type</span>
+        </div>
+        <div class="claims" id="claims"></div>
+        <div class="preview-status" id="preview">Type to preview soft-match scores…</div>
+        <p class="note">
+          Amber line = codegen threshold. Winner must clear it. Routing still comes from
+          compiled <code>handle_message</code> in Synth.
+        </p>
+      </section>
+    </div>
 
     <details class="source-panel panel">
       <summary>View intent_router.syn</summary>
@@ -215,44 +314,160 @@
   <script src="synth.stdlib.js"></script>
   <script src="intent_router.sources.js"></script>
   <script>
-    const samples = [
-      "hey there",
-      "how do I install this?",
-      "I want a refund",
-      "the app keeps crashing",
-      "what does the pro plan cost?",
-      "quit"
+    // Must match likely claims in examples/intent_router.syn (codegen order).
+    const CLAIMS = [
+      { intent: 'greet',   claim: 'greeting hello hi hey' },
+      { intent: 'help',    claim: 'help how do I docs documentation' },
+      { intent: 'billing', claim: 'refund billing charge money back payment' },
+      { intent: 'bug',     claim: 'bug crash error broken not working' },
+      { intent: 'pricing', claim: 'pricing cost plan subscribe upgrade' },
     ];
+    const EXACT = new Set(['quit', 'exit', 'bye']);
+    const THRESHOLD = 0.28;
+
+    const samples = [
+      'hey there',
+      'how do I install this?',
+      'I want a refund',
+      'the app keeps crashing',
+      'what does the pro plan cost?',
+      'quit',
+      'asdfzxcv'
+    ];
+
+    const chat = document.getElementById('chat');
+    const chatEmpty = document.getElementById('chat-empty');
+    const claimsEl = document.getElementById('claims');
+    const previewEl = document.getElementById('preview');
+    const msgInput = document.getElementById('msg');
 
     const chips = document.getElementById('chips');
     samples.forEach((s) => {
       const b = document.createElement('button');
+      b.type = 'button';
       b.className = 'chip';
       b.textContent = s;
-      b.onclick = () => { document.getElementById('msg').value = s; route(); };
+      b.onclick = () => { msgInput.value = s; updateBoard(s); route(); };
       chips.appendChild(b);
     });
 
-    function route() {
-      const msg = document.getElementById('msg').value.trim();
-      if (!msg) return;
-      const r = handle_message(msg);
-      document.getElementById('out-intent').textContent = r.intent;
-      document.getElementById('out-label').textContent = r.label;
-      document.getElementById('out-reply').textContent = r.reply;
+    CLAIMS.forEach((c, i) => {
       const row = document.createElement('div');
-      row.className = 'log-row';
-      row.innerHTML = `<div class="log-msg">${escapeHtml(msg)}</div><div class="log-intent">${escapeHtml(r.intent)}</div>`;
-      const log = document.getElementById('log');
-      log.prepend(row);
+      row.className = 'claim';
+      row.id = 'claim-' + i;
+      row.innerHTML =
+        `<div class="claim-top">` +
+          `<span class="claim-intent">${escapeHtml(c.intent)}</span>` +
+          `<span class="claim-score" id="score-${i}">0%</span>` +
+        `</div>` +
+        `<div class="claim-phrase">likely "${escapeHtml(c.claim)}"</div>` +
+        `<div class="bar-track">` +
+          `<div class="bar-fill" id="bar-${i}"></div>` +
+          `<div class="bar-threshold" title="threshold 0.28"></div>` +
+        `</div>`;
+      claimsEl.appendChild(row);
+    });
+
+    function classifyPath(msg, result) {
+      if (EXACT.has(msg.trim().toLowerCase())) return 'exact';
+      if (result.intent === 'unknown') return 'fallback';
+      return 'likely';
+    }
+
+    function updateBoard(msg) {
+      const text = (msg || '').trim();
+      const claimStrs = CLAIMS.map((c) => c.claim);
+
+      if (!text) {
+        CLAIMS.forEach((_, i) => {
+          document.getElementById('bar-' + i).style.width = '0%';
+          document.getElementById('score-' + i).textContent = '0%';
+          const row = document.getElementById('claim-' + i);
+          row.classList.remove('winner', 'below');
+        });
+        previewEl.innerHTML = 'Type to preview soft-match scores…';
+        return null;
+      }
+
+      if (EXACT.has(text.toLowerCase())) {
+        CLAIMS.forEach((_, i) => {
+          document.getElementById('bar-' + i).style.width = '0%';
+          document.getElementById('score-' + i).textContent = '—';
+          const row = document.getElementById('claim-' + i);
+          row.classList.remove('winner');
+          row.classList.add('below');
+        });
+        previewEl.innerHTML = '<strong>EXACT</strong> arm wins — soft competition skipped.';
+        return { path: 'exact', scored: null };
+      }
+
+      const scored = SynthRuntime.scoreClaims(text, claimStrs, THRESHOLD);
+      let maxScore = 0;
+      scored.scores.forEach((s) => { if (s > maxScore) maxScore = s; });
+
+      scored.scores.forEach((score, i) => {
+        const pct = Math.round(score * 100);
+        document.getElementById('bar-' + i).style.width = (score * 100).toFixed(1) + '%';
+        document.getElementById('score-' + i).textContent = pct + '%';
+        const row = document.getElementById('claim-' + i);
+        const isWinner = scored.best === i;
+        row.classList.toggle('winner', isWinner);
+        row.classList.toggle('below', score <= THRESHOLD);
+      });
+
+      if (scored.best >= 0) {
+        const w = CLAIMS[scored.best];
+        previewEl.innerHTML =
+          `<strong>LIKELY</strong> → <strong>${escapeHtml(w.intent)}</strong> ` +
+          `(${Math.round(scored.bestScore * 100)}% &gt; ${Math.round(THRESHOLD * 100)}%)`;
+      } else {
+        previewEl.innerHTML =
+          `<strong>FALLBACK</strong> — best soft score ` +
+          `${Math.round(maxScore * 100)}% stays under threshold.`;
+      }
+      return { path: scored.best >= 0 ? 'likely' : 'fallback', scored };
+    }
+
+    function appendBubble(role, html) {
+      if (chatEmpty) chatEmpty.remove();
+      const el = document.createElement('div');
+      el.className = 'bubble ' + role;
+      el.innerHTML = html;
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function route() {
+      const msg = msgInput.value.trim();
+      if (!msg) return;
+      updateBoard(msg);
+      const r = handle_message(msg);
+      const path = classifyPath(msg, r);
+
+      appendBubble('user', escapeHtml(msg));
+      appendBubble(
+        'bot',
+        `<div class="bubble-meta">` +
+          `<span class="path-badge ${path}">${path.toUpperCase()}</span>` +
+          `<span class="intent-chip">${escapeHtml(r.intent)} · ${escapeHtml(r.label)}</span>` +
+        `</div>` +
+        `<div class="reply">${escapeHtml(r.reply)}</div>`
+      );
+      msgInput.value = '';
+      msgInput.focus();
     }
 
     function escapeHtml(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
+    let debounceTimer = null;
+    msgInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => updateBoard(msgInput.value), 80);
+    });
     document.getElementById('send').onclick = route;
-    document.getElementById('msg').addEventListener('keydown', (e) => {
+    msgInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') route();
     });
 
@@ -268,7 +483,6 @@
     });
 
     function highlight(src) {
-      // Single-pass — never re-match inside generated span tags (avoids leaking "cmt"/"str").
       const escaped = src
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -283,6 +497,8 @@
         }
       );
     }
+
+    updateBoard('');
   </script>
 </body>
 </html>
