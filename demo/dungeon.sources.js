@@ -658,7 +658,7 @@ const parse_config = (input) => {
   const _r49 = parse_seed($trim(parts[1], ));
   if (_r49.tag === 'Err') return _r49;
   let seed = _r49.value;
-  return $ok({level: level, seed: seed});
+  return $ok({level, seed});
 };
 
 const config_summary = (cfg) => `Level ${cfg.level} · Seed ${cfg.seed}`;
@@ -714,11 +714,11 @@ const init = () => ({level: 1, seed: 7777, rows: 22, cols: 48});
 
 const next_seed = (s) => (s * 6364136 + 1442695) % 9007199254740991;
 
-const new_map = (s) => ({_spread_: s, seed: next_seed(s.seed)});
+const new_map = (s) => ({...s, seed: next_seed(s.seed)});
 
-const go_next = (s) => ({_spread_: s, level: s.level + 1, seed: next_seed(s.seed)});
+const go_next = (s) => ({...s, level: s.level + 1, seed: next_seed(s.seed)});
 
-const go_prev = (s) => ({_spread_: s, level: s.level - 1, seed: next_seed(s.seed)});
+const go_prev = (s) => ({...s, level: s.level - 1, seed: next_seed(s.seed)});
 
 /**
  * @param {number} level
@@ -752,7 +752,7 @@ const handle_code_input = (s) => {
     let cfg = result.value;
     errEl.textContent = "";
     errEl.style.display = "none";
-    return render({_spread_: s, level: cfg.level, seed: cfg.seed});
+    return render({...s, level: cfg.level, seed: cfg.seed});
   } else {
     errEl.textContent = result.message;
     return errEl.style.display = "block";

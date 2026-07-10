@@ -69,7 +69,7 @@ const priority_label = (() => {
  * @returns {*}
  */
 const add_card = (col, title, type, priority, pts) => {
-  let new_card = {id: Board.next_id, title: title, col: col, type: type, priority: priority, pts: pts};
+  let new_card = {id: Board.next_id, title, col, type, priority, pts};
   return Board.set({cards: [...Board.cards, new_card], next_id: Board.next_id + 1});
 };
 
@@ -79,7 +79,7 @@ const add_card = (col, title, type, priority, pts) => {
  * @returns {*}
  */
 const add_col = (id, label) => {
-  let new_col = {id: id, label: label};
+  let new_col = {id, label};
   return Board.set({cols: [...Board.cols, new_col]});
 };
 

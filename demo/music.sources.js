@@ -480,7 +480,7 @@ const format_stats_line = (stats) => {
  * @param {string} genre
  * @returns {Track}
  */
-const create_track = (id, title, artist, bpm, duration, genre) => ({id: id, title: title, artist: artist, bpm: bpm, duration: duration, genre: genre, featured: false});
+const create_track = (id, title, artist, bpm, duration, genre) => ({id, title, artist, bpm, duration, genre, featured: false});
 
 /**
  * @param {Volume} vol

@@ -25,7 +25,7 @@ const danger_label = (n) => ((_m) => (_m === 1) ? "Safe" : (_m === 2) ? "Low" : 
 
 const danger_cls = (n) => ((_m) => (_m === 1) ? "safe" : (_m === 2) ? "low" : (_m === 3) ? "mod" : (_m === 4) ? "high" : "crit")(n);
 
-const mission_summary = (name, sector, danger) => ({name: name, sector: sector, danger: danger});
+const mission_summary = (name, sector, danger) => ({name, sector, danger});
 
 /**
  * @returns {Mission}
@@ -52,7 +52,7 @@ const fleet_stats = (missions) => (() => {
   let max_dist = n > 0 ? $max_by(missions, (m) => m.distance).distance : 0;
   let danger4 = $filter(missions, (m) => m.danger >= 4);
   let high_risk = $count(danger4);
-  return {count: n, ore: ore, fuel: fuel, data: data, avg_d: avg_d, max_dist: max_dist, high_risk: high_risk};
+  return {count: n, ore, fuel, data, avg_d, max_dist, high_risk};
 })();
 
 /**

@@ -103,7 +103,7 @@ const tick = (dt) => {
       player_x = tx;
       player_lane = player_target;
     }
-    traffic = $filter($map(traffic, (c) => ({_spread_: c, y: c.y + speed * dt})), (c) => c.y < CANVAS_H + CAR_H + 20);
+    traffic = $filter($map(traffic, (c) => ({...c, y: c.y + speed * dt})), (c) => c.y < CANVAS_H + CAR_H + 20);
     spawn_timer = spawn_timer + dt;
     let interval = $clamp(1.6 - speed * 0.0025, 0.35, 1.6);
     if (spawn_timer >= interval) {
@@ -111,7 +111,7 @@ const tick = (dt) => {
       let lane = $floor($random() * LANE_COUNT);
       let seed = $random();
       let color = car_color(seed);
-      traffic = [...traffic, {x: lane_x(lane), y: SPAWN_Y, color: color, seed: seed}];
+      traffic = [...traffic, {x: lane_x(lane), y: SPAWN_Y, color, seed}];
     }
     invuln_timer = invuln_timer - dt;
     if (invuln_timer <= 0) {

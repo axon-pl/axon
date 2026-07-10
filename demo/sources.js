@@ -747,11 +747,11 @@ const ModalState = (open, title, body) => ({ open, title, body });
 
 const Player = (name, score, active) => ({ name, score, active });
 
-const counter_make = (min, max, initial) => ({count: \$clamp(initial, min, max), min: min, max: max});
+const counter_make = (min, max, initial) => ({count: \$clamp(initial, min, max), min, max});
 
-const counter_inc = (state) => ({_spread_: state, count: Math.min(state.count + 1, state.max)});
+const counter_inc = (state) => ({...state, count: Math.min(state.count + 1, state.max)});
 
-const counter_dec = (state) => ({_spread_: state, count: Math.max(state.count - 1, state.min)});
+const counter_dec = (state) => ({...state, count: Math.max(state.count - 1, state.min)});
 
 const counter_can_inc = (state) => state.count < state.max;
 
@@ -792,9 +792,9 @@ const theme_next = (current, available) => available[(available.indexOf(current)
  */
 const theme_label = (name) => ((_m) => (_m === "light") ? "Light" : (_m === "dark") ? "Dark" : (_m === "synthwave") ? "Synthwave" : name)(name);
 
-const modal_open = (title, body) => ({open: true, title: title, body: body});
+const modal_open = (title, body) => ({open: true, title, body});
 
-const modal_close = (state) => ({_spread_: state, open: false});
+const modal_close = (state) => ({...state, open: false});
 
 /**
  * @param {EmailAddress} email

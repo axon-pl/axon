@@ -249,7 +249,7 @@ const damage_breakdown = (atk, def, bonus, roll) => {
   let isCrit = roll >= 18;
   let mult = isCrit ? 2 : 1;
   let finalDmg = Math.max(1, afterArmor * mult);
-  return {atk: atk, bonus: bonus, power: power, mitigation: mitigation, afterArmor: afterArmor, isCrit: isCrit, finalDmg: finalDmg};
+  return {atk, bonus, power, mitigation, afterArmor, isCrit, finalDmg};
 };
 
 const compute_damage = (() => {
@@ -284,7 +284,7 @@ const battle_gold = (baseReward) => Math.floor(baseReward * 5 / 4);
  */
 const apply_damage = (entity, dmg) => {
   let newHp = Math.max(0, entity.hp - dmg);
-  return {_spread_: entity, hp: newHp, alive: newHp > 0};
+  return {...entity, hp: newHp, alive: newHp > 0};
 };
 
 /**
@@ -294,7 +294,7 @@ const apply_damage = (entity, dmg) => {
  */
 const apply_heal = (hero, amount) => {
   let newHp = Math.min(hero.maxHp, hero.hp + amount);
-  return {_spread_: hero, hp: newHp};
+  return {...hero, hp: newHp};
 };
 
 /**
@@ -304,7 +304,7 @@ const apply_heal = (hero, amount) => {
  */
 const apply_revive = (hero, hp) => {
   let revHp = Math.min(hero.maxHp, hp);
-  return {_spread_: hero, hp: revHp, alive: true};
+  return {...hero, hp: revHp, alive: true};
 };
 
 /**
@@ -315,7 +315,7 @@ const apply_level_up = (hero) => {
   let newLevel = hero.level + 1;
   let hpGain = 12;
   let newMax = hero.maxHp + hpGain;
-  return {_spread_: hero, level: newLevel, xp: hero.xp - xp_to_next(hero.level), maxHp: newMax, hp: Math.min(hero.hp + hpGain, newMax), baseStrength: hero.baseStrength + 1, baseDefense: hero.baseDefense + 1};
+  return {...hero, level: newLevel, xp: hero.xp - xp_to_next(hero.level), maxHp: newMax, hp: Math.min(hero.hp + hpGain, newMax), baseStrength: hero.baseStrength + 1, baseDefense: hero.baseDefense + 1};
 };
 
 /**
@@ -329,7 +329,7 @@ const maybe_level_up = (hero) => hero.xp >= xp_to_next(hero.level) && hero.level
  * @param {number} xpGained
  * @returns {Hero}
  */
-const award_xp = (hero, xpGained) => hero.alive ? maybe_level_up({_spread_: hero, xp: hero.xp + xpGained}) : hero;
+const award_xp = (hero, xpGained) => hero.alive ? maybe_level_up({...hero, xp: hero.xp + xpGained}) : hero;
 
 const alive_heroes = (party) => $filter(party, (__x) => __x.alive);
 
@@ -343,7 +343,7 @@ const hero_names = (party) => $map($filter(party, (__x) => __x.alive), (__x) => 
  * @param {Hero} party
  * @returns {Hero}
  */
-const rest_party = (party) => $map(party, (h) => h.alive ? {_spread_: h, hp: Math.min(h.maxHp, h.hp + 50)} : h);
+const rest_party = (party) => $map(party, (h) => h.alive ? {...h, hp: Math.min(h.maxHp, h.hp + 50)} : h);
 
 /**
  * @param {HeroName} name
@@ -354,7 +354,7 @@ const rest_party = (party) => $map(party, (h) => h.alive ? {_spread_: h, hp: Mat
  * @param {Level} level
  * @returns {Hero}
  */
-const create_hero = (name, heroClass, hp, strength, defense, level) => ({name: name, heroClass: heroClass, hp: hp, maxHp: hp, baseStrength: strength, baseDefense: defense, level: level, xp: 0, alive: true, weapon: null, armor: null});
+const create_hero = (name, heroClass, hp, strength, defense, level) => ({name, heroClass, hp, maxHp: hp, baseStrength: strength, baseDefense: defense, level, xp: 0, alive: true, weapon: null, armor: null});
 
 const all_enemies = (() => {
   const __cache = new Map();
@@ -501,17 +501,17 @@ const render_game = (rootId) => {
 })();
   let go_town = () => (() => {
     let rested = rest_party(state.party);
-    state = {_spread_: state, scene: "town", battleLog: [], battleWon: false, party: rested, pickingFor: null, itemTarget: null};
+    state = {...state, scene: "town", battleLog: [], battleWon: false, party: rested, pickingFor: null, itemTarget: null};
     return render();
 })();
   let go_battle = () => (() => {
     let e = make_enemy(state.stageNum);
     let log = [`** ${e.name} appears! **`, weakness_label(e.weakness), ""];
-    state = {_spread_: state, scene: "battle", enemy: e, battleLog: log, battleWon: false, pickingFor: null, itemTarget: null};
+    state = {...state, scene: "battle", enemy: e, battleLog: log, battleWon: false, pickingFor: null, itemTarget: null};
     return render();
 })();
   let go = (scene) => (() => {
-    state = {_spread_: state, scene: scene, pickingFor: null, itemTarget: null};
+    state = {...state, scene: scene, pickingFor: null, itemTarget: null};
     return render();
 })();
   let do_round = () => (() => {
@@ -533,7 +533,7 @@ const render_game = (rootId) => {
           missed ? 0 : log.push(fmt_dmg_detail(atk, hitBonus, mitigation, "defense", isCrit, finalDmg));
         }
 })());
-      state = {_spread_: state, enemy: enemy};
+      state = {...state, enemy: enemy};
       if (!enemy.alive) {
         let xpGain = enemy.xpReward;
         let goldGain = battle_gold(enemy.goldReward);
@@ -549,7 +549,7 @@ const render_game = (rootId) => {
           }
 })());
         let newStage = state.stageNum + 1;
-        state = {_spread_: state, party: newParty, gold: state.gold + goldGain, stageNum: newStage, battleWon: true, battleLog: log};
+        state = {...state, party: newParty, gold: state.gold + goldGain, stageNum: newStage, battleWon: true, battleLog: log};
         return render();
       } else {
         let ti = Math.floor(Math.random() * alive.length);
@@ -561,14 +561,14 @@ const render_game = (rootId) => {
         log.push(fmt_attack(enemy.name, "claws", "strikes back at", target.name, eDmg));
         log.push(fmt_dmg_detail(eAtk, eBonus, eMit, eArmor, eCrit, eDmg));
         targetDies ? log.push(fmt_death(target.name)) : 0;
-        state = {_spread_: state, party: newParty, battleLog: log};
+        state = {...state, party: newParty, battleLog: log};
         if (!any_alive(state.party)) {
           log.push("");
           log.push("** Your entire party has fallen... **");
-          state = {_spread_: state, battleLog: log};
+          state = {...state, battleLog: log};
           return render();
         } else {
-          state = {_spread_: state, battleLog: log};
+          state = {...state, battleLog: log};
           return render();
         }
       }
@@ -585,7 +585,7 @@ const render_game = (rootId) => {
   let begin_use_item = (item) => (() => {
     if (can_use_item(item)) {
       if (item_needs_target(item)) {
-        state = {_spread_: state, itemTarget: item};
+        state = {...state, itemTarget: item};
         return render();
       } else {
         return use_item(item, null);
@@ -593,7 +593,7 @@ const render_game = (rootId) => {
     }
 })();
   let cancel_item_target = () => (() => {
-    state = {_spread_: state, itemTarget: null};
+    state = {...state, itemTarget: null};
     return render();
 })();
   let use_item = (item, hero) => (() => {
@@ -601,25 +601,25 @@ const render_game = (rootId) => {
     if (can_use_item(item) && validTarget) {
       let inBattle = state.scene === "battle";
       let log = inBattle ? state.battleLog.slice() : [];
-      let newInv = $filter($map(state.inventory, (i) => i.id === item.id ? {_spread_: i, count: i.count - 1} : i), (i) => i.count > 0);
+      let newInv = $filter($map(state.inventory, (i) => i.id === item.id ? {...i, count: i.count - 1} : i), (i) => i.count > 0);
       if (item.effect === "heal") {
         let newParty = $map(state.party, (h) => h.name === hero.name ? apply_heal(h, item.power) : h);
         log.push(fmt_heal(hero.name, item.name, item.power));
-        state = {_spread_: state, party: newParty, inventory: newInv, battleLog: log, itemTarget: null};
+        state = {...state, party: newParty, inventory: newInv, battleLog: log, itemTarget: null};
         return render();
       } else if (item.effect === "healAll") {
         let newParty = $map(state.party, (h) => h.alive ? apply_heal(h, item.power) : h);
         log.push(`  ${item.name} — all heroes restored ${item.power} HP.`);
-        state = {_spread_: state, party: newParty, inventory: newInv, battleLog: log, itemTarget: null};
+        state = {...state, party: newParty, inventory: newInv, battleLog: log, itemTarget: null};
         return render();
       } else if (item.effect === "revive") {
         let newParty = $map(state.party, (h) => h.name === hero.name ? apply_revive(h, item.power) : h);
         log.push(fmt_revive(hero.name, item.name));
-        state = {_spread_: state, party: newParty, inventory: newInv, battleLog: log, itemTarget: null};
+        state = {...state, party: newParty, inventory: newInv, battleLog: log, itemTarget: null};
         return render();
       } else if (item.effect === "damage") {
         let newHp = Math.max(0, state.enemy.hp - item.power);
-        let newEnemy = {_spread_: state.enemy, hp: newHp, alive: newHp > 0};
+        let newEnemy = {...state.enemy, hp: newHp, alive: newHp > 0};
         log.push(`  ${item.name} — ${item.power} damage to ${state.enemy.name}!`);
         if (!newEnemy.alive) {
           log.push(`** ${state.enemy.name} defeated! **`);
@@ -635,10 +635,10 @@ const render_game = (rootId) => {
             }
 })());
           let newStage = state.stageNum + 1;
-          state = {_spread_: state, enemy: newEnemy, party: newParty, gold: state.gold + goldGain, stageNum: newStage, battleWon: true, inventory: newInv, battleLog: log, itemTarget: null};
+          state = {...state, enemy: newEnemy, party: newParty, gold: state.gold + goldGain, stageNum: newStage, battleWon: true, inventory: newInv, battleLog: log, itemTarget: null};
           return render();
         } else {
-          state = {_spread_: state, enemy: newEnemy, inventory: newInv, battleLog: log, itemTarget: null};
+          state = {...state, enemy: newEnemy, inventory: newInv, battleLog: log, itemTarget: null};
           return render();
         }
       }
@@ -671,21 +671,21 @@ const render_game = (rootId) => {
     let newStash = oldEquip ? trimmed.concat([oldEquip]) : trimmed;
     let newParty = $map(state.party, (h) => (() => {
       if (h.name === hero.name) {
-        let patched = slot === "weapon" ? {_spread_: h, weapon: newEquip} : {_spread_: h, armor: newEquip};
+        let patched = slot === "weapon" ? {...h, weapon: newEquip} : {...h, armor: newEquip};
         return patched;
       } else {
         return h;
       }
 })());
-    state = {_spread_: state, party: newParty, stash: newStash, pickingFor: null};
+    state = {...state, party: newParty, stash: newStash, pickingFor: null};
     return render();
 })();
   let unequip_item = (hero, slot) => (() => {
     let equip = slot === "weapon" ? hero.weapon : hero.armor;
     if (equip) {
-      let patched = slot === "weapon" ? {_spread_: hero, weapon: null} : {_spread_: hero, armor: null};
+      let patched = slot === "weapon" ? {...hero, weapon: null} : {...hero, armor: null};
       let newParty = $map(state.party, (h) => h.name === hero.name ? patched : h);
-      state = {_spread_: state, party: newParty, stash: state.stash.concat([equip])};
+      state = {...state, party: newParty, stash: state.stash.concat([equip])};
       return render();
     }
 })();
@@ -706,7 +706,7 @@ const render_game = (rootId) => {
       let wChgBtn = el("button", {class: "btn-slot"}, "CHANGE");
       let wRemBtn = el("button", {class: "btn-unequip", disabled: !hero.weapon}, "REMOVE");
       wChgBtn.addEventListener("click", () => (() => {
-        state = {_spread_: state, pickingFor: {heroName: hero.name, slot: "weapon"}};
+        state = {...state, pickingFor: {heroName: hero.name, slot: "weapon"}};
         return render();
 })());
       if (hero.weapon) {
@@ -721,7 +721,7 @@ const render_game = (rootId) => {
       let aChgBtn = el("button", {class: "btn-slot"}, "CHANGE");
       let aRemBtn = el("button", {class: "btn-unequip", disabled: !hero.armor}, "REMOVE");
       aChgBtn.addEventListener("click", () => (() => {
-        state = {_spread_: state, pickingFor: {heroName: hero.name, slot: "armor"}};
+        state = {...state, pickingFor: {heroName: hero.name, slot: "armor"}};
         return render();
 })());
       if (hero.armor) {
@@ -741,7 +741,7 @@ const render_game = (rootId) => {
     let dialogInner = document.getElementById("picker-panel-inner");
     let backdrop = document.getElementById("picker-backdrop");
     let closePicker = () => (() => {
-      state = {_spread_: state, pickingFor: null};
+      state = {...state, pickingFor: null};
       dialog.classList.add("hidden");
       dialogInner.innerHTML = "";
       return render();
@@ -816,7 +816,7 @@ const render_game = (rootId) => {
       if (isLast) {
         return go("title");
       } else {
-        state = {_spread_: state, introSlide: state.introSlide + 1};
+        state = {...state, introSlide: state.introSlide + 1};
         return render();
       }
 })());
@@ -941,15 +941,15 @@ const render_game = (rootId) => {
     let buy_equip = (equip) => (() => {
       let alreadySold = $find(state.purchased, (id) => id === equip.id) !== undefined;
       if (!alreadySold && state.gold >= equip.price) {
-        state = {_spread_: state, gold: state.gold - equip.price, stash: state.stash.concat([equip]), purchased: state.purchased.concat([equip.id])};
+        state = {...state, gold: state.gold - equip.price, stash: state.stash.concat([equip]), purchased: state.purchased.concat([equip.id])};
         return render();
       }
 })();
     let buy_item = (item) => (() => {
       if (state.gold >= item.price) {
         let existing = $find(state.inventory, (i) => i.id === item.id);
-        let newInv = existing ? $map(state.inventory, (i) => i.id === item.id ? {_spread_: i, count: i.count + 1} : i) : state.inventory.concat([{_spread_: item, count: 1}]);
-        state = {_spread_: state, gold: state.gold - item.price, inventory: newInv};
+        let newInv = existing ? $map(state.inventory, (i) => i.id === item.id ? {...i, count: i.count + 1} : i) : state.inventory.concat([{...item, count: 1}]);
+        state = {...state, gold: state.gold - item.price, inventory: newInv};
         return render();
       }
 })();

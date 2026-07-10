@@ -364,9 +364,9 @@ const buy_item = (name) => {
   let item = $find(state.all_items, (i) => i.name == name);
   if (item) {
     if (is_in_cart(state, item)) {
-      state = {_spread_: state, cart: $filter(state.cart, (c) => c.name != name)};
+      state = {...state, cart: $filter(state.cart, (c) => c.name != name)};
     } else {
-      state = {_spread_: state, cart: [...state.cart, item]};
+      state = {...state, cart: [...state.cart, item]};
     }
     return render(state);
   }
@@ -377,7 +377,7 @@ const buy_item = (name) => {
  * @returns {void}
  */
 const remove_item = (name) => {
-  state = {_spread_: state, cart: $filter(state.cart, (c) => c.name != name)};
+  state = {...state, cart: $filter(state.cart, (c) => c.name != name)};
   return render(state);
 };
 
@@ -385,7 +385,7 @@ const remove_item = (name) => {
  * @returns {void}
  */
 const on_filter_change = () => {
-  state = {_spread_: state, filter_cat: el("filter-cat").value, filter_rar: el("filter-rar").value, sort_key: el("sort-select").value, search: el("search-box").value};
+  state = {...state, filter_cat: el("filter-cat").value, filter_rar: el("filter-rar").value, sort_key: el("sort-select").value, search: el("search-box").value};
   return render(state);
 };
 
@@ -393,7 +393,7 @@ const on_filter_change = () => {
  * @returns {void}
  */
 const clear_cart = () => {
-  state = {_spread_: state, cart: []};
+  state = {...state, cart: []};
   return render(state);
 };
 

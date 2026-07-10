@@ -4688,7 +4688,11 @@ const cg_pattern_condition = (pat, subj) => {
       return subj + " " + pat.op + " " + pat.value;
     }
   } else if (k == "IdentPat") {
-    return "true";
+    if (ident_is_binding(pat.name)) {
+      return "true";
+    } else {
+      return "(" + subj + " != null && " + subj + ".tag === \"" + pat.name + "\") || " + subj + " === \"" + pat.name + "\"";
+    }
   } else if (k == "TagPat") {
     return subj + ".tag === \"" + pat.name + "\"";
   } else if (k == "EnumPat") {
@@ -4961,7 +4965,16 @@ const cg_emit_expr = (st, expr) => {
       if (i > 0) {
         props = props + ", ";
       }
-      props = props + expr.properties[i].key + ": " + cg_emit_expr(st, expr.properties[i].value);
+      let prop = expr.properties[i];
+      if (prop.spread == true) {
+        props = props + "..." + cg_emit_expr(st, prop.value);
+      } else if (prop.shorthand == true) {
+        props = props + prop.key;
+      } else if (prop.computed == true) {
+        props = props + "[" + cg_emit_expr(st, prop.key) + "]: " + cg_emit_expr(st, prop.value);
+      } else {
+        props = props + prop.key + ": " + cg_emit_expr(st, prop.value);
+      }
       i = i + 1;
     }
     return "{" + props + "}";
@@ -4994,9 +5007,140 @@ const cg_emit_expr = (st, expr) => {
     let inner = CgState([], st.indent + 1, st.scopes);
     inner = cg_emit_block(inner, expr);
     return "(() => {\n" + cg_join_strings(inner.lines, "") + "})()";
+  } else if (k == "SpreadExpr") {
+    return "..." + cg_emit_expr(st, expr.argument);
+  } else if (k == "DoExpr") {
+    let inner = CgState([], st.indent + 1, st.scopes);
+    inner = cg_emit_do_block(inner, expr.body);
+    let async_kw = (() => {
+      if (cg_block_has_await(expr.body)) {
+        return "async ";
+      } else {
+        return "";
+      }
+})();
+    return "(" + async_kw + "() => {\n" + cg_join_strings(inner.lines, "") + "})()";
   } else {
     return "";
   }
+};
+
+/**
+ * @param {CgState} st
+ * @param {*} block
+ * @returns {CgState}
+ */
+const cg_emit_do_block = (st, block) => {
+  let s = st;
+  let n = block.stmts.length;
+  let i = 0;
+  while (i < n) {
+    let stmt = block.stmts[i];
+    if (i == n - 1 && stmt.kind == "ExprStmt") {
+      s = cg_emit_line(s, "return " + cg_emit_expr(s, stmt.value) + ";");
+    } else {
+      s = cg_emit_stmt(s, stmt);
+    }
+    i = i + 1;
+  }
+  return s;
+};
+
+/**
+ * @param {*} expr
+ * @returns {boolean}
+ */
+const cg_expr_has_await = (expr) => {
+  if (expr == null) {
+    return false;
+  } else if (expr.kind == "AwaitExpr") {
+    return true;
+  } else if (expr.kind == "UnaryExpr") {
+    return cg_expr_has_await(expr.operand);
+  } else if (expr.kind == "BinaryExpr") {
+    return cg_expr_has_await(expr.left) || cg_expr_has_await(expr.right);
+  } else if (expr.kind == "TernaryExpr") {
+    return cg_expr_has_await(expr.test) || cg_expr_has_await(expr.consequent) || cg_expr_has_await(expr.alternate);
+  } else if (expr.kind == "CallExpr") {
+    if (cg_expr_has_await(expr.callee)) {
+      return true;
+    } else {
+      let i = 0;
+      let found = false;
+      while (i < expr.args.length && !found) {
+        if (cg_expr_has_await(expr.args[i])) {
+          found = true;
+        }
+        i = i + 1;
+      }
+      return found;
+    }
+  } else if (expr.kind == "MemberExpr" || expr.kind == "IndexExpr") {
+    return cg_expr_has_await(expr.object);
+  } else if (expr.kind == "LambdaExpr") {
+    return cg_expr_has_await(expr.body);
+  } else if (expr.kind == "MatchExpr") {
+    if (cg_expr_has_await(expr.subject)) {
+      return true;
+    } else {
+      let i = 0;
+      let found = false;
+      while (i < expr.arms.length && !found) {
+        let arm = expr.arms[i];
+        if (arm.guard != null && cg_expr_has_await(arm.guard)) {
+          found = true;
+        } else if (cg_expr_has_await(arm.body)) {
+          found = true;
+        }
+        i = i + 1;
+      }
+      return found;
+    }
+  } else if (expr.kind == "BlockExpr" || expr.kind == "DoExpr") {
+    return cg_block_has_await(expr);
+  } else if (expr.kind == "PipelineExpr") {
+    let i = 0;
+    let found = false;
+    while (i < expr.steps.length && !found) {
+      if (expr.steps[i].kind != "PipeAs" && cg_expr_has_await(expr.steps[i])) {
+        found = true;
+      }
+      i = i + 1;
+    }
+    return found;
+  } else {
+    return false;
+  }
+};
+
+/**
+ * @param {*} block
+ * @returns {boolean}
+ */
+const cg_block_has_await = (block) => {
+  let i = 0;
+  while (i < block.stmts.length) {
+    let stmt = block.stmts[i];
+    if (stmt.kind == "LetStmt" && cg_expr_has_await(stmt.value)) {
+      return true;
+    } else if (stmt.kind == "ReturnStmt" && cg_expr_has_await(stmt.value)) {
+      return true;
+    } else if (stmt.kind == "ExprStmt" && cg_expr_has_await(stmt.value)) {
+      return true;
+    } else if (stmt.kind == "IfStmt") {
+      if (cg_block_has_await(stmt.then)) {
+        return true;
+      } else if (stmt.else_ != null && cg_block_has_await(stmt.else_)) {
+        return true;
+      }
+    } else if (stmt.kind == "ForRangeStmt" || stmt.kind == "ForInStmt" || stmt.kind == "WhileStmt") {
+      if (cg_block_has_await(stmt.body)) {
+        return true;
+      }
+    }
+    i = i + 1;
+  }
+  return false;
 };
 
 /**

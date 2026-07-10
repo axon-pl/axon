@@ -113,7 +113,7 @@ const hero_power = (() => {
  * @param {Level} level
  * @returns {Hero}
  */
-const create_hero = (name, heroClass, hp, strength, defense, level) => ({name: name, heroClass: heroClass, hp: hp, maxHp: hp, strength: strength, defense: defense, level: level, alive: true});
+const create_hero = (name, heroClass, hp, strength, defense, level) => ({name, heroClass, hp, maxHp: hp, strength, defense, level, alive: true});
 
 /**
  * @param {Hero} party
@@ -181,7 +181,7 @@ const debug_party = (party) => {
  */
 const apply_damage = (entity, dmg) => {
   let newHp = Math.max(0, entity.hp - dmg);
-  return {_spread_: entity, hp: newHp, alive: newHp > 0};
+  return {...entity, hp: newHp, alive: newHp > 0};
 };
 
 /**

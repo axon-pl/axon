@@ -42,7 +42,7 @@ const next_state = (c, r) => (() => {
 const step = () => {
   cells = $flat_map($range(0, ROWS), (r) => $map($range(0, COLS), (c) => next_state(c, r)));
   let pop = $count(cells, (v) => v);
-  return Life.set({gen: Life.gen + 1, pop: pop});
+  return Life.set({gen: Life.gen + 1, pop});
 };
 
 /**
@@ -59,7 +59,7 @@ const clear_grid = () => {
 const randomize = () => {
   cells = $map($range(0, ROWS * COLS), (i) => $random() < 0.28);
   let pop = $count(cells, (v) => v);
-  return Life.set({gen: 0, pop: pop});
+  return Life.set({gen: 0, pop});
 };
 
 /**
@@ -72,7 +72,7 @@ const paint = (c, r, v) => {
   if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
     cells = $set_at(cells, idx(c, r), v);
     let pop = $count(cells, (a) => a);
-    return Life.set({pop: pop});
+    return Life.set({pop});
   }
 };
 
@@ -87,7 +87,7 @@ const toggle = (c, r) => {
     let was = cells[i];
     cells = $set_at(cells, i, was ? false : true);
     let pop = $count(cells, (a) => a);
-    return Life.set({pop: pop});
+    return Life.set({pop});
   }
 };
 

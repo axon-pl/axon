@@ -4951,7 +4951,16 @@ const cg_emit_expr = (st, expr) => {
       if (i > 0) {
         props = props + ", ";
       }
-      props = props + expr.properties[i].key + ": " + cg_emit_expr(st, expr.properties[i].value);
+      let prop = expr.properties[i];
+      if (prop.spread == true) {
+        props = props + "..." + cg_emit_expr(st, prop.value);
+      } else if (prop.shorthand == true) {
+        props = props + prop.key;
+      } else if (prop.computed == true) {
+        props = props + "[" + cg_emit_expr(st, prop.key) + "]: " + cg_emit_expr(st, prop.value);
+      } else {
+        props = props + prop.key + ": " + cg_emit_expr(st, prop.value);
+      }
       i = i + 1;
     }
     return "{" + props + "}";
