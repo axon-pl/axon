@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Synth Language Reference — v1.0.1</title>
+  <title>Synth Language Reference — v1.0.2</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -689,7 +689,7 @@
     <span class="top-header-title">Synth</span>
     <span class="top-header-sub">Language Reference</span>
     <div class="header-badges">
-      <span class="hbadge hbadge-ver">v1.0.1</span>
+      <span class="hbadge hbadge-ver">v1.0.2</span>
       <span class="hbadge hbadge-ai">AI-native</span>
     </div>
   </header>
@@ -1819,9 +1819,23 @@ $ synth --check src/main.syn
 
         <div class="version-card vc-current">
           <div class="version-header">
-            <span class="version-tag">v1.0.1</span>
+            <span class="version-tag">v1.0.2</span>
             <span class="version-name">Stable Release — Patch</span>
             <span class="version-status vs-current">Current</span>
+          </div>
+          <ul class="version-features">
+            <li><strong>Object spread codegen</strong> — <code>{ ...obj }</code> emits real JS spread instead of a broken <code>_spread_</code> shape</li>
+            <li><strong>Zero-arg method calls</strong> — no trailing comma in generated calls (fixes empty Controls widgets / <code>$flat</code>)</li>
+            <li><strong>Constraint validators</strong> — <code>type T = … where …</code> now emits <code>__validate_T</code> helpers and param guards</li>
+            <li><strong>Demo polish</strong> — shared site footer; stdlib script tags for Combat / Music / RPG</li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
+            <span class="version-tag">v1.0.1</span>
+            <span class="version-name">Stable Release — Patch</span>
+            <span class="version-status vs-stable">Stable</span>
           </div>
           <ul class="version-features">
             <li><strong>npm homepage fix</strong> — package listing now points to <code>synth-pl.github.io/synth/</code></li>

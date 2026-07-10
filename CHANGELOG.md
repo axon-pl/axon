@@ -1,5 +1,18 @@
 # Synth Changelog
 
+## v1.0.2 — Compiler patches
+
+### Bug fixes
+
+- **Object spread codegen** — `{ ...obj }` now emits real JavaScript spread instead of a broken `_spread_` shape (Neon Drift and other demos keep record fields).
+- **Zero-arg method calls** — generated calls no longer include a trailing comma after empty argument lists (fixes empty Controls widgets / `$flat(...)`).
+- **Constraint validators** — `type T = … where …` emits `__validate_T` helpers and injects param guards for constrained parameter types.
+
+### Demo / site
+
+- Shared landing site footer across demo pages.
+- Load `synth.stdlib.js` before Combat, Music, and RPG compiled output.
+
 ## v0.9.9 — Ergonomics & DX
 
 ### New language features
