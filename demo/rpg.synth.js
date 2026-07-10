@@ -1,3 +1,17 @@
+/** @param {number} v @returns {boolean} */
+const __validate_Gold = (v) => v >= 0;
+/** @param {number} v @returns {boolean} */
+const __validate_XP = (v) => v >= 0;
+/** @param {number} v @returns {boolean} */
+const __validate_HP = (v) => (v >= 0) && (v <= 999);
+/** @param {number} v @returns {boolean} */
+const __validate_StatValue = (v) => (v >= 1) && (v <= 50);
+/** @param {number} v @returns {boolean} */
+const __validate_Level = (v) => (v >= 1) && (v <= 20);
+/** @param {string} v @returns {boolean} */
+const __validate_HeroName = (v) => v.length > 0;
+/** @param {string} v @returns {boolean} */
+const __validate_ClassName = (v) => v.length > 0;
 
 const Hero = (name, heroClass, hp, maxHp, baseStrength, baseDefense, level, xp, alive, weapon, armor) => ({ name, heroClass, hp, maxHp, baseStrength, baseDefense, level, xp, alive, weapon, armor });
 
@@ -354,7 +368,15 @@ const rest_party = (party) => $map(party, (h) => h.alive ? {...h, hp: Math.min(h
  * @param {Level} level
  * @returns {Hero}
  */
-const create_hero = (name, heroClass, hp, strength, defense, level) => ({name, heroClass, hp, maxHp: hp, baseStrength: strength, baseDefense: defense, level, xp: 0, alive: true, weapon: null, armor: null});
+const create_hero = (name, heroClass, hp, strength, defense, level) => {
+  if (!__validate_HeroName(name)) throw new Error("SynthConstraintError: name violates HeroName constraint (got " + JSON.stringify(name) + ")");
+  if (!__validate_ClassName(heroClass)) throw new Error("SynthConstraintError: heroClass violates ClassName constraint (got " + JSON.stringify(heroClass) + ")");
+  if (!__validate_HP(hp)) throw new Error("SynthConstraintError: hp violates HP constraint (got " + JSON.stringify(hp) + ")");
+  if (!__validate_StatValue(strength)) throw new Error("SynthConstraintError: strength violates StatValue constraint (got " + JSON.stringify(strength) + ")");
+  if (!__validate_StatValue(defense)) throw new Error("SynthConstraintError: defense violates StatValue constraint (got " + JSON.stringify(defense) + ")");
+  if (!__validate_Level(level)) throw new Error("SynthConstraintError: level violates Level constraint (got " + JSON.stringify(level) + ")");
+  return ({name, heroClass, hp, maxHp: hp, baseStrength: strength, baseDefense: defense, level, xp: 0, alive: true, weapon: null, armor: null});
+};
 
 const all_enemies = (() => {
   const __cache = new Map();
@@ -455,7 +477,7 @@ const el = (tag, attrs, ...children) => {
       return e.setAttribute(k, String(v));
     }
 })());
-  $flat(children, ).forEach((child) => (() => {
+  $flat(children).forEach((child) => (() => {
     if (typeof child === "string") {
       return e.appendChild(document.createTextNode(child));
     } else if (child instanceof Node) {

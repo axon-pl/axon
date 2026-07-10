@@ -1,3 +1,13 @@
+/** @param {number} v @returns {boolean} */
+const __validate_BPM = (v) => (v >= 60) && (v <= 200);
+/** @param {number} v @returns {boolean} */
+const __validate_Duration = (v) => v > 0;
+/** @param {string} v @returns {boolean} */
+const __validate_TrackTitle = (v) => v.length > 0;
+/** @param {string} v @returns {boolean} */
+const __validate_ArtistName = (v) => v.length > 0;
+/** @param {number} v @returns {boolean} */
+const __validate_Volume = (v) => (v >= 0) && (v <= 100);
 
 const Track = (id, title, artist, bpm, duration, genre, featured) => ({ id, title, artist, bpm, duration, genre, featured });
 
@@ -18,6 +28,7 @@ const format_fibonacci_result = (n, result) => `fib(${n}) = ${result}`;
  * @returns {string}
  */
 const format_duration = (secs) => {
+  if (!__validate_Duration(secs)) throw new Error("SynthConstraintError: secs violates Duration constraint (got " + JSON.stringify(secs) + ")");
   let m = Math.floor(secs / 60);
   let s = pad2(secs % 60);
   return `${m}:${s}`;
@@ -44,13 +55,22 @@ const format_stats_line = (stats) => {
  * @param {string} genre
  * @returns {Track}
  */
-const create_track = (id, title, artist, bpm, duration, genre) => ({id, title, artist, bpm, duration, genre, featured: false});
+const create_track = (id, title, artist, bpm, duration, genre) => {
+  if (!__validate_TrackTitle(title)) throw new Error("SynthConstraintError: title violates TrackTitle constraint (got " + JSON.stringify(title) + ")");
+  if (!__validate_ArtistName(artist)) throw new Error("SynthConstraintError: artist violates ArtistName constraint (got " + JSON.stringify(artist) + ")");
+  if (!__validate_BPM(bpm)) throw new Error("SynthConstraintError: bpm violates BPM constraint (got " + JSON.stringify(bpm) + ")");
+  if (!__validate_Duration(duration)) throw new Error("SynthConstraintError: duration violates Duration constraint (got " + JSON.stringify(duration) + ")");
+  return ({id, title, artist, bpm, duration, genre, featured: false});
+};
 
 /**
  * @param {Volume} vol
  * @returns {string}
  */
-const set_volume = (vol) => `Volume set to ${vol}%`;
+const set_volume = (vol) => {
+  if (!__validate_Volume(vol)) throw new Error("SynthConstraintError: vol violates Volume constraint (got " + JSON.stringify(vol) + ")");
+  return `Volume set to ${vol}%`;
+};
 
 /**
  * @param {string} title
@@ -190,7 +210,7 @@ const el = (tag, attrs, ...children) => {
       return e.setAttribute(k, String(v));
     }
 })());
-  $flat(children, ).forEach((child) => (() => {
+  $flat(children).forEach((child) => (() => {
     if (typeof child === "string") {
       return e.appendChild(document.createTextNode(child));
     } else if (child instanceof Node) {

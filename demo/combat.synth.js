@@ -1,3 +1,13 @@
+/** @param {number} v @returns {boolean} */
+const __validate_HP = (v) => (v >= 0) && (v <= 200);
+/** @param {number} v @returns {boolean} */
+const __validate_StatValue = (v) => (v >= 1) && (v <= 20);
+/** @param {number} v @returns {boolean} */
+const __validate_Level = (v) => (v >= 1) && (v <= 20);
+/** @param {string} v @returns {boolean} */
+const __validate_HeroName = (v) => v.length > 0;
+/** @param {string} v @returns {boolean} */
+const __validate_ClassName = (v) => v.length > 0;
 
 const Hero = (name, heroClass, hp, maxHp, strength, defense, level, alive) => ({ name, heroClass, hp, maxHp, strength, defense, level, alive });
 
@@ -113,7 +123,15 @@ const hero_power = (() => {
  * @param {Level} level
  * @returns {Hero}
  */
-const create_hero = (name, heroClass, hp, strength, defense, level) => ({name, heroClass, hp, maxHp: hp, strength, defense, level, alive: true});
+const create_hero = (name, heroClass, hp, strength, defense, level) => {
+  if (!__validate_HeroName(name)) throw new Error("SynthConstraintError: name violates HeroName constraint (got " + JSON.stringify(name) + ")");
+  if (!__validate_ClassName(heroClass)) throw new Error("SynthConstraintError: heroClass violates ClassName constraint (got " + JSON.stringify(heroClass) + ")");
+  if (!__validate_HP(hp)) throw new Error("SynthConstraintError: hp violates HP constraint (got " + JSON.stringify(hp) + ")");
+  if (!__validate_StatValue(strength)) throw new Error("SynthConstraintError: strength violates StatValue constraint (got " + JSON.stringify(strength) + ")");
+  if (!__validate_StatValue(defense)) throw new Error("SynthConstraintError: defense violates StatValue constraint (got " + JSON.stringify(defense) + ")");
+  if (!__validate_Level(level)) throw new Error("SynthConstraintError: level violates Level constraint (got " + JSON.stringify(level) + ")");
+  return ({name, heroClass, hp, maxHp: hp, strength, defense, level, alive: true});
+};
 
 /**
  * @param {Hero} party
@@ -207,7 +225,7 @@ const el = (tag, attrs, ...children) => {
       return e.setAttribute(k, String(v));
     }
 })());
-  $flat(children, ).forEach((child) => (() => {
+  $flat(children).forEach((child) => (() => {
     if (typeof child === "string") {
       return e.appendChild(document.createTextNode(child));
     } else if (child instanceof Node) {
