@@ -268,11 +268,20 @@
     });
 
     function highlight(src) {
-      return src
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/(\/\/[^\n]*)/g, '<span class="cmt">$1</span>')
-        .replace(/("(?:\\.|[^"\\])*")/g, '<span class="str">$1</span>')
-        .replace(/\b(fn|match|likely|let|return)\b/g, '<span class="kw">$1</span>');
+      // Single-pass — never re-match inside generated span tags (avoids leaking "cmt"/"str").
+      const escaped = src
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      return escaped.replace(
+        /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|\b(fn|match|likely|let|return)\b/g,
+        (_, cmt, str, kw) => {
+          if (cmt) return `<span class="cmt">${cmt}</span>`;
+          if (str) return `<span class="str">${str}</span>`;
+          if (kw)  return `<span class="kw">${kw}</span>`;
+          return _;
+        }
+      );
     }
   </script>
 </body>
