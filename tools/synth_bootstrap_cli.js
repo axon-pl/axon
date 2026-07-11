@@ -7,6 +7,7 @@ const path = require('path')
 const vm   = require('vm')
 const { ROOT, loadBundle, bundleSynProject, validateJs, extractStdlib } = require('./bootstrap_common')
 const { compilerPath } = require('./oracle')
+const { specFromSource } = require('./synth_spec')
 
 const STDLIB    = path.join(ROOT, 'demo', 'synth.stdlib.js')
 
@@ -20,6 +21,7 @@ function usage() {
     synth-bootstrap --test <input.syn>          Run @test declarations
     synth-bootstrap --check <input.syn>         Static analysis only
     synth-bootstrap --fmt <input.syn>           Format Synth source in-place
+    synth-bootstrap --spec <input.syn>          Extract AI-queryable JSON (v1.2)
 
   Runtime: bootstrap/seed.js or dist/compiler.bootstrap.js
   `)
@@ -84,6 +86,29 @@ function main() {
       }
     } catch (e) {
       console.error(`Error: ${e.message}`)
+      process.exit(1)
+    }
+    return
+  }
+
+  if (args[0] === '--spec') {
+    const inputPath = path.resolve(args[1] ?? '')
+    if (!fs.existsSync(inputPath)) {
+      console.error(`Error: File not found: ${inputPath}`)
+      process.exit(1)
+    }
+    const source = fs.readFileSync(inputPath, 'utf8')
+    try {
+      if (typeof compiler.tokenize !== 'function' || typeof compiler.parse !== 'function') {
+        console.error('Error: bootstrap bundle missing tokenize/parse exports')
+        process.exit(1)
+      }
+      const spec = specFromSource(compiler, source, {
+        file: path.relative(ROOT, inputPath).replace(/\\/g, '/'),
+      })
+      process.stdout.write(JSON.stringify(spec, null, 2) + '\n')
+    } catch (e) {
+      console.error(`Error: ${e.message ?? e}`)
       process.exit(1)
     }
     return
