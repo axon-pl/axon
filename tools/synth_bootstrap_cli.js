@@ -7,7 +7,7 @@ const path = require('path')
 const vm   = require('vm')
 const { ROOT, loadBundle, bundleSynProject, validateJs, extractStdlib } = require('./bootstrap_common')
 const { compilerPath } = require('./oracle')
-const { specFromSource } = require('./synth_spec')
+const { specFromEntry } = require('./synth_spec')
 
 const STDLIB    = path.join(ROOT, 'demo', 'synth.stdlib.js')
 
@@ -21,7 +21,8 @@ function usage() {
     synth-bootstrap --test <input.syn>          Run @test declarations
     synth-bootstrap --check <input.syn>         Static analysis only
     synth-bootstrap --fmt <input.syn>           Format Synth source in-place
-    synth-bootstrap --spec <input.syn>          Extract AI-queryable JSON (v1.2)
+    synth-bootstrap --spec <input.syn> [-o out] Extract AI-queryable JSON (v1.2)
+                                                Follows imports like --bundle
 
   Runtime: bootstrap/seed.js or dist/compiler.bootstrap.js
   `)
@@ -93,20 +94,30 @@ function main() {
 
   if (args[0] === '--spec') {
     const inputPath = path.resolve(args[1] ?? '')
+    let outPath = null
+    for (let i = 2; i < args.length; i++) {
+      if (args[i] === '-o' || args[i] === '--out') {
+        outPath = path.resolve(args[++i] ?? '')
+      }
+    }
     if (!fs.existsSync(inputPath)) {
       console.error(`Error: File not found: ${inputPath}`)
       process.exit(1)
     }
-    const source = fs.readFileSync(inputPath, 'utf8')
     try {
       if (typeof compiler.tokenize !== 'function' || typeof compiler.parse !== 'function') {
         console.error('Error: bootstrap bundle missing tokenize/parse exports')
         process.exit(1)
       }
-      const spec = specFromSource(compiler, source, {
-        file: path.relative(ROOT, inputPath).replace(/\\/g, '/'),
-      })
-      process.stdout.write(JSON.stringify(spec, null, 2) + '\n')
+      const spec = specFromEntry(compiler, inputPath, { root: ROOT })
+      const json = JSON.stringify(spec, null, 2) + '\n'
+      if (outPath) {
+        fs.mkdirSync(path.dirname(outPath), { recursive: true })
+        fs.writeFileSync(outPath, json, 'utf8')
+        console.error(`✓ Spec ${path.relative(ROOT, inputPath).replace(/\\/g, '/')} → ${path.relative(ROOT, outPath).replace(/\\/g, '/')}`)
+      } else {
+        process.stdout.write(json)
+      }
     } catch (e) {
       console.error(`Error: ${e.message ?? e}`)
       process.exit(1)

@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Synth Language Reference — v1.1.0</title>
+  <title>Synth Language Reference — v1.2.0</title>
   <style>
     /* ── Synthwave dark palette ─────────────────────────────────────────── */
     :root {
@@ -701,7 +701,7 @@
     </a>
     <span class="top-header-sub">Language Reference</span>
     <div class="header-badges">
-      <span class="hbadge hbadge-ver">v1.1.0</span>
+      <span class="hbadge hbadge-ver">v1.2.0</span>
       <span class="hbadge hbadge-ai">AI-native</span>
     </div>
   </header>
@@ -755,6 +755,7 @@
         <div class="nav-group-label">Runtime</div>
         <a class="nav-link" href="#stdlib">Standard Library</a>
         <a class="nav-link" href="#cli">CLI</a>
+        <a class="nav-link" href="#spec" style="color:var(--cyan)"><code>--spec</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v1.2.0</span></a>
         <a class="nav-link" href="#enums" style="color:var(--accent)"><code>enum</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.9.5</span></a>
         <a class="nav-link" href="#numeric-literals" style="color:var(--accent)">Numeric Literals <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v0.9.5</span></a>
         <a class="nav-link" href="#cli-v09" style="color:var(--pink)"><code>--check</code> / <code>--fmt</code> <span style="font-size:0.65rem;vertical-align:top;opacity:0.8">v1.0.0</span></a>
@@ -1268,7 +1269,7 @@
           <div class="callout-head">Why this matters for AI</div>
           A language model reading generated Synth output can query <code>@intent</code> tags to
           understand a function's purpose without executing it or reading its full body.
-          This is the foundation for <code>synth spec</code> (v1.2) — extract intent without reading the full body.
+          This is the foundation for <code>synth --spec</code> (v1.2) — extract intent without reading the full body.
         </div>
       </section>
 
@@ -1453,6 +1454,45 @@
             <tr><td><code>synth --bundle entry.syn out.js</code></td><td><strong>v0.5</strong> Bundle a multi-file project. Resolves all imports recursively, topo-sorts modules, emits one JS file.</td></tr>
             <tr><td><code>synth --check input.syn</code></td><td><strong>v1.0.0</strong> Static analysis only — no JS emitted. Reports checker warnings and parse errors.</td></tr>
             <tr><td><code>synth --fmt input.syn</code></td><td><strong>v1.0.0</strong> Format source in-place. Rewrites the file with canonical spacing and indentation.</td></tr>
+            <tr><td><code>synth --spec input.syn [-o out.json]</code></td><td><strong>v1.2.0</strong> Extract AI-queryable JSON (<code>@intent</code>, constraints, <code>likely</code>, <code>refine</code>). Follows imports like <code>--bundle</code>.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- ── Spec Extraction v1.2 ───────────────────────────────────────────── -->
+      <section class="doc-section" id="spec">
+        <div class="section-eyebrow">Tooling · v1.2.0</div>
+        <h2 class="section-title">Spec Extraction</h2>
+        <div class="section-rule"></div>
+
+        <p class="section-lead">
+          <code>synth --spec</code> walks the AST and emits a JSON document agents can query —
+          no need to re-parse bodies for intent metadata. Schema version <code>0.1</code> (freeze to <code>1.0</code> at v2.0).
+        </p>
+
+        <div class="code-block">
+          <div class="code-label"><span class="dot dot-js"></span>shell</div>
+          <pre id="spec-cli-code"></pre>
+        </div>
+
+        <p>Top-level shape:</p>
+        <div class="doc-table-wrap"><table class="doc-table">
+          <thead><tr><th>Field</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>synthSpecVersion</code></td><td>Schema id — currently <code>"0.1"</code></td></tr>
+            <tr><td><code>entry</code></td><td>Relative path of the entry <code>.syn</code> file</td></tr>
+            <tr><td><code>modules[]</code></td><td>One object per resolved module (import graph, topo order)</td></tr>
+          </tbody>
+        </table></div>
+
+        <p>Per module:</p>
+        <div class="doc-table-wrap"><table class="doc-table">
+          <thead><tr><th>Field</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>file</code></td><td>Module path relative to repo root</td></tr>
+            <tr><td><code>functions[]</code></td><td><code>name</code>, <code>line</code>, <code>intent</code>, <code>annotations</code>, <code>params</code>, <code>returnType</code>, <code>likely</code>, <code>exactMatchArms</code></td></tr>
+            <tr><td><code>types[]</code></td><td>Type aliases with optional <code>constraint</code> (<code>where</code> clauses)</td></tr>
+            <tr><td><code>refines[]</code></td><td><code>refine x: "claim"</code> semantic narrowing declarations</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -1744,7 +1784,7 @@ $ synth --check src/main.syn
           <code>let infer</code> is a signal to language model tooling: "I know this value has a type —
           resolve it from the surrounding context rather than asking me to spell it out." In long pipelines
           or generic chains, the type is often obvious from usage. <code>infer</code> makes that intent explicit
-          and queryable via <code>synth spec</code> (planned v1.2).
+          and queryable via <code>synth --spec</code> (v1.2).
         </div>
       </section>
 
@@ -1852,9 +1892,22 @@ $ synth --check src/main.syn
 
         <div class="version-card vc-current">
           <div class="version-header">
+            <span class="version-tag">v1.2.0</span>
+            <span class="version-name">Spec Extraction</span>
+            <span class="version-status vs-current">Current</span>
+          </div>
+          <ul class="version-features">
+            <li><strong><code>synth --spec</code></strong> — extract <code>@intent</code>, constraints, <code>likely</code>, and <code>refine</code> as JSON</li>
+            <li><strong>Multi-file</strong> — follows imports like <code>--bundle</code>; optional <code>-o out.json</code></li>
+            <li><strong>Schema 0.1</strong> — <code>entry</code> + <code>modules[]</code> document shape</li>
+          </ul>
+        </div>
+
+        <div class="version-card vc-stable">
+          <div class="version-header">
             <span class="version-tag">v1.1.0</span>
             <span class="version-name">The AI-Native Update</span>
-            <span class="version-status vs-current">Current</span>
+            <span class="version-status vs-stable">Stable</span>
           </div>
           <ul class="version-features">
             <li><strong><code>likely</code> match arms</strong> — soft semantic classifiers inside <code>match</code></li>
@@ -2151,30 +2204,19 @@ $ synth --check src/main.syn
         <div class="section-rule"></div>
 
         <p class="section-lead">
-          v1.0 and v1.1 shipped. The path ahead is the AI-native tooling loop — agents and IDEs
-          reading the same metadata. Past releases live in
+          v1.2 shipped <code>synth --spec</code>. Next up is explain blocks, then the LSP and debug loop
+          through v2.0. Past releases live in
           <a href="#version-history" style="color:var(--cyan)">Version History</a>.
         </p>
 
         <div class="roadmap-grid">
           <div class="roadmap-card" style="border-color:#00d4ff44;background:linear-gradient(135deg,#0a1020,#120028)">
-            <div class="roadmap-ver" style="color:#00d4ff">v1.2</div>
-            <div class="roadmap-title">Spec Extraction</div>
-            <div class="roadmap-desc">Machines can read intent. One CLI, one JSON schema — no IDE yet.</div>
-            <ul class="roadmap-features">
-              <li><code>synth spec</code> — extract <code>@intent</code>, <code>refine</code>, constraints, and <code>likely</code> claims</li>
-              <li>Stable JSON schema for LLM / agent consumption</li>
-              <li>Demo: dump Intent Router + selected stdlib functions</li>
-            </ul>
-          </div>
-
-          <div class="roadmap-card">
-            <div class="roadmap-ver">v1.3</div>
+            <div class="roadmap-ver" style="color:#00d4ff">v1.3</div>
             <div class="roadmap-title">Explain &amp; Query Surface</div>
             <div class="roadmap-desc">Docs become data. Structured prose joins the same export agents already use.</div>
             <ul class="roadmap-features">
               <li><code>explain { … }</code> blocks in the AST</li>
-              <li><code>synth spec</code> includes explain + intent in one document</li>
+              <li><code>synth --spec</code> includes explain + intent in one document</li>
               <li>Optional <code>@intent</code> → JSDoc emission in codegen</li>
             </ul>
           </div>
@@ -2229,7 +2271,7 @@ $ synth --check src/main.syn
             <div class="roadmap-title">AI-Native Ecosystem</div>
             <div class="roadmap-desc">Spec + LSP + source maps stable together. Semver major = product promise.</div>
             <ul class="roadmap-features">
-              <li>Frozen agent protocol — <code>synth spec</code> schema 1.0</li>
+              <li>Frozen agent protocol — <code>synth --spec</code> schema 1.0</li>
               <li>Full tooling loop: edit, hover intent, debug mapped sources</li>
               <li>Package metadata / registry hooks as needed</li>
               <li>Breaking changes only if the agent surface requires them</li>
@@ -2942,6 +2984,19 @@ synth --check src/main.syn
 # Format source in-place  (v1.0.0)
 synth --fmt src/main.syn
 #   ✓  main.syn — formatted
+
+# Extract AI-queryable JSON  (v1.2.0)
+synth --spec examples/intent_router.syn
+synth --spec examples/dungeon/main.syn -o dungeon.spec.json
+`);
+
+    setCode('spec-cli-code', `
+# Single file → stdout
+synth --spec examples/intent_router.syn
+
+# Multi-file entry (follows imports) → file
+synth --spec examples/dungeon/main.syn -o dungeon.spec.json
+#   ✓ Spec examples/dungeon/main.syn → dungeon.spec.json
 `);
 
   // ── v0.6 — Result type ───────────────────────────────────────────────────

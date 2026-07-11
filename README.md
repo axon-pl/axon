@@ -259,9 +259,14 @@ Full language reference at **[synth-pl.github.io/synth/docs.html](https://synth-
 | v0.6 ✓ | Safety | `Result<T>`, `?` propagation, error contracts, `refine x: "claim"` semantic narrowing |
 | v0.7 ✓ | Type System | Generics `<T,U>`, `interface`, `fn(T)->U` type expr, `let infer` model-resolved types |
 | **v0.8** ✓ | Async & Reactive | `async fn`, `await`, `store` reactive state, `on...change` subscriptions, enforced `@effects` |
-| v0.9 | Tooling | LSP, source maps, `synth fmt`, rich errors, `explain { }` semantic context blocks |
-| v1.0 | Stability | Frozen spec, semver promise, `synth spec` extracts `@intent`/`refine`/`explain` as JSON |
-| v1.1 | AI-Native | `likely` arms — probabilistic pattern matching by semantic similarity |
+| v0.9 ✓ | Tooling | LSP foundations, `synth fmt`, rich errors |
+| v1.0 ✓ | Stability | Semver promise, npm package, bootstrap compiler |
+| v1.1 ✓ | AI-Native | `likely` arms — probabilistic pattern matching by semantic similarity |
+| **v1.2** ✓ | Spec Extraction | `synth --spec` extracts `@intent` / constraints / `likely` / `refine` as JSON |
+| v1.3 | Explain | `explain { }` blocks join the spec export |
+| v1.4–1.5 | LSP | Thin then rich language server |
+| v1.6–1.7 | Maps & DX | Source maps, polish |
+| v2.0 | Ecosystem | Frozen agent protocol (spec schema 1.0) |
 
 ---
 

@@ -1,5 +1,19 @@
 # Synth Changelog
 
+## v1.2.0 — Spec Extraction
+
+### Tooling
+
+- **`synth --spec <entry.syn> [-o out.json]`** — extract AI-queryable JSON from Synth sources.
+- Follows imports like `--bundle` (multi-file module graph).
+- Emits `synthSpecVersion: "0.1"` documents with `entry` + `modules[]`.
+- Per module: functions (`@intent`, annotations, params, return types, `likely` + exact match arms), constrained types, and `refine` claims.
+- Golden smoke: `npm run test:spec` (Intent Router + Controls + Dungeon).
+
+### Docs / site
+
+- CLI docs cover `--spec`; roadmap Now advances to v1.3 Explain.
+
 ## v1.1.0 — The AI-Native Update
 
 ### Language

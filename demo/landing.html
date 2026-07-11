@@ -1045,7 +1045,7 @@
 
   <!-- ── Hero ────────────────────────────────────────────────────────────── -->
   <section class="hero">
-    <div class="hero-eyebrow">✦ AI-native · v1.1.0</div>
+    <div class="hero-eyebrow">✦ AI-native · v1.2.0</div>
     <h1 class="hero-title">
       <span class="grad">A programming language<br>built for AI.</span>
     </h1>
@@ -1168,7 +1168,7 @@
     <div class="self-host-grid">
       <div class="self-host-copy">
         <p>
-          Synth v1.1.0 ships a <strong>bootstrap compiler</strong>: eight modules written entirely in the
+          Synth v1.2.0 ships a <strong>bootstrap compiler</strong>: eight modules written entirely in the
           language they implement. A seed bundle compiles those sources into JavaScript, and that output
           recompiles them again — byte-for-byte identical, three generations deep. That's the fixed point.
         </p>
@@ -1340,25 +1340,25 @@
   <section style="max-width:860px;margin:0 auto 24px;padding:0 32px;">
     <div class="section-label">Roadmap</div>
     <h2 class="section-title" style="margin-bottom:8px;">Path to v2.0</h2>
-    <p style="color:var(--text-dim);font-size:15px;margin-bottom:40px;">v1.1 shipped <code>likely</code>. Next: extract intent for agents, then grow the IDE and debug loop through v2.0.</p>
+    <p style="color:var(--text-dim);font-size:15px;margin-bottom:40px;">v1.2 shipped <code>synth --spec</code>. Next: <code>explain</code> blocks, then grow the IDE and debug loop through v2.0.</p>
   </section>
   <div class="roadmap-v2">
 
     <!-- Progress bar -->
     <div class="rm-progress-wrap">
       <div class="rm-progress-meta">
-        <span class="rm-progress-label">v1.1 ─────────────→ v2.0</span>
+        <span class="rm-progress-label">v1.2 ─────────────→ v2.0</span>
         <span class="rm-progress-pct">tooling loop</span>
       </div>
       <div class="rm-bar-track">
-        <div class="rm-bar-fill" style="width:18%"></div>
+        <div class="rm-bar-fill" style="width:30%"></div>
       </div>
     </div>
 
     <!-- History chip -->
     <div class="rm-history">
       <div class="rm-history-check">✓</div>
-      <div class="rm-history-text"><strong>15 milestones shipped</strong> · v0.1 through v1.1.0</div>
+      <div class="rm-history-text"><strong>16 milestones shipped</strong> · v0.1 through v1.2.0</div>
       <div class="rm-history-chips">
         <span class="rm-chip">Foundation</span>
         <span class="rm-chip">Guards</span>
@@ -1376,6 +1376,7 @@
         <span class="rm-chip">Self-Hosted</span>
         <span class="rm-chip">v1.0 Stable</span>
         <span class="rm-chip">likely arms</span>
+        <span class="rm-chip">synth spec</span>
       </div>
     </div>
 
@@ -1384,24 +1385,24 @@
 
       <div class="rm-card rm-card-now">
         <div class="rm-card-badge rm-badge-now">★ Now</div>
-        <div class="rm-card-ver rm-ver-now">v1.2</div>
-        <div class="rm-card-title">Spec Extraction</div>
-        <div class="rm-card-desc"><code>synth spec</code> — extract <code>@intent</code>, <code>refine</code>, constraints, and <code>likely</code> claims as JSON agents can query.</div>
+        <div class="rm-card-ver rm-ver-now">v1.3</div>
+        <div class="rm-card-title">Explain &amp; Query</div>
+        <div class="rm-card-desc"><code>explain</code> blocks join the spec export — structured prose agents already query via <code>synth --spec</code>.</div>
         <div class="rm-card-features">
-          <span class="rm-feat">synth spec</span>
-          <span class="rm-feat">JSON schema</span>
-          <span class="rm-feat">queryable intent</span>
+          <span class="rm-feat">explain blocks</span>
+          <span class="rm-feat">spec + docs</span>
+          <span class="rm-feat">JSDoc intent</span>
         </div>
       </div>
 
       <div class="rm-card rm-card-next">
         <div class="rm-card-badge rm-badge-next">Next</div>
-        <div class="rm-card-ver rm-ver-next">v1.3–1.4</div>
-        <div class="rm-card-title">Explain + LSP</div>
-        <div class="rm-card-desc"><code>explain</code> blocks join the spec export, then a thin language server: diagnostics, hover, same-file go-to-def.</div>
+        <div class="rm-card-ver rm-ver-next">v1.4–1.5</div>
+        <div class="rm-card-title">Language Server</div>
+        <div class="rm-card-desc">Thin LSP first (diagnostics, hover, same-file go-to-def), then cross-file refs and completions.</div>
         <div class="rm-card-features">
-          <span class="rm-feat">explain blocks</span>
           <span class="rm-feat">LSP hover</span>
+          <span class="rm-feat">cross-file</span>
           <span class="rm-feat">extension</span>
         </div>
       </div>
@@ -1410,7 +1411,7 @@
         <div class="rm-card-badge rm-badge-goal"><span class="icon-emoji">🎯</span><img class="icon-pixel" src="assets/icons/target-32.png" alt="" width="14" height="14" /> Goal</div>
         <div class="rm-card-ver rm-ver-goal">v2.0</div>
         <div class="rm-card-title">AI-Native Ecosystem</div>
-        <div class="rm-card-desc">Full tooling loop — rich LSP, source maps, and a frozen agent protocol. Path: 1.5 refs → 1.6 maps → 1.7 polish → 2.0.</div>
+        <div class="rm-card-desc">Full tooling loop — rich LSP, source maps, and a frozen agent protocol. Path: 1.6 maps → 1.7 polish → 2.0.</div>
         <div class="rm-card-features">
           <span class="rm-feat">source maps</span>
           <span class="rm-feat">rich IDE</span>

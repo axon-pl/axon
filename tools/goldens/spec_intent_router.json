@@ -1,0 +1,161 @@
+{
+  "synthSpecVersion": "0.1",
+  "entry": "examples/intent_router.syn",
+  "modules": [
+    {
+      "file": "examples/intent_router.syn",
+      "functions": [
+        {
+          "name": "route_intent",
+          "line": 4,
+          "intent": null,
+          "annotations": [],
+          "params": [
+            {
+              "name": "msg",
+              "type": "string",
+              "spread": false
+            }
+          ],
+          "returnType": "string",
+          "likely": [
+            {
+              "claim": "greeting hello hi hey",
+              "result": "\"greet\""
+            },
+            {
+              "claim": "help how do I docs documentation",
+              "result": "\"help\""
+            },
+            {
+              "claim": "refund billing charge money back payment",
+              "result": "\"billing\""
+            },
+            {
+              "claim": "bug crash error broken not working",
+              "result": "\"bug\""
+            },
+            {
+              "claim": "pricing cost plan subscribe upgrade",
+              "result": "\"pricing\""
+            }
+          ],
+          "exactMatchArms": [
+            {
+              "value": "quit",
+              "result": "\"exit\""
+            },
+            {
+              "value": "exit",
+              "result": "\"exit\""
+            },
+            {
+              "value": "bye",
+              "result": "\"exit\""
+            }
+          ]
+        },
+        {
+          "name": "route_label",
+          "line": 18,
+          "intent": null,
+          "annotations": [],
+          "params": [
+            {
+              "name": "intent",
+              "type": "string",
+              "spread": false
+            }
+          ],
+          "returnType": "string",
+          "likely": [],
+          "exactMatchArms": [
+            {
+              "value": "exit",
+              "result": "\"Exit\""
+            },
+            {
+              "value": "greet",
+              "result": "\"Greeting\""
+            },
+            {
+              "value": "help",
+              "result": "\"Help / Docs\""
+            },
+            {
+              "value": "billing",
+              "result": "\"Billing / Refund\""
+            },
+            {
+              "value": "bug",
+              "result": "\"Bug Report\""
+            },
+            {
+              "value": "pricing",
+              "result": "\"Pricing\""
+            }
+          ]
+        },
+        {
+          "name": "route_reply",
+          "line": 30,
+          "intent": null,
+          "annotations": [],
+          "params": [
+            {
+              "name": "intent",
+              "type": "string",
+              "spread": false
+            }
+          ],
+          "returnType": "string",
+          "likely": [],
+          "exactMatchArms": [
+            {
+              "value": "exit",
+              "result": "\"Goodbye — session closed.\""
+            },
+            {
+              "value": "greet",
+              "result": "\"Hey! What can I help you with today?\""
+            },
+            {
+              "value": "help",
+              "result": "\"Opening the docs — try the Quick Start section.\""
+            },
+            {
+              "value": "billing",
+              "result": "\"Routing you to billing support for refunds and charges.\""
+            },
+            {
+              "value": "bug",
+              "result": "\"Thanks for the report — filing a bug ticket.\""
+            },
+            {
+              "value": "pricing",
+              "result": "\"Here are the current plans and upgrade options.\""
+            }
+          ]
+        },
+        {
+          "name": "handle_message",
+          "line": 42,
+          "intent": null,
+          "annotations": [],
+          "params": [
+            {
+              "name": "msg",
+              "type": "string",
+              "spread": false
+            }
+          ],
+          "returnType": "__object__<intent<string>, label<string>, reply<string>>",
+          "likely": [],
+          "exactMatchArms": []
+        }
+      ],
+      "types": [],
+      "refines": []
+    }
+  ]
+}

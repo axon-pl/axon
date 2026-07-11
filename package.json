@@ -1,6 +1,6 @@
 {
   "name": "synth-lang",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Synth — AI-native programming language that transpiles to JavaScript",
   "main": "tools/synth_bootstrap_cli.js",
   "bin": {
@@ -51,7 +51,7 @@
     "build:bootstrap": "node tools/build_bootstrap_bundle.js",
     "build:bootstrap2": "node tools/build_bootstrap_bundle.js --compiler dist/compiler.bootstrap.js --out dist/compiler.bootstrap2.js",
     "build:bootstrap3": "node tools/build_bootstrap_bundle.js --compiler dist/compiler.bootstrap2.js --out dist/compiler.bootstrap3.js",
-    "build:browser-bootstrap": "node tools/build_browser_bundle.js --input dist/compiler.bootstrap.js --out demo/compiler.bootstrap.js --backend bootstrap --version 1.1.0",
+    "build:browser-bootstrap": "node tools/build_browser_bundle.js --input dist/compiler.bootstrap.js --out demo/compiler.bootstrap.js --backend bootstrap --version 1.2.0",
     "build:toolchain": "npm run build:bootstrap && npm run build:browser-bootstrap",
     "update:seed": "node tools/update_seed.js",
     "test:bootstrap": "node tools/test_bootstrap.js",
