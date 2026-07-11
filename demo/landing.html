@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Synth — AI-native programming language</title>
   <meta name="description" content="Synth is an AI-native programming language that transpiles to JavaScript. Unambiguous grammar, intent-first declarations, constraint-enforced types." />
+  <link rel="stylesheet" href="site-icons.css" />
   <style>
     :root {
       --bg:          #0d0221;
@@ -1117,37 +1118,37 @@
     <h2 class="section-title">Built different, on purpose.</h2>
     <div class="pillar-grid">
       <div class="pillar-card">
-        <div class="pillar-icon">🎯</div>
+        <div class="pillar-icon"><span class="icon-emoji">🎯</span><img class="icon-pixel" src="assets/icons/target-48.png" alt="" width="36" height="36" /></div>
         <div class="pillar-title">Intent is a first-class declaration</div>
         <div class="pillar-body"><code>@intent</code> is not a comment — it's a first-class source annotation that describes what a function is <em>for</em>. Downstream tools (and future <code>synth spec</code>) can query intent without reading the full body.</div>
       </div>
       <div class="pillar-card">
-        <div class="pillar-icon">🔒</div>
+        <div class="pillar-icon"><span class="icon-emoji">🔒</span><img class="icon-pixel" src="assets/icons/lock-48.png" alt="" width="36" height="36" /></div>
         <div class="pillar-title">Constraints at the type level</div>
         <div class="pillar-body">Types carry <code>where</code> predicates. The compiler can emit <code>__validate_*</code> helpers for constrained parameters — validation lives at the type definition, not scattered through call sites.</div>
       </div>
       <div class="pillar-card">
-        <div class="pillar-icon">⚡</div>
+        <div class="pillar-icon"><span class="icon-emoji">⚡</span><img class="icon-pixel" src="assets/icons/lightning-48.png" alt="" width="36" height="36" /></div>
         <div class="pillar-title">Explicit effects</div>
         <div class="pillar-body"><code>@pure</code>, <code>@exhaustive</code>, and <code>@throws</code> are checker-enforced. <code>@effects</code> is required on <code>async fn</code>. A <code>@pure</code> function that touches <code>console</code> gets a warning.</div>
       </div>
       <div class="pillar-card">
-        <div class="pillar-icon">🌿</div>
+        <div class="pillar-icon"><span class="icon-emoji">🌿</span><img class="icon-pixel" src="assets/icons/leaf-48.png" alt="" width="36" height="36" /></div>
         <div class="pillar-title">No classes, no this</div>
         <div class="pillar-body">OOP exists to manage human working memory. AI doesn't have that problem. Synth is records + functions — flat and scannable. Mutation is explicit via <code>let mut</code>, compound ops, and <code>store</code>.</div>
       </div>
       <div class="pillar-card">
-        <div class="pillar-icon">✦</div>
+        <div class="pillar-icon"><span class="icon-emoji">✦</span><img class="icon-pixel" src="assets/icons/star-48.png" alt="" width="36" height="36" /></div>
         <div class="pillar-title">Opt-in exhaustiveness</div>
         <div class="pillar-body">Tagged union matches are flexible by default. Add <code>@exhaustive</code> on a function to require every variant be handled — the checker warns on missing cases.</div>
       </div>
       <div class="pillar-card">
-        <div class="pillar-icon">🧪</div>
+        <div class="pillar-icon"><span class="icon-emoji">🧪</span><img class="icon-pixel" src="assets/icons/beaker-48.png" alt="" width="36" height="36" /></div>
         <div class="pillar-title">Tests live next to code</div>
         <div class="pillar-body"><code>@test "description" { expr }</code> registers inline assertions. Run them with <code>synth --test file.syn</code>. No test framework, no config, no boilerplate.</div>
       </div>
       <div class="pillar-card">
-        <div class="pillar-icon">📦</div>
+        <div class="pillar-icon"><span class="icon-emoji">📦</span><img class="icon-pixel" src="assets/icons/box-48.png" alt="" width="36" height="36" /></div>
         <div class="pillar-title">Multi-file modules, single output</div>
         <div class="pillar-body"><code>import { fn } from "./module"</code> and <code>export fn</code> split projects across files. <code>synth --bundle</code> resolves imports, topo-sorts modules, and emits one clean JS file. Zero runtime overhead.</div>
       </div>
@@ -1237,49 +1238,49 @@
     <h2 class="section-title">See it in action.</h2>
     <div class="demo-grid">
       <a class="demo-card" href="breakout.html" style="border-color:#ff2d78;background:linear-gradient(135deg,rgba(255,45,120,0.1),rgba(0,229,255,0.05))">
-        <div class="demo-card-icon">🎮</div>
+        <div class="demo-card-icon"><span class="icon-emoji">🎮</span><img class="icon-pixel" src="assets/icons/controller-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Neon Breakout</div>
         <div class="demo-card-desc">Synthwave brick-breaker — paddle, physics, particles, levels. Game logic written entirely in Synth: store, @memo, match, while loops.</div>
         <div class="demo-card-meta"><span>game</span> store · @memo · match · while</div>
       </a>
       <a class="demo-card" href="neon_life.html" style="border-color:#06d6a0;background:linear-gradient(135deg,rgba(6,214,160,0.1),rgba(0,229,255,0.05))">
-        <div class="demo-card-icon">🧬</div>
+        <div class="demo-card-icon"><span class="icon-emoji">🧬</span><img class="icon-pixel" src="assets/icons/dna-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Neon Life <span style="font-size:0.7rem;opacity:0.7;font-weight:400">New</span></div>
         <div class="demo-card-desc">Conway's Game of Life — draw cells, watch them evolve. Conway's rules expressed as a Synth match expression. Glider, pulsar, and glider gun presets.</div>
         <div class="demo-card-meta"><span>simulation</span> match · flat_map · store</div>
       </a>
       <a class="demo-card" href="invaders.html" style="border-color:#b84fff;background:linear-gradient(135deg,rgba(184,79,255,0.1),rgba(255,45,120,0.05))">
-        <div class="demo-card-icon">👾</div>
+        <div class="demo-card-icon"><span class="icon-emoji">👾</span><img class="icon-pixel" src="assets/icons/space-invader-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Synth Invaders <span style="font-size:0.7rem;opacity:0.7;font-weight:400">New</span></div>
         <div class="demo-card-desc">Classic space invaders with a synthwave twist — marching alien grid, player bullets, waves. Alien colors and points via match expressions.</div>
         <div class="demo-card-meta"><span>game</span> store · @memo · match · find_index</div>
       </a>
       <a class="demo-card" href="drift.html" style="border-color:#ffd166;background:linear-gradient(135deg,rgba(255,209,102,0.1),rgba(0,229,255,0.05))">
-        <div class="demo-card-icon">🚗</div>
+        <div class="demo-card-icon"><span class="icon-emoji">🚗</span><img class="icon-pixel" src="assets/icons/car-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Neon Drift <span style="font-size:0.7rem;opacity:0.7;font-weight:400">New</span></div>
         <div class="demo-card-desc">Top-down neon road racer — dodge oncoming traffic across three lanes. Speed increases over time. Car types via match, lane positions via @memo.</div>
         <div class="demo-card-meta"><span>game</span> store · @memo · match</div>
       </a>
       <a class="demo-card" href="expedition.html" style="border-color:#6470ff;background:linear-gradient(135deg,rgba(100,112,255,0.1),rgba(0,212,255,0.05))">
-        <div class="demo-card-icon">🛸</div>
+        <div class="demo-card-icon"><span class="icon-emoji">🛸</span><img class="icon-pixel" src="assets/icons/spaceship-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Expedition Hub</div>
         <div class="demo-card-desc">Space fleet mission tracker — typed <code>record</code> missions, spread, object shorthand, stdlib method syntax, <code>do</code> notation, and v1.0 template literals.</div>
         <div class="demo-card-meta"><span>v1.0</span> record · templates · method syntax · do notation</div>
       </a>
       <a class="demo-card" href="intent_router.html" style="border-color:#00d4ff;background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(176,96,255,0.06))">
-        <div class="demo-card-icon">🧭</div>
+        <div class="demo-card-icon"><span class="icon-emoji">🧭</span><img class="icon-pixel" src="assets/icons/compass-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Intent Router <span style="font-size:0.7rem;opacity:0.7;font-weight:400">New</span></div>
         <div class="demo-card-desc">Route free-form messages by meaning. Exact arms first, then soft <code>likely</code> classifiers backed by the host embedding API.</div>
         <div class="demo-card-meta"><span>v1.1</span> likely · embed API · match</div>
       </a>
       <a class="demo-card" href="kanban.html" style="border-color:#c060ff;background:linear-gradient(135deg,rgba(192,60,255,0.1),rgba(255,45,120,0.05))">
-        <div class="demo-card-icon">🎮</div>
+        <div class="demo-card-icon"><span class="icon-emoji">🎮</span><img class="icon-pixel" src="assets/icons/joystick-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Neon Kanban</div>
         <div class="demo-card-desc">Synthwave game-dev task board. Typed <code>record</code> cards and columns, v1.0 template literals, add/move/remove cards, live progress bar.</div>
         <div class="demo-card-meta"><span>v1.0</span> record · templates · store · @memo</div>
       </a>
       <a class="demo-card" href="dashboard.html" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(176,96,255,0.1),rgba(0,232,208,0.05))">
-        <div class="demo-card-icon">📊</div>
+        <div class="demo-card-icon"><span class="icon-emoji">📊</span><img class="icon-pixel" src="assets/icons/charts-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Synth Dashboard <span style="font-size:0.7rem;opacity:0.7;font-weight:400">New</span></div>
         <div class="demo-card-desc">Live sprint tracker with <code>enum</code> status/priority, numeric separators, multi-line lambdas, and reactive tick simulation.</div>
         <div class="demo-card-meta"><span>v1.0.2</span> enum · numeric literals · multi-line lambdas</div>
@@ -1291,19 +1292,19 @@
         <div class="demo-card-meta"><span>v1.0.2</span> browser compiler · live eval · bootstrap bundle</div>
       </a>
       <a class="demo-card" href="chronicle.html">
-        <div class="demo-card-icon">📜</div>
+        <div class="demo-card-icon"><span class="icon-emoji">📜</span><img class="icon-pixel" src="assets/icons/letter-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Chronicle</div>
         <div class="demo-card-desc">Reactive fantasy kingdom log. <code>store</code> holds state, <code>async fn</code> advances the simulation, <code>on...change</code> re-renders reactively.</div>
         <div class="demo-card-meta"><span>v0.8</span> store · async fn · await · on...change</div>
       </a>
       <a class="demo-card" href="bazaar.html">
-        <div class="demo-card-icon">🏪</div>
+        <div class="demo-card-icon"><span class="icon-emoji">🏪</span><img class="icon-pixel" src="assets/icons/shop-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">The Bazaar</div>
         <div class="demo-card-desc">RPG item shop with generics, interfaces, and <code>let infer</code>. Filter, sort, and cart — all typed.</div>
         <div class="demo-card-meta"><span>v0.7</span> generics · interfaces · let infer</div>
       </a>
       <a class="demo-card" href="dungeon.html">
-        <div class="demo-card-icon">🗺️</div>
+        <div class="demo-card-icon"><span class="icon-emoji">🗺️</span><img class="icon-pixel" src="assets/icons/map-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Dungeon Toolkit</div>
         <div class="demo-card-desc">Multi-file module demo. 4 .syn files bundled with <code>synth --bundle</code>. Procedural map generation.</div>
         <div class="demo-card-meta"><span>v0.5</span> import · export · bundler</div>
@@ -1327,7 +1328,7 @@
         <div class="demo-card-meta">Pipelines · .field shorthand · @memo</div>
       </a>
       <a class="demo-card" href="controls.html">
-        <div class="demo-card-icon">🕹️</div>
+        <div class="demo-card-icon"><span class="icon-emoji">🕹️</span><img class="icon-pixel" src="assets/icons/joystick-32.png" alt="" width="32" height="32" /></div>
         <div class="demo-card-title">Web Controls</div>
         <div class="demo-card-desc">Interactive UI components demonstrating string interpolation and constrained types.</div>
         <div class="demo-card-meta">v0.3 feature showcase</div>
@@ -1338,19 +1339,19 @@
   <!-- ── Roadmap v2 ────────────────────────────────────────────────────────── -->
   <section style="max-width:860px;margin:0 auto 24px;padding:0 32px;">
     <div class="section-label">Roadmap</div>
-    <h2 class="section-title" style="margin-bottom:8px;">Shipped.</h2>
-    <p style="color:var(--text-dim);font-size:15px;margin-bottom:40px;">v1.1 ships <code>likely</code> match arms. Next up: spec extraction and LSP.</p>
+    <h2 class="section-title" style="margin-bottom:8px;">Path to v2.0</h2>
+    <p style="color:var(--text-dim);font-size:15px;margin-bottom:40px;">v1.1 shipped <code>likely</code>. Next: extract intent for agents, then grow the IDE and debug loop through v2.0.</p>
   </section>
   <div class="roadmap-v2">
 
     <!-- Progress bar -->
     <div class="rm-progress-wrap">
       <div class="rm-progress-meta">
-        <span class="rm-progress-label">v0.1 ───────────────────── v1.1</span>
-        <span class="rm-progress-pct">AI-native live</span>
+        <span class="rm-progress-label">v1.1 ─────────────→ v2.0</span>
+        <span class="rm-progress-pct">tooling loop</span>
       </div>
       <div class="rm-bar-track">
-        <div class="rm-bar-fill" style="width:100%"></div>
+        <div class="rm-bar-fill" style="width:18%"></div>
       </div>
     </div>
 
@@ -1383,37 +1384,37 @@
 
       <div class="rm-card rm-card-now">
         <div class="rm-card-badge rm-badge-now">★ Now</div>
-        <div class="rm-card-ver rm-ver-now">v1.1</div>
-        <div class="rm-card-title">The AI-Native Update</div>
-        <div class="rm-card-desc"><code>likely</code> match arms — pattern matching by semantic similarity. Arms become soft classifiers backed by embeddings.</div>
+        <div class="rm-card-ver rm-ver-now">v1.2</div>
+        <div class="rm-card-title">Spec Extraction</div>
+        <div class="rm-card-desc"><code>synth spec</code> — extract <code>@intent</code>, <code>refine</code>, constraints, and <code>likely</code> claims as JSON agents can query.</div>
         <div class="rm-card-features">
-          <span class="rm-feat">likely arms</span>
-          <span class="rm-feat">embedding API</span>
-          <span class="rm-feat">intent router</span>
+          <span class="rm-feat">synth spec</span>
+          <span class="rm-feat">JSON schema</span>
+          <span class="rm-feat">queryable intent</span>
         </div>
       </div>
 
       <div class="rm-card rm-card-next">
         <div class="rm-card-badge rm-badge-next">Next</div>
-        <div class="rm-card-ver rm-ver-next">v1.2</div>
-        <div class="rm-card-title">Spec Extraction</div>
-        <div class="rm-card-desc"><code>synth spec</code> — extract <code>@intent</code>, <code>refine</code>, and constraints as structured JSON for LLM consumption.</div>
+        <div class="rm-card-ver rm-ver-next">v1.3–1.4</div>
+        <div class="rm-card-title">Explain + LSP</div>
+        <div class="rm-card-desc"><code>explain</code> blocks join the spec export, then a thin language server: diagnostics, hover, same-file go-to-def.</div>
         <div class="rm-card-features">
-          <span class="rm-feat">synth spec</span>
-          <span class="rm-feat">queryable intent</span>
-          <span class="rm-feat">LSP</span>
+          <span class="rm-feat">explain blocks</span>
+          <span class="rm-feat">LSP hover</span>
+          <span class="rm-feat">extension</span>
         </div>
       </div>
 
       <div class="rm-card rm-card-goal">
-        <div class="rm-card-badge rm-badge-goal">🎯 Goal</div>
+        <div class="rm-card-badge rm-badge-goal"><span class="icon-emoji">🎯</span><img class="icon-pixel" src="assets/icons/target-32.png" alt="" width="14" height="14" /> Goal</div>
         <div class="rm-card-ver rm-ver-goal">v2.0</div>
         <div class="rm-card-title">AI-Native Ecosystem</div>
-        <div class="rm-card-desc">Full tooling loop — LSP, source maps, and model-queryable docs as first-class citizens.</div>
+        <div class="rm-card-desc">Full tooling loop — rich LSP, source maps, and a frozen agent protocol. Path: 1.5 refs → 1.6 maps → 1.7 polish → 2.0.</div>
         <div class="rm-card-features">
           <span class="rm-feat">source maps</span>
           <span class="rm-feat">rich IDE</span>
-          <span class="rm-feat">explain blocks</span>
+          <span class="rm-feat">spec schema 1.0</span>
         </div>
       </div>
 
