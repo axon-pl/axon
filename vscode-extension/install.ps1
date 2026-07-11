@@ -6,7 +6,7 @@
 #   %USERPROFILE%\.vscode\extensions\
 # Also caches the VSIX at %USERPROFILE%\.synth\synth-language.vsix for reinstalls.
 
-$version = "1.0.6"
+$version = "1.0.9"
 $src = $PSScriptRoot
 $vsixName = "synth-language-$version.vsix"
 $vsix = Join-Path $src $vsixName
@@ -102,7 +102,7 @@ function Install-Vsix {
   return $true
 }
 
-Write-Host "Installing Synth language extension v$version (global, grammar-only)..." -ForegroundColor Cyan
+Write-Host "Installing Synth language extension v$version..." -ForegroundColor Cyan
 
 $legacyIds = @(
   "synth-lang.synth-language-0.1.0",
@@ -111,6 +111,8 @@ $legacyIds = @(
   "synth-lang.synth-language-1.0.3",
   "synth-lang.synth-language-1.0.4",
   "synth-lang.synth-language-1.0.5",
+  "synth-lang.synth-language-1.0.6",
+  "synth-lang.synth-language-1.0.7",
   "axon-lang.axon-language-0.1.0"
 )
 
@@ -151,7 +153,7 @@ $fromMarketCursor = Install-FromRegistry -Cli "cursor" -ExtensionId $extensionId
 $fromMarketCode = Install-FromRegistry -Cli "code" -ExtensionId $extensionId
 
 if (-not $fromMarketCursor -and -not $fromMarketCode) {
-  Write-Host "  Marketplace install unavailable — using local VSIX" -ForegroundColor Yellow
+  Write-Host "  Marketplace install unavailable - using local VSIX" -ForegroundColor Yellow
   $null = Install-Vsix -Cli "cursor" -PackagePath $cachedVsix
   $null = Install-Vsix -Cli "code" -PackagePath $cachedVsix
 }

@@ -310,7 +310,7 @@
     },
     "declaration-keywords": {
       "name": "keyword.other",
-      "match": "\\b(let|new|where|mut|refine|infer|store|on|import|export|from|as|module|do|typeof|instanceof)\\b"
+      "match": "\\b(let|new|where|mut|refine|likely|infer|store|on|import|export|from|as|module|do|typeof|instanceof)\\b"
     },
     "async-keywords": {
       "name": "keyword.control.async",

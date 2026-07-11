@@ -2,9 +2,15 @@
   "name": "synth-language",
   "displayName": "Synth Language",
   "description": "Syntax highlighting, bracket matching, and language support for the Synth programming language (.syn files)",
-  "version": "1.0.6",
+  "version": "1.0.9",
   "publisher": "synth-lang",
   "license": "MIT",
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:synth",
+    "onStartupFinished",
+    "workspaceContains:**/*.syn"
+  ],
   "engines": {
     "vscode": "^1.60.0"
   },
@@ -20,7 +26,7 @@
     "transpiler",
     "ai-native"
   ],
-  "homepage": "https://synth-lang.dev",
+  "homepage": "https://synth-pl.github.io/synth/",
   "bugs": {
     "url": "https://github.com/synth-pl/synth/issues"
   },
@@ -34,6 +40,12 @@
     "theme": "dark"
   },
   "contributes": {
+    "commands": [
+      {
+        "command": "synth.rebindLanguage",
+        "title": "Synth: Reapply Language Mode"
+      }
+    ],
     "languages": [
       {
         "id": "synth",
@@ -52,6 +64,9 @@
     "configurationDefaults": {
       "[synth]": {
         "editor.semanticHighlighting.enabled": false
+      },
+      "files.associations": {
+        "*.syn": "synth"
       }
     }
   }

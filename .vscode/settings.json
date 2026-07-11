@@ -2,19 +2,7 @@
   "files.associations": {
     "*.syn": "synth"
   },
-  "editor.tokenColorCustomizations": {
-    "[synth]": {
-      "textMateRules": [
-        { "scope": "comment", "settings": { "foreground": "#6272a4", "fontStyle": "italic" } },
-        { "scope": "string", "settings": { "foreground": "#f1fa8c" } },
-        { "scope": "keyword.control, keyword.other, keyword.declaration", "settings": { "foreground": "#ff79c6" } },
-        { "scope": "keyword.operator", "settings": { "foreground": "#ff79c6" } },
-        { "scope": "entity.name.function", "settings": { "foreground": "#50fa7b" } },
-        { "scope": "entity.name.type, support.type", "settings": { "foreground": "#8be9fd" } },
-        { "scope": "support.type.primitive", "settings": { "foreground": "#8be9fd" } },
-        { "scope": "constant.language, constant.numeric", "settings": { "foreground": "#bd93f9" } },
-        { "scope": "storage.modifier.annotation", "settings": { "foreground": "#50fa7b" } }
-      ]
-    }
+  "[synth]": {
+    "editor.semanticHighlighting.enabled": false
   }
 }
