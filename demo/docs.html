@@ -2298,55 +2298,11 @@ $ synth --check src/main.syn
     <div class="footer-copy">MIT License · © 2026 synth-pl</div>
   </footer>
 
+  <script src="synth-highlight.js"></script>
   <script>
-    // ── Syntax highlighter ──────────────────────────────────────────────────
-    // Wrap only plain-text segments (skip anything already inside an HTML tag)
-    function replaceText(str, pattern, repl) {
-      return str.replace(new RegExp(`(<[^>]+>)|(${pattern.source})`, 'g' + (pattern.flags||'').replace('g','')),
-        (m, tag, hit) => tag ? tag : (typeof repl === 'function' ? repl(hit) : hit.replace(pattern, repl)));
-    }
-
-    function highlight(src) {
-      const KW   = ['fn','let','type','record','store','interface','match','if','else','where','return','import','export','async','await','on','as','for','in','break','continue','mut','refine','infer','explain','likely'];
-      const KW2  = ['when','true','false','null','undefined','void'];
-      const TY   = ['int','float','string','bool','list','void','Result','Ok','Err','Maybe','Some','None'];
-
-      // All inserted spans use single-quote attributes so the double-quote
-      // string regex cannot match "classname" inside an already-inserted tag.
-      const sp = (cls, t) => `<span class='${cls}'>${t}</span>`;
-
-      return src
-        // 1. HTML-escape raw source
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        // 2. Triple-quote strings  (before single-quote strings)
-        .replace(/("""[\s\S]*?""")/g, m => sp('str', m))
-        // 3. Regular double-quoted strings
-        .replace(/("(?:[^"\\]|\\.)*")/g, m => sp('str', m))
-        // 4. Comments  (after strings so a "//" inside a string doesn't fire)
-        .replace(/(\/\/[^\n]*)/g, m => sp('cmt', m))
-        // 5. Annotations — only outside existing tags
-        .replace(/(@(?:pure|total|intent|effects|memo|exhaustive|test|throws)\b)/g, m => sp('ann', m))
-        // 6. Operators — only outside existing tags
-        .replace(/(\|&gt;|=&gt;|-&gt;|\?\?|\?\.|::|[|](?![|])|\?(?![?\.]))/g, m => sp('op', m))
-        // 7. Keywords — skip inside already-inserted spans
-        .replace(new RegExp(`(<[^>]+>)|(\\b(?:${KW.join('|')})\\b)`, 'g'),
-          (m, tag, kw) => tag ? tag : sp('kw', kw))
-        .replace(new RegExp(`(<[^>]+>)|(\\b(?:${KW2.join('|')})\\b)`, 'g'),
-          (m, tag, kw) => tag ? tag : sp('bool', kw))
-        // 8. Types
-        .replace(new RegExp(`(<[^>]+>)|(\\b(?:${TY.join('|')})\\b)`, 'g'),
-          (m, tag, ty) => tag ? tag : sp('ty', ty))
-        // 9. Numbers
-        .replace(/(<[^>]+>)|(\b\d+\.?\d*\b)/g,
-          (m, tag, n) => tag ? tag : sp('num', n))
-        // 10. Function name after the fn keyword span
-        .replace(/(<span class='kw'>fn<\/span>\s+)([a-zA-Z_]\w*)/g,
-          (_, kw, name) => kw + sp('fn', name));
-    }
-
     function setCode(id, src) {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = highlight(src.trim());
+      if (el) el.innerHTML = highlightSynth(src.trim());
     }
 
     // ── Sidebar scroll spy ──────────────────────────────────────────────────

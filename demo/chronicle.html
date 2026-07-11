@@ -525,6 +525,7 @@
   </div>
 
   <script src="chronicle.sources.js"></script>
+  <script src="synth-highlight.js"></script>
 
   <script>
     // Speed button active state
@@ -534,35 +535,9 @@
       if (btn) btn.classList.add('active');
     }
 
-    // ── Syntax highlighter ──────────────────────────────────────────────────
-    function highlight(src) {
-      const KW  = ['fn','let','type','record','store','interface','match','if','else','where','return',
-                   'import','export','as','for','in','break','continue','mut','refine','infer','async','await','on'];
-      const ANN = ['pure','total','intent','effects','memo','exhaustive','test','throws'];
-      const TY  = ['int','float','string','bool','list','void','Result','Ok','Err','Maybe','Some','None'];
-      const sp  = (cls, t) => `<span class='${cls}'>${t}</span>`;
-      return src
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/("""[\s\S]*?""")/g, m => sp('str', m))
-        .replace(/("(?:[^"\\]|\\.)*")/g, m => sp('str', m))
-        .replace(/(\/\/[^\n]*)/g, m => sp('cmt', m))
-        .replace(new RegExp(`(@(?:${ANN.join('|')})\\b)`, 'g'), m => sp('ann', m))
-        .replace(/(\|&gt;|=&gt;|-&gt;|\?\?|\?\.|::|[|](?![|]))/g, m => sp('op', m))
-        .replace(new RegExp(`(<[^>]+>)|(\\b(?:${KW.join('|')})\\b)`, 'g'),
-          (m, tag, kw) => tag ? tag : sp('kw', kw))
-        .replace(new RegExp(`(<[^>]+>)|(\\b(?:true|false|null|undefined|void)\\b)`, 'g'),
-          (m, tag, kw) => tag ? tag : sp('bool', kw))
-        .replace(new RegExp(`(<[^>]+>)|(\\b(?:${TY.join('|')})\\b)`, 'g'),
-          (m, tag, ty) => tag ? tag : sp('ty', ty))
-        .replace(/(<[^>]+>)|(\b\d+\.?\d*\b)/g,
-          (m, tag, n) => tag ? tag : sp('num', n))
-        .replace(/(<span class='kw'>fn<\/span>\s+)([a-zA-Z_]\w*)/g,
-          (_, kw, name) => kw + sp('fn', name));
-    }
-
     function setCode(id, src) {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = highlight(src.trim());
+      if (el) el.innerHTML = highlightSynth(src.trim());
     }
 
     setCode('src-store', `

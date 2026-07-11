@@ -381,6 +381,7 @@
     #editor-hl .op   { color: #ff79c6; opacity: 0.85; }
     #editor-hl .bool { color: #bd93f9; }
     #editor-hl .ty   { color: #8be9fd; }
+    #editor-hl .fn   { color: #8be9fd; }
 
     .result-pane {
       padding: 16px;
@@ -513,6 +514,7 @@
 
 <!-- ── Compiler bundle (bootstrap — Synth compiling Synth) ─────────────────── -->
 <script src="compiler.bootstrap.js"></script>
+<script src="synth-highlight.js"></script>
 
 <script>
 // ── Example snippets ─────────────────────────────────────────────────────────
@@ -1667,23 +1669,7 @@ function setStatus(type, text) {
   statusPill.textContent = text
 }
 
-// ── Synth source highlighter — single-pass tokeniser ──────────────────────────
-function highlightSynth(src) {
-  return escHtml(src).replace(
-    /(\/\/[^\n]*)|("""[\s\S]*?"""|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(0x[\da-fA-F_]+|0b[01_]+|\b\d[\d_]*\.?[\d_]*)|(@\w+)|(\|>|=>|->|\?\?|::|[|](?![|>]))|\b(fn|let|mut|type|record|enum|match|if|else|for|in|while|break|continue|where|return|import|export|from|module|store|interface|async|await|and|or|not|infer)\b|\b(true|false|null|undefined)\b|\b(string|int|float|bool|void)\b/g,
-    (_, cmt, str, num, ann, op, kw, bool, ty) => {
-      if (cmt)  return `<span class="cmt">${cmt}</span>`
-      if (str)  return `<span class="str">${str}</span>`
-      if (num)  return `<span class="num">${num}</span>`
-      if (ann)  return `<span class="ann">${ann}</span>`
-      if (op)   return `<span class="op">${op}</span>`
-      if (kw)   return `<span class="kw">${kw}</span>`
-      if (bool) return `<span class="bool">${bool}</span>`
-      if (ty)   return `<span class="ty">${ty}</span>`
-      return _
-    }
-  )
-}
+// highlightSynth comes from synth-highlight.js
 
 // ── JS highlighter — single-pass so span class names are never re-matched ────
 function highlightJs(code) {

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Synth Dashboard — v1.0.0 Demo</title>
   <script src="compiler.bootstrap.js"></script>
+  <script src="synth-highlight.js"></script>
   <style>
     :root {
       --bg:         #0d0120;
@@ -169,13 +170,15 @@
       max-height: 380px; overflow-y: auto;
     }
     /* syntax highlight */
-    .kw  { color: #c080ff; }
-    .kw2 { color: #ff7fcc; }
-    .str { color: #80ffe0; }
-    .num { color: #ffd080; }
-    .cmt { color: #7a5fa8; font-style: italic; }
-    .fn  { color: #7fdbff; }
-    .tp  { color: #80ffc0; }
+    .kw   { color: #c080ff; }
+    .bool { color: #ff7fcc; }
+    .str  { color: #80ffe0; }
+    .num  { color: #ffd080; }
+    .cmt  { color: #7a5fa8; font-style: italic; }
+    .fn   { color: #7fdbff; }
+    .ty, .tp { color: #80ffc0; }
+    .ann  { color: #7fdbff; }
+    .op   { color: #c080ff; }
 
     /* ── Filter row ─────────────────────────────────────────────────────────── */
     .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -591,29 +594,7 @@ function showSrc(tab) {
   document.querySelectorAll('.src-tab').forEach((t,i) => {
     t.classList.toggle('active', ['types','logic','sim'][i] === tab);
   });
-  document.getElementById('src-display').innerHTML = highlight(SOURCES[tab]);
-}
-
-function highlight(src) {
-  const escaped = src
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-
-  // Single-pass tokeniser — each character matched at most once,
-  // so generated span tags are never re-processed by later patterns.
-  return escaped.replace(
-    /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|(0x[\da-fA-F_]+|0b[01_]+|\d[\d_]*(?:\.\d[\d_]*)?)(?=\W|$)|(\b(?:enum|fn|record|let|match|if|else|return|store|on|for|in|import|export|type|async|await)\b)|(\b(?:int|float|string|bool|list|any)\b)|([A-Z][A-Za-z0-9_]*)/g,
-    (_, cmt, str, num, kw, tp, tp2) => {
-      if (cmt)  return `<span class="cmt">${cmt}</span>`;
-      if (str)  return `<span class="str">${str}</span>`;
-      if (num)  return `<span class="num">${num}</span>`;
-      if (kw)   return `<span class="kw">${kw}</span>`;
-      if (tp)   return `<span class="tp">${tp}</span>`;
-      if (tp2)  return `<span class="tp">${tp2}</span>`;
-      return _;
-    }
-  );
+  document.getElementById('src-display').innerHTML = highlightSynth(SOURCES[tab]);
 }
 
 showSrc('types');

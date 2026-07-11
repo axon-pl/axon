@@ -1433,6 +1433,7 @@
     <div class="footer-copy">MIT License · © 2026 synth-pl</div>
   </footer>
 
+  <script src="synth-highlight.js"></script>
   <script>
     function showPane(id, btn) {
       document.querySelectorAll('.showcase-pane').forEach(p => p.classList.remove('active'));
@@ -1478,39 +1479,9 @@
       setTimeout(() => btn.textContent = 'copy', 2000);
     }
 
-    // Single-pass Synth syntax highlighter — each character matched at most once,
-    // so generated span tags are never fed back into subsequent patterns.
-    function highlight(src) {
-      const sp = (c, t) => `<span class='${c}'>${t}</span>`;
-
-      const escaped = src
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-      const result = escaped.replace(
-        /("""[\s\S]*?""")|("(?:[^"\\]|\\.)*")|(\/\/[^\n]*)|(@(?:pure|total|intent|effects|memo|exhaustive|test)\b)|(\|&gt;|=&gt;|-&gt;|\?\?|\?\.|::|\|(?!\|))|(0x[\da-fA-F_]+|0b[01_]+|\d+\.?\d*)|(\b(?:fn|let|type|record|match|if|else|where|return|as|import|export|from)\b)|(\b(?:when|true|false|null|void)\b)|(\b(?:int|float|string|bool|list|void)\b)/g,
-        (_, tstr, str, cmt, ann, op, num, kw, kw2, ty) => {
-          if (tstr) return sp('str',  tstr);
-          if (str)  return sp('str',  str);
-          if (cmt)  return sp('cmt',  cmt);
-          if (ann)  return sp('ann',  ann);
-          if (op)   return sp('op',   op);
-          if (num)  return sp('num',  num);
-          if (kw)   return sp('kw',   kw);
-          if (kw2)  return sp('bool', kw2);
-          if (ty)   return sp('ty',   ty);
-          return _;
-        }
-      );
-
-      // Second pass: mark function names — safe because we're matching a unique
-      // already-generated span boundary, not re-scanning raw source tokens.
-      return result.replace(/(<span class='kw'>fn<\/span>\s+)([a-zA-Z_]\w*)/g,
-        (_, k, n) => k + sp('fn', n));
-    }
-
     function setCode(id, src) {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = highlight(src.trim());
+      if (el) el.innerHTML = highlightSynth(src.trim());
     }
 
     setCode('code-types', `
