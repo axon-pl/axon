@@ -1525,9 +1525,9 @@ record Hero {
 }
 
 // Guard injected automatically — never forget validation again
+@pure
+@intent "Restore HP without exceeding max"
 fn heal :: (hero: Hero, amount: Health) -> Hero {
-  @pure
-  @intent "Restore HP without exceeding max"
   { ...hero, hp: clamp(hero.hp + amount, 0, 100) }
 }
 `);

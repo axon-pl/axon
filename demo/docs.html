@@ -1236,6 +1236,10 @@
         <h2 class="section-title"><code>@pure</code> &amp; <code>@total</code></h2>
         <div class="section-rule"></div>
 
+        <p><strong>House style:</strong> write annotations <em>above</em> the function
+          (<code>@pure</code>, <code>@intent</code>, &hellip; then <code>fn</code>), not inside the body.
+          That works for both short <code>=</code> forms and braced bodies, and keeps metadata visible before the signature.</p>
+
         <p><code>@pure</code> declares that a function has no side effects — it should not access globals, mutate state, or call effectful methods. The checker verifies this and emits warnings on violations.</p>
         <p><code>@total</code> documents that a function is defined for all inputs. It is a declaration for readers and downstream tools — not currently enforced by the checker.</p>
 
@@ -1313,7 +1317,7 @@
         <h2 class="section-title"><code>@exhaustive</code></h2>
         <div class="section-rule"></div>
 
-        <p>Opt-in exhaustiveness checking for functions whose body is a <code>match</code> expression. Place <code>@exhaustive</code> on the function declaration — the checker verifies that all variants of a tagged union are covered.</p>
+        <p>Opt-in exhaustiveness checking for functions whose body is a <code>match</code> expression. Place <code>@exhaustive</code> on the line(s) <em>above</em> the function — the checker verifies that all variants of a tagged union are covered.</p>
 
         <div class="code-block">
           <div class="code-label"><span class="dot"></span>synth</div>
@@ -1358,8 +1362,8 @@
 
         <div class="callout callout-note">
           <div class="callout-head">Placement</div>
-          <code>@throws</code> goes immediately before the <code>fn</code> keyword, on the same line.
-          It can be combined with other annotations: <code>@pure @throws fn foo()</code>.
+          Annotations sit <strong>above</strong> the function (or on the line immediately before <code>fn</code>).
+          Combine freely: <code>@pure @throws</code> then <code>fn foo()</code> on the next line.
         </div>
       </section>
 
@@ -2376,9 +2380,9 @@ record Hero {
 }
 
 // Annotated pure function — intent is machine-readable
+@pure @total
+@intent "Human-readable rank for a hero given class and level"
 fn level_title :: (class: string, level: int) -> string {
-  @pure @total
-  @intent "Human-readable rank for a hero given class and level"
   match class {
     | "mage"   => level >= 10 ? "Archmage"  : "Apprentice"
     | "knight" => level >= 5  ? "Champion"  : "Squire"
@@ -2416,9 +2420,9 @@ synth --test examples/rpg.syn
 
     setCode('hello-code', `
 // hello.syn
+@pure @total
+@intent "Produce a greeting string for the given name"
 fn greet :: (name: string) -> string {
-  @pure @total
-  @intent "Produce a greeting string for the given name"
   "Hello, {name}!"
 }
 
@@ -2426,9 +2430,9 @@ let msg = greet("Synth")
 `);
 
     setCode('fn-full-code', `
+@pure @total
+@intent "Sum two integers"
 fn add :: (a: int, b: int) -> int {
-  @pure @total
-  @intent "Sum two integers"
   a + b
 }
 `);
@@ -2504,9 +2508,9 @@ type Percentage   = int    where value >= 0 && value <= 100
 type PositiveInt  = int    where value > 0
 
 // Guard injection — no manual validation needed
+@effects ["email"]
+@intent "Send a welcome email to a validated address"
 fn send_welcome :: (email: EmailAddress) -> void {
-  @effects ["email"]
-  @intent "Send a welcome email to a validated address"
   // __validate_EmailAddress(email) is injected automatically
   console.log("Sending to {email}")
 }
@@ -2534,8 +2538,8 @@ let aria = { name: "Aria", hp: 60, attack: 11, level: 1, alive: true }
     setCode('record-update-code', `
 // Immutable update — returns new record, original unchanged
 fn level_up :: (hero: Hero) -> Hero = { ...hero, level: hero.level + 1 }
+@pure
 fn take_damage :: (hero: Hero, dmg: int) -> Hero = {
-  @pure
   let newHp = clamp(hero.hp - dmg, 0, 100)
   { ...hero, hp: newHp, alive: newHp > 0 }
 }
@@ -2675,8 +2679,8 @@ fn classify_score :: (score: int) -> string =
     | _              => "F"
   }
 
+@pure @total
 fn hp_status :: (hp: int, maxHp: int) -> string {
-  @pure @total
   let pct = maxHp > 0 ? hp * 100 / maxHp : 0
   match pct {
     | n when n <= 0  => "DEAD"
@@ -2689,8 +2693,8 @@ fn hp_status :: (hp: int, maxHp: int) -> string {
 `);
 
     setCode('match-union-code', `
+@exhaustive
 fn area :: (shape: Shape) -> float =
-  @exhaustive
   match shape {
     | Circle   { r }          => 3.14159 * r * r
     | Rect     { w, h }       => w * h
@@ -2835,24 +2839,24 @@ let grade = match score { | n when n >= 90 => "A" | _ => "B" }
 `);
 
     setCode('ann-pure-code', `
+@pure @total
+@intent "Clamp HP to [0, max] — safe for any integer input"
 fn clamp_hp :: (hp: int, max: int) -> int {
-  @pure @total
-  @intent "Clamp HP to [0, max] — safe for any integer input"
   hp < 0 ? 0 : hp > max ? max : hp
 }
 
 // Checker catches violations:
+@pure                    // WARNING: accesses effectful global 'console'
 fn bad :: (x: int) -> int {
-  @pure                    // WARNING: accesses effectful global 'console'
   console.log("oops")
   x
 }
 `);
 
     setCode('ann-intent-code', `
+@pure @total
+@intent "Elemental affinity bonus for a hero class attacking with a given element"
 fn element_bonus :: (class: string, element: string) -> int {
-  @pure @total
-  @intent "Elemental affinity bonus for a hero class attacking with a given element"
   match class {
     | "mage"   => element === "arcane" ? 9 : element === "fire" ? 6 : 0
     | "knight" => element === "light"  ? 4 : 0
@@ -2866,23 +2870,23 @@ fn element_bonus :: (class: string, element: string) -> int {
 `);
 
     setCode('ann-effects-code', `
+@effects ["storage"]
+@intent "Persist game state to localStorage"
 fn save_game :: (state: GameState) -> void {
-  @effects ["storage"]
-  @intent "Persist game state to localStorage"
   localStorage.setItem("synth_save", JSON.stringify(state))
 }
 
+@effects ["network", "async"]
+@intent "Fetch leaderboard scores from the API"
 fn fetch_scores :: (url: string) -> void {
-  @effects ["network", "async"]
-  @intent "Fetch leaderboard scores from the API"
   fetch(url).then(r => r.json()).then(data => mount(render_scores(data), "#scores"))
 }
 `);
 
     setCode('ann-memo-code', `
+@pure @total @memo
+@intent "Fibonacci number at position n, memoized"
 fn fib :: (n: int) -> int {
-  @pure @total @memo
-  @intent "Fibonacci number at position n, memoized"
   n <= 1 ? n : fib(n - 1) + fib(n - 2)
 }
 
