@@ -13,9 +13,9 @@
 
 // ── 1. when guards in match ───────────────────────────────────────────────────
 
+@pure @total
+@intent "Grade a numeric score with guarded match arms"
 fn classify_score :: (score: int) -> string {
-  @pure @total
-  @intent "Grade a numeric score with guarded match arms"
   match score {
     | n when n >= 90 => "A"
     | n when n >= 80 => "B"
@@ -29,9 +29,9 @@ fn classify_score :: (score: int) -> string {
 @test "classify_score: 85 → B" { classify_score(85) === "B" }
 @test "classify_score: 55 → F" { classify_score(55) === "F" }
 
+@pure @total
+@intent "Describe health status with guarded match on ratio"
 fn describe_hp :: (hp: int, maxHp: int) -> string {
-  @pure @total
-  @intent "Describe health status with guarded match on ratio"
   let ratio = hp * 100 / maxHp
   match ratio {
     | n when n <= 0  => "dead"
@@ -54,21 +54,21 @@ record Character {
   guild: object?
 }
 
+@pure @total
+@intent "Safely read nested optional property with ?. and ??"
 fn weapon_name :: (hero: Character) -> string {
-  @pure @total
-  @intent "Safely read nested optional property with ?. and ??"
   hero.weapon?.name ?? "bare hands"
 }
 
+@pure @total
+@intent "Chain multiple optional accesses"
 fn guild_rank :: (hero: Character) -> string {
-  @pure @total
-  @intent "Chain multiple optional accesses"
   hero.guild?.rank ?? hero.guild?.name ?? "freelancer"
 }
 
+@pure @total
+@intent "Numeric fallback via ??"
 fn safe_power :: (hero: Character) -> int {
-  @pure @total
-  @intent "Numeric fallback via ??"
   hero.weapon?.power ?? 1
 }
 
@@ -90,9 +90,9 @@ fn safe_power :: (hero: Character) -> int {
 record Vec2 { x: float, y: float }
 record Rect3 { x: float, y: float, w: float, h: float }
 
+@pure @total
+@intent "Destructure both points to compute Euclidean distance"
 fn distance :: (a: Vec2, b: Vec2) -> float {
-  @pure @total
-  @intent "Destructure both points to compute Euclidean distance"
   let { x: ax, y: ay } = a
   let { x: bx, y: by } = b
   let dx = bx - ax
@@ -100,16 +100,16 @@ fn distance :: (a: Vec2, b: Vec2) -> float {
   Math.sqrt(dx * dx + dy * dy)
 }
 
+@pure @total
+@intent "Destructure width and height from a rect record"
 fn rect_area :: (r: Rect3) -> float {
-  @pure @total
-  @intent "Destructure width and height from a rect record"
   let { w, h } = r
   w * h
 }
 
+@pure @total
+@intent "Array destructuring to extract first two elements"
 fn first_two :: (nums: int[]) -> int {
-  @pure @total
-  @intent "Array destructuring to extract first two elements"
   let [a, b] = nums
   a + b
 }
@@ -119,9 +119,9 @@ fn first_two :: (nums: int[]) -> int {
 
 // ── 5. Triple-quote multiline strings ────────────────────────────────────────
 
+@pure
+@intent "Multiline string using triple-quote syntax"
 fn game_intro :: () -> string {
-  @pure
-  @intent "Multiline string using triple-quote syntax"
   """
 In a land of eternal fog,
 where heroes are born from spreadsheets,
@@ -136,9 +136,9 @@ in pursuit of imaginary gold.
   game_intro().includes("fog")
 }
 
+@pure @total
+@intent "Triple-quote string with interpolation"
 fn greeting :: (name: string) -> string {
-  @pure @total
-  @intent "Triple-quote string with interpolation"
   """
 Welcome, {name}!
 Your quest begins now.
@@ -157,9 +157,9 @@ type Shape =
   | Triangle { base: float, height: float }
   | Point
 
+@pure @total @exhaustive
+@intent "Compute area for all shape variants"
 fn area :: (shape: Shape) -> float {
-  @pure @total @exhaustive
-  @intent "Compute area for all shape variants"
   match shape {
     | Circle { r }           => 3.14159 * r * r
     | Rect { w, h }          => w * h
@@ -168,9 +168,9 @@ fn area :: (shape: Shape) -> float {
   }
 }
 
+@pure @total
+@intent "Describe a shape with when guards on tag patterns"
 fn describe_shape :: (shape: Shape) -> string {
-  @pure @total
-  @intent "Describe a shape with when guards on tag patterns"
   match shape {
     | Circle { r } when r > 10 => "big circle"
     | Circle { r }             => "small circle"
@@ -196,9 +196,9 @@ type GameEvent =
   | LevelUp { hero: string, newLevel: int }
   | Escaped
 
+@pure @total
+@intent "Format a game event for the combat log"
 fn describe_event :: (evt: GameEvent) -> string {
-  @pure @total
-  @intent "Format a game event for the combat log"
   match evt {
     | Attack { attacker, target, dmg } => "{attacker} hit {target} for {dmg} damage"
     | Heal { target, amount }          => "{target} recovered {amount} HP"
@@ -222,9 +222,9 @@ fn describe_event :: (evt: GameEvent) -> string {
 
 // ── 7. Pipeline |> as naming ──────────────────────────────────────────────────
 
+@pure
+@intent "Filter active players, sort by score, take top 3 — with named pipeline steps"
 fn top_scores :: (players: object[]) -> object[] {
-  @pure
-  @intent "Filter active players, sort by score, take top 3 — with named pipeline steps"
   players
     |> filter(.active)    |> as active
     |> filter(.score)     |> as scored
@@ -232,9 +232,9 @@ fn top_scores :: (players: object[]) -> object[] {
     |> sum
 }
 
+@pure @total
+@intent "Named pipeline steps for clarity"
 fn pipeline_demo :: (nums: int[]) -> int {
-  @pure @total
-  @intent "Named pipeline steps for clarity"
   nums
     |> filter(n => n > 0) |> as positives
     |> map(n => n * 2)    |> as doubled
@@ -247,8 +247,8 @@ fn pipeline_demo :: (nums: int[]) -> int {
 
 // ── Combined feature showcase ─────────────────────────────────────────────────
 
+@intent "Showcase multiple v0.4 features working together"
 fn analyze_party :: (party: object[]) -> object {
-  @intent "Showcase multiple v0.4 features working together"
   let aliveCount = party |> filter(.alive) |> as alive |> count
   let totalHp = party
     |> filter(.alive)

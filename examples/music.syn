@@ -64,17 +64,17 @@ fn format_fibonacci_result(n, result) = "fib({n}) = {result}"
 // Local let bindings are used as interpolation targets.
 // ══════════════════════════════════════════════════════════════════════════════
 
+@pure @total
+@intent "Format seconds as M:SS display string"
 fn format_duration :: (secs: Duration) -> string {
-  @pure @total
-  @intent "Format seconds as M:SS display string"
   let m = Math.floor(secs / 60)
   let s = pad2(secs % 60)
   "{m}:{s}"
 }
 
+@pure @total
+@intent "Render a compact one-line summary of library state"
 fn format_stats_line :: (stats: LibraryStats) -> string {
-  @pure @total
-  @intent "Render a compact one-line summary of library state"
   let n    = stats.count
   let mins = Math.floor(stats.totalDuration / 60)
   let avg  = stats.avgBpm
@@ -88,22 +88,22 @@ fn format_stats_line :: (stats: LibraryStats) -> string {
 // No manual validation calls — these guards appear in the transpiled output.
 // ══════════════════════════════════════════════════════════════════════════════
 
+@pure @total
+@intent "Construct a Track — BPM/Duration/TrackTitle/ArtistName guards injected at entry"
 fn create_track :: (id: int, title: TrackTitle, artist: ArtistName, bpm: BPM, duration: Duration, genre: string) -> Track {
-  @pure @total
-  @intent "Construct a Track — BPM/Duration/TrackTitle/ArtistName guards injected at entry"
   { id, title, artist, bpm, duration, genre, featured: false }
 }
 
+@pure @total
+@intent "Format a volume level string — Volume must be 0-100 or auto-guard throws"
 fn set_volume :: (vol: Volume) -> string {
-  @pure @total
-  @intent "Format a volume level string — Volume must be 0-100 or auto-guard throws"
   "Volume set to {vol}%"
 }
 
 // Pre-validation helper for the add-track form (user-facing errors)
+@pure @total
+@intent "Return the first validation error for new track fields, or empty string if valid"
 fn validate_track_input :: (title: string, artist: string, bpm: int, duration: int) -> string {
-  @pure @total
-  @intent "Return the first validation error for new track fields, or empty string if valid"
   title.length === 0   ? "Title cannot be empty" :
   artist.length === 0  ? "Artist cannot be empty" :
   bpm < 60             ? "BPM too low (minimum is 60)" :
@@ -116,9 +116,9 @@ fn validate_track_input :: (title: string, artist: string, bpm: int, duration: i
 // v0.1: PATTERN MATCHING
 // ══════════════════════════════════════════════════════════════════════════════
 
+@pure @total
+@intent "Classify BPM range as a human-readable tempo label"
 fn tempo_label :: (bpm: int) -> string {
-  @pure @total
-  @intent "Classify BPM range as a human-readable tempo label"
   match bpm {
     | < 90  => "Slow"
     | < 120 => "Moderate"
@@ -127,9 +127,9 @@ fn tempo_label :: (bpm: int) -> string {
   }
 }
 
+@pure @total
+@intent "Map genre identifier to its accent color CSS class"
 fn genre_css_class :: (genre: string) -> string {
-  @pure @total
-  @intent "Map genre identifier to its accent color CSS class"
   match genre {
     | "synthwave"  => "g-sw"
     | "darksynth"  => "g-ds"
@@ -140,9 +140,9 @@ fn genre_css_class :: (genre: string) -> string {
   }
 }
 
+@pure @total
+@intent "Abbreviated tag for a genre badge"
 fn genre_short :: (genre: string) -> string {
-  @pure @total
-  @intent "Abbreviated tag for a genre badge"
   match genre {
     | "synthwave"  => "SW"
     | "darksynth"  => "DS"
@@ -159,9 +159,9 @@ fn genre_short :: (genre: string) -> string {
 // The cache key is JSON.stringify([...args]).
 // ══════════════════════════════════════════════════════════════════════════════
 
+@pure @total @memo
+@intent "Aggregate stats across the track collection — memoized, O(1) on repeated calls"
 fn library_stats :: (tracks: Track[]) -> LibraryStats {
-  @pure @total @memo
-  @intent "Aggregate stats across the track collection — memoized, O(1) on repeated calls"
   let total_dur  = tracks |> map(.duration) |> sum
   let total_bpm  = tracks |> map(.bpm) |> sum
   let n_featured = tracks |> filter(.featured) |> count
@@ -173,9 +173,9 @@ fn library_stats :: (tracks: Track[]) -> LibraryStats {
   }
 }
 
+@pure @total @memo
+@intent "Classic recursive Fibonacci — @memo turns O(2^n) into O(n) via Map cache"
 fn fibonacci :: (n: int) -> int {
-  @pure @total @memo
-  @intent "Classic recursive Fibonacci — @memo turns O(2^n) into O(n) via Map cache"
   match n {
     | 0 => 0
     | 1 => 1
@@ -189,27 +189,27 @@ fn fibonacci :: (n: int) -> int {
 // Makes filter/map intent immediately readable — no ceremony.
 // ══════════════════════════════════════════════════════════════════════════════
 
+@pure @total
+@intent "Return only featured tracks using .featured shorthand"
 fn featured_tracks :: (tracks: Track[]) -> Track[] {
-  @pure @total
-  @intent "Return only featured tracks using .featured shorthand"
   tracks |> filter(.featured)
 }
 
+@pure @total
+@intent "Extract all track titles using .title shorthand"
 fn all_titles :: (tracks: Track[]) -> string[] {
-  @pure @total
-  @intent "Extract all track titles using .title shorthand"
   tracks |> map(.title)
 }
 
+@pure @total
+@intent "Extract all artist names using .artist shorthand"
 fn all_artists :: (tracks: Track[]) -> string[] {
-  @pure @total
-  @intent "Extract all artist names using .artist shorthand"
   tracks |> map(.artist)
 }
 
+@pure @total
+@intent "Sum all durations using .duration shorthand"
 fn total_playtime :: (tracks: Track[]) -> int {
-  @pure @total
-  @intent "Sum all durations using .duration shorthand"
   tracks |> map(.duration) |> sum
 }
 
@@ -217,29 +217,29 @@ fn total_playtime :: (tracks: Track[]) -> int {
 // v0.2: STDLIB SHOWCASE
 // ══════════════════════════════════════════════════════════════════════════════
 
+@pure @total
+@intent "Filter tracks to a specific genre"
 fn tracks_in_genre :: (tracks: Track[], genre: string) -> Track[] {
-  @pure @total
-  @intent "Filter tracks to a specific genre"
   tracks |> filter(t => t.genre === genre)
 }
 
+@pure @total
+@intent "True if the collection has at least one featured track"
 fn any_featured :: (tracks: Track[]) -> bool {
-  @pure @total
-  @intent "True if the collection has at least one featured track"
   tracks |> any(.featured)
 }
 
+@pure @total
+@intent "Return the top n tracks by BPM descending"
 fn top_by_bpm :: (tracks: Track[], n: int) -> Track[] {
-  @pure @total
-  @intent "Return the top n tracks by BPM descending"
   // v1.0: sort_by_desc + take — copies instead of mutating, no checker warning
   tracks |> sort_by_desc(.bpm) |> take(n)
 }
 
 // @pure checker demo: intentionally impure function warns at compile time
+@pure @total
+@intent "Debug-log a track — @pure is a lie, checker will warn"
 fn debug_track :: (track: Track) -> bool {
-  @pure @total
-  @intent "Debug-log a track — @pure is a lie, checker will warn"
   let _ = console.log("debug_track:", track.title)
   true
 }
@@ -248,9 +248,9 @@ fn debug_track :: (track: Track) -> bool {
 // DOM BUILDER — thin imperative layer, @effects declared explicitly
 // ══════════════════════════════════════════════════════════════════════════════
 
+@effects [dom.create, dom.attrs, dom.children]
+@intent "Create a DOM element, set attributes, and append children"
 fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
-  @effects [dom.create, dom.attrs, dom.children]
-  @intent "Create a DOM element, set attributes, and append children"
   let e = document.createElement(tag)
   let _ = Object.entries(attrs).forEach(([k, v]) => {
     if (k === "class") { e.className = v }
@@ -270,17 +270,17 @@ fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
   e
 }
 
+@effects [dom.write]
+@intent "Append a child element into a container element directly"
 fn mount_into :: (container: Element, child: Element) -> void {
-  @effects [dom.write]
-  @intent "Append a child element into a container element directly"
   container.appendChild(child)
 }
 
 // ── Track card ────────────────────────────────────────────────────────────────
 
+@effects [dom.create]
+@intent "Render a single track as a styled card"
 fn render_track_card :: (track: Track) -> Element {
-  @effects [dom.create]
-  @intent "Render a single track as a styled card"
   let label  = format_track_label(track)
   let dur    = format_duration(track.duration)
   let bpmtag = format_bpm_tag(track.bpm)
@@ -304,9 +304,9 @@ fn render_track_card :: (track: Track) -> Element {
 
 // ── Stats bar ─────────────────────────────────────────────────────────────────
 
+@effects [dom.create]
+@intent "Render the live library stats and @memo benchmark badge"
 fn render_stats_bar :: (tracks: Track[]) -> Element {
-  @effects [dom.create]
-  @intent "Render the live library stats and @memo benchmark badge"
   let stats = library_stats(tracks)
   let line  = format_stats_line(stats)
   let fib35 = fibonacci(35)
@@ -319,9 +319,9 @@ fn render_stats_bar :: (tracks: Track[]) -> Element {
 
 // ── Genre filter row ──────────────────────────────────────────────────────────
 
+@effects [dom.create]
+@intent "Render genre filter pills — active genre is highlighted"
 fn render_genre_filters :: (genres: string[], activeGenre: string, onFilter: any) -> Element {
-  @effects [dom.create]
-  @intent "Render genre filter pills — active genre is highlighted"
   let buttons = genres |> map(g =>
     el("button", { class: g === activeGenre ? "filter-btn filter-btn--active" : "filter-btn" },
       g === "all" ? "All Tracks" : g
@@ -336,9 +336,9 @@ fn render_genre_filters :: (genres: string[], activeGenre: string, onFilter: any
 
 // ── Add track form ────────────────────────────────────────────────────────────
 
+@effects [dom.write, dom.create, dom.events]
+@intent "Render an add-track form that demonstrates param validation injection"
 fn render_add_form :: (container: Element, onAdd: any) -> void {
-  @effects [dom.write, dom.create, dom.events]
-  @intent "Render an add-track form that demonstrates param validation injection"
   let titleIn  = el("input", { type: "text",   class: "form-inp", placeholder: "Title (required)" })
   let artistIn = el("input", { type: "text",   class: "form-inp", placeholder: "Artist (required)" })
   let bpmIn    = el("input", { type: "number", class: "form-inp", placeholder: "BPM 60-200" })
@@ -389,9 +389,9 @@ fn render_add_form :: (container: Element, onAdd: any) -> void {
 
 // ── Main library renderer ─────────────────────────────────────────────────────
 
+@effects [dom.write, dom.events, state.mutable]
+@intent "Bootstrap and mount the full music library UI into a root container"
 fn render_library :: (rootId: string, initialTracks: Track[]) -> void {
-  @effects [dom.write, dom.events, state.mutable]
-  @intent "Bootstrap and mount the full music library UI into a root container"
   let tracks      = initialTracks.slice()
   let activeGenre = "all"
   let genres      = ["all", "synthwave", "darksynth", "ambient", "retrowave", "cyberpunk"]
