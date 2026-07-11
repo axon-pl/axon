@@ -45,10 +45,10 @@ const DEMOS = [
   { label: 'dungeon', syn: 'examples/dungeon/main.syn', out: 'demo/dungeon.sources.js', mode: 'bundle' },
 
   // Runnable + source-viewer embed
-  { label: 'controls', syn: 'examples/controls.syn', out: 'demo/controls.synth.js', mode: 'single', embed: 'embed_sources.js' },
-  { label: 'combat', syn: 'examples/combat.syn', out: 'demo/combat.synth.js', mode: 'single', embed: 'embed_combat.js' },
-  { label: 'music', syn: 'examples/music.syn', out: 'demo/music.synth.js', mode: 'single', embed: 'embed_music.js' },
-  { label: 'rpg', syn: 'examples/rpg.syn', out: 'demo/rpg.synth.js', mode: 'single', embed: 'embed_rpg.js' },
+    { label: 'controls', syn: 'examples/controls.syn', out: 'demo/controls.synth.js', mode: 'single' },
+    { label: 'combat', syn: 'examples/combat.syn', out: 'demo/combat.synth.js', mode: 'single', embed: 'embed_combat.js' },
+    { label: 'music', syn: 'examples/music.syn', out: 'demo/music.synth.js', mode: 'single', embed: 'embed_music.js' },
+    { label: 'rpg', syn: 'examples/rpg.syn', out: 'demo/rpg.synth.js', mode: 'single', embed: 'embed_rpg.js' },
 ]
 
 function lineDiff(before, after) {

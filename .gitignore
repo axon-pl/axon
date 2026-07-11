@@ -6,3 +6,5 @@ dist/
 Thumbs.db
 *.log
 .env
+bootstrap/seed.pristine.js
+*.tgz

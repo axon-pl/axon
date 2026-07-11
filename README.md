@@ -278,7 +278,7 @@ Syntax highlighting for `.syn` files is available in `vscode-extension/`. Instal
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Issues and PRs welcome.
+Issues and PRs welcome at [synth-pl/synth](https://github.com/synth-pl/synth).
 
 ---
 

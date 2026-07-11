@@ -62,15 +62,12 @@
     "test:spec": "node tools/test_synth_spec.js",
     "test:ci": "npm run test:compiler && npm run test:bootstrap-goldens && npm run test:toolchain && npm run test:spec",
     "transpile-demo": "node tools/synth_bootstrap_cli.js examples/controls.syn demo/controls.synth.js",
-    "build-demo": "node tools/synth_bootstrap_cli.js examples/controls.syn demo/controls.synth.js && node tools/embed_sources.js",
+    "build-demo": "node tools/synth_bootstrap_cli.js examples/controls.syn demo/controls.synth.js",
     "build-music": "node tools/synth_bootstrap_cli.js examples/music.syn demo/music.synth.js && node tools/embed_music.js",
     "build-combat": "node tools/synth_bootstrap_cli.js examples/combat.syn demo/combat.synth.js && node tools/embed_combat.js",
     "build-rpg": "node tools/synth_bootstrap_cli.js examples/rpg.syn demo/rpg.synth.js && node tools/embed_rpg.js",
     "build-rpg-standalone": "node tools/synth_bootstrap_cli.js examples/rpg.syn demo/rpg.synth.js && node tools/embed_rpg.js && node tools/build_standalone_rpg.js",
     "rebuild-demos": "node tools/rebuild_demos.js"
   },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "gpt-tokenizer": "^3.4.0"
-  }
+  "devDependencies": {}
 }
