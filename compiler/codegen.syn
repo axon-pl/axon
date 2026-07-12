@@ -163,15 +163,7 @@ fn cg_emit_name(st: CgState, name: string) -> string {
 }
 
 fn is_string_value(v: any) -> bool {
-  if v == true { false }
-  else if v == false { false }
-  else if v == 0 { false }
-  else if v == 1 { false }
-  else if v == 2 { false }
-  else if v == 3 { false }
-  else if v == 4 { false }
-  else if v == 5 { false }
-  else { true }
+  typeof v == "string"
 }
 
 fn lambda_param_name(p: any) -> string {

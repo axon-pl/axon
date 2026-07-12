@@ -5321,25 +5321,7 @@ const cg_emit_name = (st, name) => {
  * @returns {boolean}
  */
 const is_string_value = (v) => {
-  if (v == true) {
-    return false;
-  } else if (v == false) {
-    return false;
-  } else if (v == 0) {
-    return false;
-  } else if (v == 1) {
-    return false;
-  } else if (v == 2) {
-    return false;
-  } else if (v == 3) {
-    return false;
-  } else if (v == 4) {
-    return false;
-  } else if (v == 5) {
-    return false;
-  } else {
-    return true;
-  }
+  return typeof v === "string";
 };
 
 /**
