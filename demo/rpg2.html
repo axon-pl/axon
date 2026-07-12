@@ -848,8 +848,9 @@ function spawnStrikeFx(anim, party, foes) {
   const actor = Math.max(0, anim.actor | 0)
   const target = Math.max(0, anim.target | 0)
   const foeBoss = (i) => !!(foes[i] && foes[i].id === 'wyrm')
-  const from = anim.side === 'enemy' ? foeAnchor(actor, foeBoss(actor)) : heroAnchor(actor)
-  const to = anim.side === 'enemy' ? heroAnchor(target) : foeAnchor(target, foeBoss(target))
+  const foeN = foes.length
+  const from = anim.side === 'enemy' ? foeAnchor(actor, foeBoss(actor), foeN) : heroAnchor(actor)
+  const to = anim.side === 'enemy' ? heroAnchor(target) : foeAnchor(target, foeBoss(target), foeN)
   const text = String(anim.text || '')
 
   if (kind === 'attack') {
@@ -868,7 +869,7 @@ function spawnStrikeFx(anim, party, foes) {
       : [target]
     if (targets.length === 0) targets.push(target)
     targets.forEach((ti, n) => {
-      const hit = foeAnchor(ti, foeBoss(ti))
+      const hit = foeAnchor(ti, foeBoss(ti), foeN)
       const delay = n * 0.04
       fxBeams.push({
         style: 'arrow', x0: from.x - 20, y0: from.y, x1: hit.x, y1: hit.y,
@@ -1344,7 +1345,7 @@ function drawBattle(view, dt) {
     if (!e.alive && !(anim.side === 'hero' && foeHitKinds[anim.kind] && anim.target === i && anim.timer > 0)) return
     const shake = foeHitKinds[anim.kind] && anim.side === 'hero' && anim.target === i ? pulse : 0
     const boss = e.id === 'wyrm'
-    const slot = foeSlot(i, boss)
+    const slot = foeSlot(i, boss, foes.length)
     const x = slot.x + shake
     const y = slot.y
     const bw = slot.w
