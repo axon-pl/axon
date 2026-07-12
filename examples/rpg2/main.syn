@@ -2,7 +2,7 @@
 // Host contract:
 //   Game · start_game · menu_move · menu_set_index · menu_confirm · menu_cancel · tick · get_view
 // Party: Aria (mage), Theron (knight), Lyra (ranger)
-// Scenes: title → fight1 → fight2 → boss → victory | gameover
+// Scenes: title → forest×3 → desert×3 → plains×2 → Shadow Wyrm → victory | gameover
 
 type HP = int where >= 0 && <= 999
 type MP = int where >= 0 && <= 99
@@ -108,14 +108,45 @@ fn make_party() {
 
 fn encounter_foes(n: int) {
   match n {
+    // Forest — Mistwood
     | 0 => [
       { id: "goblin", name: "Goblin Scout", hp: 38, maxHp: 38, atk: 9,  def: 3, weakness: "fire",   alive: true, color: "#ff6e3a" },
       { id: "slime",  name: "Neon Slime",   hp: 28, maxHp: 28, atk: 7,  def: 2, weakness: "light",  alive: true, color: "#ff2d78" }
     ]
     | 1 => [
-      { id: "bandit", name: "Forest Bandit", hp: 52, maxHp: 52, atk: 12, def: 5, weakness: "nature", alive: true, color: "#ffd166" },
-      { id: "archer", name: "Ash Archer",    hp: 44, maxHp: 44, atk: 14, def: 4, weakness: "fire",   alive: true, color: "#ff6e3a" }
+      { id: "slime",  name: "Mist Slime",    hp: 32, maxHp: 32, atk: 8,  def: 2, weakness: "light",  alive: true, color: "#ff2d78" },
+      { id: "slime",  name: "Glow Jelly",    hp: 30, maxHp: 30, atk: 8,  def: 3, weakness: "fire",   alive: true, color: "#06d6a0" },
+      { id: "goblin", name: "Goblin Runner", hp: 34, maxHp: 34, atk: 10, def: 3, weakness: "fire",   alive: true, color: "#ff6e3a" }
     ]
+    | 2 => [
+      { id: "goblin", name: "Goblin Brute",  hp: 48, maxHp: 48, atk: 11, def: 5, weakness: "fire",   alive: true, color: "#ff6e3a" },
+      { id: "goblin", name: "Goblin Sneak",  hp: 40, maxHp: 40, atk: 12, def: 3, weakness: "light",  alive: true, color: "#ffd166" }
+    ]
+    // Desert — Ashlands
+    | 3 => [
+      { id: "bandit", name: "Ash Bandit",  hp: 52, maxHp: 52, atk: 12, def: 5, weakness: "nature", alive: true, color: "#ffd166" },
+      { id: "archer", name: "Ash Archer",  hp: 44, maxHp: 44, atk: 14, def: 4, weakness: "fire",   alive: true, color: "#ff6e3a" }
+    ]
+    | 4 => [
+      { id: "archer", name: "Dune Sniper",   hp: 46, maxHp: 46, atk: 15, def: 4, weakness: "fire",   alive: true, color: "#ff6e3a" },
+      { id: "archer", name: "Cinder Bowman", hp: 42, maxHp: 42, atk: 14, def: 3, weakness: "nature", alive: true, color: "#ffd166" }
+    ]
+    | 5 => [
+      { id: "bandit", name: "Ruins Raider",  hp: 56, maxHp: 56, atk: 13, def: 6, weakness: "nature", alive: true, color: "#ffd166" },
+      { id: "bandit", name: "Dust Cutthroat", hp: 50, maxHp: 50, atk: 14, def: 4, weakness: "fire",  alive: true, color: "#ff6e3a" },
+      { id: "archer", name: "Ruin Watcher",  hp: 40, maxHp: 40, atk: 15, def: 3, weakness: "light",  alive: true, color: "#b84fff" }
+    ]
+    // Plains — approaches to the Wyrm
+    | 6 => [
+      { id: "goblin", name: "Field Stalker", hp: 46, maxHp: 46, atk: 12, def: 4, weakness: "fire",   alive: true, color: "#ff6e3a" },
+      { id: "bandit", name: "Road Thief",    hp: 54, maxHp: 54, atk: 13, def: 5, weakness: "nature", alive: true, color: "#ffd166" }
+    ]
+    | 7 => [
+      { id: "bandit", name: "Goldfield Outlaw", hp: 58, maxHp: 58, atk: 14, def: 6, weakness: "nature", alive: true, color: "#ffd166" },
+      { id: "archer", name: "Mist Marksman",    hp: 48, maxHp: 48, atk: 16, def: 4, weakness: "fire",   alive: true, color: "#ff6e3a" },
+      { id: "slime",  name: "Pale Ooze",        hp: 36, maxHp: 36, atk: 10, def: 4, weakness: "light",  alive: true, color: "#e8e0ff" }
+    ]
+    // Boss
     | _ => [
       { id: "wyrm", name: "Shadow Wyrm", hp: 160, maxHp: 160, atk: 16, def: 9, weakness: "arcane", alive: true, color: "#b84fff" }
     ]
@@ -124,10 +155,31 @@ fn encounter_foes(n: int) {
 
 fn encounter_title(n: int) -> string =
   match n {
-    | 0 => "Encounter 1 — Mistwood Path"
-    | 1 => "Encounter 2 — Ruined Gate"
+    | 0 => "Forest 1 — Mistwood Path"
+    | 1 => "Forest 2 — Foghollow Thicket"
+    | 2 => "Forest 3 — Whispering Roots"
+    | 3 => "Desert 1 — Ashen Gate"
+    | 4 => "Desert 2 — Sunscar Road"
+    | 5 => "Desert 3 — Cinder Ruins"
+    | 6 => "Plains 1 — Lowland Mist"
+    | 7 => "Plains 2 — Goldfield Watch"
     | _ => "Boss — Shadow Wyrm"
   }
+
+fn encounter_hint(n: int) -> string =
+  match n {
+    | 0 => "Teach them steel."
+    | 1 => "Slimes hate light and fire."
+    | 2 => "Two blades in the brush."
+    | 3 => "Magic and medicine."
+    | 4 => "Keep your heads down."
+    | 5 => "A hard push through ash."
+    | 6 => "The fog thins ahead."
+    | 7 => "Last road before the Wyrm."
+    | _ => "Aim for the arcane wound."
+  }
+
+fn is_final_encounter(n: int) -> bool = n >= 8
 
 fn party_alive() -> bool = party.any(h => h.alive)
 fn foes_alive() -> bool = foes.any(e => e.alive)
@@ -211,8 +263,8 @@ fn begin_enemy_phase() {
 
 fn finish_battle_check() {
   if not foes_alive() {
-    Game.set({ phase: "idle", scene: Game.encounter >= 2 ? "victory" : "battle" })
-    if Game.encounter >= 2 {
+    Game.set({ phase: "idle", scene: is_final_encounter(Game.encounter) ? "victory" : "battle" })
+    if is_final_encounter(Game.encounter) {
       push_log("Shadow Wyrm falls! The party prevails!")
       Game.set({ scene: "victory" })
     } else {
@@ -236,7 +288,7 @@ fn start_encounter(n: int) {
     encounter: n,
     potions: pots,
     log0: encounter_title(n),
-    log1: n == 0 ? "Teach them steel." : (n == 1 ? "Magic and medicine." : "Aim for the arcane wound."),
+    log1: encounter_hint(n),
     log2: "",
     phase: "hero_command",
     active: 0,
@@ -788,6 +840,14 @@ fn get_view() {
 
 @test "encounter 0 has two foes" {
   encounter_foes(0).length == 2
+}
+
+@test "final encounter is the wyrm" {
+  encounter_foes(8).length == 1 and encounter_foes(8)[0].id == "wyrm"
+}
+
+@test "nine encounter titles" {
+  encounter_title(0).includes("Forest") and encounter_title(5).includes("Desert") and encounter_title(8).includes("Boss")
 }
 
 @test "party has Aria Theron Lyra" {

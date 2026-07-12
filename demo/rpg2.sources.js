@@ -100,9 +100,13 @@ const make_party = () => [{id: "theron", name: "Theron", heroClass: "knight", hp
  * @param {number} n
  * @returns {*}
  */
-const encounter_foes = (n) => ((_m) => (_m === 0) ? [{id: "goblin", name: "Goblin Scout", hp: 38, maxHp: 38, atk: 9, def: 3, weakness: "fire", alive: true, color: "#ff6e3a"}, {id: "slime", name: "Neon Slime", hp: 28, maxHp: 28, atk: 7, def: 2, weakness: "light", alive: true, color: "#ff2d78"}] : (_m === 1) ? [{id: "bandit", name: "Forest Bandit", hp: 52, maxHp: 52, atk: 12, def: 5, weakness: "nature", alive: true, color: "#ffd166"}, {id: "archer", name: "Ash Archer", hp: 44, maxHp: 44, atk: 14, def: 4, weakness: "fire", alive: true, color: "#ff6e3a"}] : [{id: "wyrm", name: "Shadow Wyrm", hp: 160, maxHp: 160, atk: 16, def: 9, weakness: "arcane", alive: true, color: "#b84fff"}])(n);
+const encounter_foes = (n) => ((_m) => (_m === 0) ? [{id: "goblin", name: "Goblin Scout", hp: 38, maxHp: 38, atk: 9, def: 3, weakness: "fire", alive: true, color: "#ff6e3a"}, {id: "slime", name: "Neon Slime", hp: 28, maxHp: 28, atk: 7, def: 2, weakness: "light", alive: true, color: "#ff2d78"}] : (_m === 1) ? [{id: "slime", name: "Mist Slime", hp: 32, maxHp: 32, atk: 8, def: 2, weakness: "light", alive: true, color: "#ff2d78"}, {id: "slime", name: "Glow Jelly", hp: 30, maxHp: 30, atk: 8, def: 3, weakness: "fire", alive: true, color: "#06d6a0"}, {id: "goblin", name: "Goblin Runner", hp: 34, maxHp: 34, atk: 10, def: 3, weakness: "fire", alive: true, color: "#ff6e3a"}] : (_m === 2) ? [{id: "goblin", name: "Goblin Brute", hp: 48, maxHp: 48, atk: 11, def: 5, weakness: "fire", alive: true, color: "#ff6e3a"}, {id: "goblin", name: "Goblin Sneak", hp: 40, maxHp: 40, atk: 12, def: 3, weakness: "light", alive: true, color: "#ffd166"}] : (_m === 3) ? [{id: "bandit", name: "Ash Bandit", hp: 52, maxHp: 52, atk: 12, def: 5, weakness: "nature", alive: true, color: "#ffd166"}, {id: "archer", name: "Ash Archer", hp: 44, maxHp: 44, atk: 14, def: 4, weakness: "fire", alive: true, color: "#ff6e3a"}] : (_m === 4) ? [{id: "archer", name: "Dune Sniper", hp: 46, maxHp: 46, atk: 15, def: 4, weakness: "fire", alive: true, color: "#ff6e3a"}, {id: "archer", name: "Cinder Bowman", hp: 42, maxHp: 42, atk: 14, def: 3, weakness: "nature", alive: true, color: "#ffd166"}] : (_m === 5) ? [{id: "bandit", name: "Ruins Raider", hp: 56, maxHp: 56, atk: 13, def: 6, weakness: "nature", alive: true, color: "#ffd166"}, {id: "bandit", name: "Dust Cutthroat", hp: 50, maxHp: 50, atk: 14, def: 4, weakness: "fire", alive: true, color: "#ff6e3a"}, {id: "archer", name: "Ruin Watcher", hp: 40, maxHp: 40, atk: 15, def: 3, weakness: "light", alive: true, color: "#b84fff"}] : (_m === "6") ? [{id: "goblin", name: "Field Stalker", hp: 46, maxHp: 46, atk: 12, def: 4, weakness: "fire", alive: true, color: "#ff6e3a"}, {id: "bandit", name: "Road Thief", hp: 54, maxHp: 54, atk: 13, def: 5, weakness: "nature", alive: true, color: "#ffd166"}] : (_m === "7") ? [{id: "bandit", name: "Goldfield Outlaw", hp: 58, maxHp: 58, atk: 14, def: 6, weakness: "nature", alive: true, color: "#ffd166"}, {id: "archer", name: "Mist Marksman", hp: 48, maxHp: 48, atk: 16, def: 4, weakness: "fire", alive: true, color: "#ff6e3a"}, {id: "slime", name: "Pale Ooze", hp: 36, maxHp: 36, atk: 10, def: 4, weakness: "light", alive: true, color: "#e8e0ff"}] : [{id: "wyrm", name: "Shadow Wyrm", hp: 160, maxHp: 160, atk: 16, def: 9, weakness: "arcane", alive: true, color: "#b84fff"}])(n);
 
-const encounter_title = (n) => ((_m) => (_m === 0) ? "Encounter 1 — Mistwood Path" : (_m === 1) ? "Encounter 2 — Ruined Gate" : "Boss — Shadow Wyrm")(n);
+const encounter_title = (n) => ((_m) => (_m === 0) ? "Forest 1 — Mistwood Path" : (_m === 1) ? "Forest 2 — Foghollow Thicket" : (_m === 2) ? "Forest 3 — Whispering Roots" : (_m === 3) ? "Desert 1 — Ashen Gate" : (_m === 4) ? "Desert 2 — Sunscar Road" : (_m === 5) ? "Desert 3 — Cinder Ruins" : (_m === "6") ? "Plains 1 — Lowland Mist" : (_m === "7") ? "Plains 2 — Goldfield Watch" : "Boss — Shadow Wyrm")(n);
+
+const encounter_hint = (n) => ((_m) => (_m === 0) ? "Teach them steel." : (_m === 1) ? "Slimes hate light and fire." : (_m === 2) ? "Two blades in the brush." : (_m === 3) ? "Magic and medicine." : (_m === 4) ? "Keep your heads down." : (_m === 5) ? "A hard push through ash." : (_m === "6") ? "The fog thins ahead." : (_m === "7") ? "Last road before the Wyrm." : "Aim for the arcane wound.")(n);
+
+const is_final_encounter = (n) => n >= 8;
 
 const party_alive = () => $any(party, (h) => h.alive);
 
@@ -224,8 +228,8 @@ const begin_enemy_phase = () => {
  */
 const finish_battle_check = () => {
   if (!foes_alive()) {
-    Game.set({phase: "idle", scene: Game.encounter >= 2 ? "victory" : "battle"});
-    if (Game.encounter >= 2) {
+    Game.set({phase: "idle", scene: is_final_encounter(Game.encounter) ? "victory" : "battle"});
+    if (is_final_encounter(Game.encounter)) {
       push_log("Shadow Wyrm falls! The party prevails!");
       return Game.set({scene: "victory"});
     } else {
@@ -248,7 +252,7 @@ const start_encounter = (n) => {
   anim = {kind: "none", timer: 0.0, actor: -1, target: -1, amount: 0, text: "", side: "hero"};
   pending = {cmd: "", skill: ""};
   let pots = n == 0 ? 3 : Game.potions;
-  Game.set({scene: "battle", encounter: n, potions: pots, log0: encounter_title(n), log1: n == 0 ? "Teach them steel." : n == 1 ? "Magic and medicine." : "Aim for the arcane wound.", log2: "", phase: "hero_command", active: 0, menu_mode: "command", menu_index: 0});
+  Game.set({scene: "battle", encounter: n, potions: pots, log0: encounter_title(n), log1: encounter_hint(n), log2: "", phase: "hero_command", active: 0, menu_mode: "command", menu_index: 0});
   return begin_hero_turn(first_alive_from(0));
 };
 
@@ -887,6 +891,10 @@ __synth_tests.push({ desc: "spell_damage weakness bonus", fn: () => spell_damage
 __synth_tests.push({ desc: "heal_amount caps at missing", fn: () => heal_amount(10, 28) == 10 && heal_amount(40, 28) == 28 });
 
 __synth_tests.push({ desc: "encounter 0 has two foes", fn: () => encounter_foes(0).length == 2 });
+
+__synth_tests.push({ desc: "final encounter is the wyrm", fn: () => encounter_foes(8).length == 1 && encounter_foes(8)[0].id == "wyrm" });
+
+__synth_tests.push({ desc: "nine encounter titles", fn: () => encounter_title(0).includes("Forest") && encounter_title(5).includes("Desert") && encounter_title(8).includes("Boss") });
 
 __synth_tests.push({ desc: "party has Aria Theron Lyra", fn: () => (() => {
   let p = make_party();

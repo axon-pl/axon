@@ -7,8 +7,14 @@
   },
   "backgrounds": {
     "0": "forest.jpg",
-    "1": "desert.jpg",
-    "2": "plains.jpg"
+    "1": "forest.jpg",
+    "2": "forest.jpg",
+    "3": "desert.jpg",
+    "4": "desert.jpg",
+    "5": "desert.jpg",
+    "6": "plains.jpg",
+    "7": "plains.jpg",
+    "8": "plains.jpg"
   },
   "heroes": {
     "theron": {
