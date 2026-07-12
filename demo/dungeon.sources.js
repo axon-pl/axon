@@ -734,6 +734,10 @@ __synth_tests.push({ desc: "whitespace is trimmed", fn: () => (() => {
 
 const AppState = (level, seed, rows, cols) => ({ level, seed, rows, cols });
 
+const LevelBlurb = (level, text) => ({ level, text });
+
+let LEVEL_BLURBS = [{level: 1, text: "Torch-lit corridors. Watch your step."}, {level: 2, text: "Flooded halls. Not all paths are safe."}, {level: 3, text: "Ancient vaults. Chests shimmer in the gloom."}, {level: 4, text: "The dead rest here. So might you."}, {level: 5, text: "No light reaches this deep."}];
+
 /**
  * @returns {AppState}
  */

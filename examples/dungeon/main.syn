@@ -10,6 +10,19 @@ import { parse_config } from "./config"
 
 record AppState { level: int, seed: int, rows: int, cols: int }
 
+record LevelBlurb {
+  level: int
+  text:  string
+}
+
+let LEVEL_BLURBS = [
+  { level: 1, text: "Torch-lit corridors. Watch your step." },
+  { level: 2, text: "Flooded halls. Not all paths are safe." },
+  { level: 3, text: "Ancient vaults. Chests shimmer in the gloom." },
+  { level: 4, text: "The dead rest here. So might you." },
+  { level: 5, text: "No light reaches this deep." },
+]
+
 fn init() -> AppState {
   { level: 1, seed: 7777, rows: 22, cols: 48 }
 }
