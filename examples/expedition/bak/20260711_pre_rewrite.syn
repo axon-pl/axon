@@ -1,5 +1,7 @@
-// ── Expedition Hub — structural rewrite ──────────────────────────────────────
-// Host: Fleet store · visible_missions · fleet_stats · render (demo/expedition.html)
+// ── Expedition Hub — Synth v1.0 Demo ────────────────────────────────────────────
+// Showcases: record · spread · templates · do notation · stdlib methods · find
+
+// ── Data types ─────────────────────────────────────────────────────────────────
 
 record Mission {
   id:       int
@@ -22,18 +24,25 @@ record FleetStats {
   high_risk: int
 }
 
+// ── Reactive store ────────────────────────────────────────────────────────────
+
 store Fleet {
   sector:     string = "All"
   max_danger: int    = 5
   sort_key:   string = "distance"
 }
 
-// Single catalog table (was alpha_wing + beta_wing + spread)
-let FLEET = [
+// ── Mission data ──────────────────────────────────────────────────────────────
+
+// Two squadrons...
+let alpha_wing = [
   { id: 1,  name: "Vanguard",   sector: "Kepler",  danger: 2, distance: 14, ore: 80,  fuel: 60,  data: 40  },
   { id: 2,  name: "Ironclad",   sector: "Kepler",  danger: 3, distance: 22, ore: 120, fuel: 45,  data: 20  },
   { id: 3,  name: "Phantom",    sector: "Kepler",  danger: 4, distance: 31, ore: 200, fuel: 30,  data: 90  },
   { id: 4,  name: "Warden",     sector: "Kepler",  danger: 1, distance: 9,  ore: 35,  fuel: 100, data: 25  },
+]
+
+let beta_wing = [
   { id: 5,  name: "Horizon",    sector: "Proxima", danger: 1, distance: 8,  ore: 40,  fuel: 90,  data: 70  },
   { id: 6,  name: "Spectre",    sector: "Proxima", danger: 2, distance: 17, ore: 65,  fuel: 75,  data: 55  },
   { id: 7,  name: "Nomad",      sector: "Proxima", danger: 5, distance: 44, ore: 310, fuel: 20,  data: 150 },
@@ -45,34 +54,42 @@ let FLEET = [
   { id: 13, name: "Sentinel",   sector: "Vega",    danger: 5, distance: 52, ore: 280, fuel: 15,  data: 200 },
 ]
 
+// Merged fleet via spread
+let fleet = [...alpha_wing, ...beta_wing]
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 fn danger_label(n: int) -> string =
   match n { | 1 => "Safe" | 2 => "Low" | 3 => "Moderate" | 4 => "High" | _ => "Critical" }
 
 fn danger_cls(n: int) -> string =
   match n { | 1 => "safe" | 2 => "low" | 3 => "mod" | 4 => "high" | _ => "crit" }
 
+// Object shorthand: { name, sector, danger } instead of { name: name, ... } (v0.9.9)
 fn mission_summary(name: string, sector: string, danger: int) = { name, sector, danger }
 
-fn matches_filter(m: Mission, sector: string, max_danger: int) -> bool =
-  (sector == "All" or m.sector == sector) and m.danger <= max_danger
-
-fn sort_missions(missions: Mission[], sort_key: string) -> Mission[] =
-  match sort_key {
-    | "distance" => missions.sort_by(m => m.distance)
-    | "danger"   => missions.sort_by(m => m.danger)
-    | "ore"      => missions.sort_by_desc(m => m.ore)
-    | "data"     => missions.sort_by_desc(m => m.data)
-    | _          => missions
-  }
+// ── Computed view ─────────────────────────────────────────────────────────────
 
 fn visible_missions() -> Mission[] {
   let sector     = Fleet.sector
   let max_danger = Fleet.max_danger
   let sort_key   = Fleet.sort_key
-  let filtered = FLEET.filter(m => matches_filter(m, sector, max_danger))
-  sort_missions(filtered, sort_key)
+
+  // stdlib method syntax: .filter() and .sort_by() on an array (v0.9.9)
+  let filtered = fleet.filter(m =>
+    (sector == "All" or m.sector == sector) and m.danger <= max_danger
+  )
+
+  match sort_key {
+    | "distance" => filtered.sort_by(m => m.distance)
+    | "danger"   => filtered.sort_by(m => m.danger)
+    | "ore"      => filtered.sort_by_desc(m => m.ore)
+    | "data"     => filtered.sort_by_desc(m => m.data)
+    | _          => filtered
+  }
 }
 
+// do notation: a sequenced computation in expression position (v0.9.9)
 fn fleet_stats(missions: Mission[]) -> FleetStats {
   do {
     let n         = count(missions)
@@ -82,11 +99,15 @@ fn fleet_stats(missions: Mission[]) -> FleetStats {
     let sum_d     = missions.sum_by(m => m.danger)
     let avg_d     = n > 0 ? Math.round(sum_d * 10 / n) / 10 : 0
     let max_dist  = n > 0 ? missions.max_by(m => m.distance).distance : 0
-    let high_risk = count(missions.filter(m => m.danger >= 4))
+    let danger4   = missions.filter(m => m.danger >= 4)
+    let high_risk = count(danger4)
     { count: n, ore, fuel, data, avg_d, max_dist, high_risk }
   }
 }
 
+// ── Card renderer ─────────────────────────────────────────────────────────────
+
+// Template literals (v1.0) — full expression interpolation, no string concatenation
 fn render_card(m: Mission) -> string {
   let cls   = danger_cls(m.danger)
   let label = danger_label(m.danger)
@@ -105,6 +126,8 @@ fn render_card(m: Mission) -> string {
   </div>`
 }
 
+// ── Render ────────────────────────────────────────────────────────────────────
+
 fn render() {
   let missions = visible_missions()
   let s        = fleet_stats(missions)
@@ -121,7 +144,9 @@ fn render() {
   document.getElementById("stat-avgd").textContent  = s.avg_d
   document.getElementById("stat-dist").textContent  = `${s.max_dist} ly`
   document.getElementById("stat-risk").textContent  = s.high_risk
-  document.getElementById("fleet-total").textContent = `${s.count} of ${count(FLEET)} missions`
+  document.getElementById("fleet-total").textContent = `${s.count} of ${count(fleet)} missions`
 }
+
+// ── Reactive binding ──────────────────────────────────────────────────────────
 
 on Fleet.change { render() }

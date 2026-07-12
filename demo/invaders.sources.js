@@ -1,24 +1,26 @@
 const Bullet = (x, y) => ({ x, y });
 
-let CANVAS_W = 800;
-let CANVAS_H = 520;
-let ALIEN_COLS = 11;
-let ALIEN_ROWS = 5;
-let ALIEN_W = 36;
-let ALIEN_H = 24;
-let ALIEN_GAP_X = 16;
-let ALIEN_GAP_Y = 14;
-let GRID_W = ALIEN_COLS * ALIEN_W + (ALIEN_COLS - 1) * ALIEN_GAP_X;
-let ALIEN_OX = (CANVAS_W - GRID_W) / 2;
-let ALIEN_OY = 60;
-let PLAYER_W = 52;
-let PLAYER_H = 26;
-let PLAYER_Y = CANVAS_H - 55;
-let BULLET_W = 3;
-let BULLET_H = 14;
-let PBULLET_SPD = 440;
-let ABULLET_SPD = 160;
-let MARCH_BASE = 36;
+const Grid = (cols, rows, alien_w, alien_h, gap_x, gap_y, ox, oy, march) => ({ cols, rows, alien_w, alien_h, gap_x, gap_y, ox, oy, march });
+
+const PlayerSpec = (w, h, y) => ({ w, h, y });
+
+const Swarm = (dx, dy, dir, fire_cd, alien_fire_timer) => ({ dx, dy, dir, fire_cd, alien_fire_timer });
+
+const RowStyle = (color, points) => ({ color, points });
+
+let CANVAS_W = 800.0;
+let CANVAS_H = 520.0;
+let GRID = (() => {
+  let cols = 11;
+  let rows = 5;
+  let alien_w = 36.0;
+  let gap_x = 16.0;
+  let grid_w = cols * alien_w + (cols - 1) * gap_x;
+  return {cols: cols, rows: rows, alien_w: alien_w, alien_h: 24.0, gap_x: gap_x, gap_y: 14.0, ox: (CANVAS_W - grid_w) / 2.0, oy: 60.0, march: 36.0};
+})();
+let PLAYER = {w: 52.0, h: 26.0, y: CANVAS_H - 55.0};
+let BULLET = {w: 3.0, h: 14.0, player_spd: 440.0, alien_spd: 160.0};
+let ROW_STYLES = [{color: "#ff2d78", points: 30}, {color: "#ff6e3a", points: 25}, {color: "#ffd166", points: 20}, {color: "#06d6a0", points: 15}, {color: "#00e5ff", points: 10}];
 
 const Game = (() => {
   let _state = { score: 0, hi: 0, lives: 3, wave: 1, phase: "title" };
@@ -37,19 +39,15 @@ const Game = (() => {
   };
 })();
 
-let aliens = $map($range(0, ALIEN_ROWS * ALIEN_COLS), (i) => true);
-let alien_dx = 0.0;
-let alien_dy = 0.0;
-let alien_dir = 1;
-let player_x = (CANVAS_W - PLAYER_W) / 2;
+let aliens = $map($range(0, GRID.rows * GRID.cols), (i) => true);
+let swarm = {dx: 0.0, dy: 0.0, dir: 1, fire_cd: 0.0, alien_fire_timer: 1.5};
+let player_x = (CANVAS_W - PLAYER.w) / 2.0;
 let p_bullets = [];
 let a_bullets = [];
-let fire_cd = 0.0;
-let alien_fire_timer = 1.5;
 
-const alien_row = (i) => $floor(i / ALIEN_COLS);
+const alien_row = (i) => $floor(i / GRID.cols);
 
-const alien_col = (i) => i - $floor(i / ALIEN_COLS) * ALIEN_COLS;
+const alien_col = (i) => i - $floor(i / GRID.cols) * GRID.cols;
 
 const row_color = (() => {
   const __cache = new Map();
@@ -57,7 +55,7 @@ const row_color = (() => {
     const __key = JSON.stringify([row]);
     if (__cache.has(__key)) return __cache.get(__key);
     const __result = (() => {
-      return ((_m) => (_m === 0) ? "#ff2d78" : (_m === 1) ? "#ff6e3a" : (_m === 2) ? "#ffd166" : (_m === 3) ? "#06d6a0" : "#00e5ff")(row);
+      return ROW_STYLES[row].color;
     })();
     __cache.set(__key, __result);
     return __result;
@@ -70,32 +68,32 @@ const row_pts = (() => {
     const __key = JSON.stringify([row]);
     if (__cache.has(__key)) return __cache.get(__key);
     const __result = (() => {
-      return ((_m) => (_m === 0) ? 30 : (_m === 1) ? 25 : (_m === 2) ? 20 : (_m === 3) ? 15 : 10)(row);
+      return ROW_STYLES[row].points;
     })();
     __cache.set(__key, __result);
     return __result;
   };
 })();
 
-const alien_x = (i) => ALIEN_OX + alien_col(i) * (ALIEN_W + ALIEN_GAP_X) + alien_dx;
+const alien_x = (i) => GRID.ox + alien_col(i) * (GRID.alien_w + GRID.gap_x) + swarm.dx;
 
-const alien_y = (i) => ALIEN_OY + alien_row(i) * (ALIEN_H + ALIEN_GAP_Y) + alien_dy;
+const alien_y = (i) => GRID.oy + alien_row(i) * (GRID.alien_h + GRID.gap_y) + swarm.dy;
 
 const alive_count = () => $count(aliens, (a) => a);
 
 /**
- * @param {*} wave
+ * @param {number} wave
  * @returns {*}
  */
 const reset_wave = (wave) => {
-  aliens = $map($range(0, ALIEN_ROWS * ALIEN_COLS), (i) => true);
-  alien_dx = 0.0;
-  alien_dy = 0.0;
-  alien_dir = 1;
+  aliens = $map($range(0, GRID.rows * GRID.cols), (i) => true);
+  swarm.dx = 0.0;
+  swarm.dy = 0.0;
+  swarm.dir = 1;
+  swarm.fire_cd = 0.0;
+  swarm.alien_fire_timer = 1.5;
   p_bullets = [];
-  a_bullets = [];
-  fire_cd = 0.0;
-  return alien_fire_timer = 1.5;
+  return a_bullets = [];
 };
 
 /**
@@ -103,30 +101,28 @@ const reset_wave = (wave) => {
  */
 const start_game = () => {
   reset_wave(1);
-  player_x = (CANVAS_W - PLAYER_W) / 2;
+  player_x = (CANVAS_W - PLAYER.w) / 2.0;
   return Game.set({score: 0, lives: 3, wave: 1, phase: "playing"});
 };
 
 /**
- * @param {*} x
+ * @param {number} x
  * @returns {*}
  */
-const move_player = (x) => player_x = $clamp(x - PLAYER_W / 2, 0, CANVAS_W - PLAYER_W);
+const move_player = (x) => player_x = $clamp(x - PLAYER.w / 2.0, 0.0, CANVAS_W - PLAYER.w);
 
 /**
  * @returns {*}
  */
 const fire = () => {
-  if (fire_cd <= 0) {
-    let bx = player_x + PLAYER_W / 2;
-    let by = PLAYER_Y;
-    p_bullets = [...p_bullets, {x: bx, y: by}];
-    return fire_cd = 0.32;
+  if (swarm.fire_cd <= 0.0) {
+    p_bullets = [...p_bullets, {x: player_x + PLAYER.w / 2.0, y: PLAYER.y}];
+    return swarm.fire_cd = 0.32;
   }
 };
 
 /**
- * @param {*} dt
+ * @param {number} dt
  * @returns {*}
  */
 const tick = (dt) => {
@@ -134,26 +130,26 @@ const tick = (dt) => {
     return 0;
   } else {
     let speed_mult = 1.0 + (Game.wave - 1) * 0.18;
-    fire_cd = fire_cd - dt;
-    alien_fire_timer = alien_fire_timer - dt;
-    alien_dx = alien_dx + MARCH_BASE * alien_dir * dt * speed_mult;
+    swarm.fire_cd = swarm.fire_cd - dt;
+    swarm.alien_fire_timer = swarm.alien_fire_timer - dt;
+    swarm.dx = swarm.dx + GRID.march * swarm.dir * dt * speed_mult;
     let n = alive_count();
     if (n > 0) {
-      let xs_left = $map($filter($range(0, ALIEN_ROWS * ALIEN_COLS), (i) => aliens[i]), (i) => alien_x(i));
-      let xs_right = $map($filter($range(0, ALIEN_ROWS * ALIEN_COLS), (i) => aliens[i]), (i) => alien_x(i) + ALIEN_W);
+      let xs_left = $map($filter($range(0, GRID.rows * GRID.cols), (i) => aliens[i]), (i) => alien_x(i));
+      let xs_right = $map($filter($range(0, GRID.rows * GRID.cols), (i) => aliens[i]), (i) => alien_x(i) + GRID.alien_w);
       let min_x = $min(xs_left);
       let max_x = $max(xs_right);
-      if (min_x <= 0 || max_x >= CANVAS_W) {
-        alien_dir = 0 - alien_dir;
-        alien_dy = alien_dy + 18;
+      if (min_x <= 0.0 || max_x >= CANVAS_W) {
+        swarm.dir = 0 - swarm.dir;
+        swarm.dy = swarm.dy + 18.0;
       }
     }
-    p_bullets = $filter($map(p_bullets, (b) => ({x: b.x, y: b.y - PBULLET_SPD * dt})), (b) => b.y > 0);
-    a_bullets = $filter($map(a_bullets, (b) => ({x: b.x, y: b.y + ABULLET_SPD * dt})), (b) => b.y < CANVAS_H);
+    p_bullets = $filter($map(p_bullets, (b) => ({x: b.x, y: b.y - BULLET.player_spd * dt})), (b) => b.y > 0.0);
+    a_bullets = $filter($map(a_bullets, (b) => ({x: b.x, y: b.y + BULLET.alien_spd * dt})), (b) => b.y < CANVAS_H);
     let i = 0;
     while (i < $count(p_bullets, (x) => true)) {
       let b = p_bullets[i];
-      let hit = $find_index($range(0, ALIEN_ROWS * ALIEN_COLS), (j) => aliens[j] && b.x > alien_x(j) && b.x < alien_x(j) + ALIEN_W && b.y > alien_y(j) && b.y < alien_y(j) + ALIEN_H);
+      let hit = $find_index($range(0, GRID.rows * GRID.cols), (j) => aliens[j] && b.x > alien_x(j) && b.x < alien_x(j) + GRID.alien_w && b.y > alien_y(j) && b.y < alien_y(j) + GRID.alien_h);
       if (hit >= 0) {
         aliens = $set_at(aliens, hit, false);
         let pts = row_pts(alien_row(hit));
@@ -167,26 +163,26 @@ const tick = (dt) => {
         i += 1;
       }
     }
-    if (alien_fire_timer <= 0 && alive_count() > 0) {
-      let col = $floor($random() * ALIEN_COLS);
+    if (swarm.alien_fire_timer <= 0.0 && alive_count() > 0) {
+      let col = $floor($random() * GRID.cols);
       let bot = 0 - 1;
       let k = 0;
-      while (k < ALIEN_ROWS * ALIEN_COLS) {
+      while (k < GRID.rows * GRID.cols) {
         if (aliens[k] && alien_col(k) == col) {
           bot = k;
         }
         k += 1;
       }
       if (bot >= 0) {
-        a_bullets = [...a_bullets, {x: alien_x(bot) + ALIEN_W / 2, y: alien_y(bot) + ALIEN_H}];
+        a_bullets = [...a_bullets, {x: alien_x(bot) + GRID.alien_w / 2.0, y: alien_y(bot) + GRID.alien_h}];
       }
-      alien_fire_timer = $clamp(2.0 - Game.wave * 0.2, 0.5, 2.0);
+      swarm.alien_fire_timer = $clamp(2.0 - Game.wave * 0.2, 0.5, 2.0);
     }
     let px = player_x;
-    let py = PLAYER_Y;
-    let hit_player = $any(a_bullets, (b) => b.x > px && b.x < px + PLAYER_W && b.y > py && b.y < py + PLAYER_H);
+    let py = PLAYER.y;
+    let hit_player = $any(a_bullets, (b) => b.x > px && b.x < px + PLAYER.w && b.y > py && b.y < py + PLAYER.h);
     if (hit_player) {
-      a_bullets = $filter(a_bullets, (b) => b.x <= px || b.x >= px + PLAYER_W || b.y <= py || b.y >= py + PLAYER_H);
+      a_bullets = $filter(a_bullets, (b) => b.x <= px || b.x >= px + PLAYER.w || b.y <= py || b.y >= py + PLAYER.h);
       let nl = Game.lives - 1;
       if (nl <= 0) {
         Game.set({lives: 0, phase: "gameover"});
@@ -194,7 +190,7 @@ const tick = (dt) => {
         Game.set({lives: nl});
       }
     }
-    let invasion = $any($range(0, ALIEN_ROWS * ALIEN_COLS), (i) => aliens[i] && alien_y(i) + ALIEN_H >= PLAYER_Y);
+    let invasion = $any($range(0, GRID.rows * GRID.cols), (i) => aliens[i] && alien_y(i) + GRID.alien_h >= PLAYER.y);
     if (invasion) {
       Game.set({phase: "gameover"});
     }
@@ -213,9 +209,9 @@ const next_wave = () => {
   return Game.set({wave: nw, phase: "playing"});
 };
 
-const get_aliens = () => $map($filter($range(0, ALIEN_ROWS * ALIEN_COLS), (i) => aliens[i]), (i) => ({x: alien_x(i), y: alien_y(i), w: ALIEN_W, h: ALIEN_H, color: row_color(alien_row(i))}));
+const get_aliens = () => $map($filter($range(0, GRID.rows * GRID.cols), (i) => aliens[i]), (i) => ({x: alien_x(i), y: alien_y(i), w: GRID.alien_w, h: GRID.alien_h, color: row_color(alien_row(i))}));
 
-const get_player = () => ({x: player_x, y: PLAYER_Y, w: PLAYER_W, h: PLAYER_H});
+const get_player = () => ({x: player_x, y: PLAYER.y, w: PLAYER.w, h: PLAYER.h});
 
 const get_pbullets = () => p_bullets;
 

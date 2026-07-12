@@ -1,6 +1,6 @@
 const Building = (id, name, icon, base_cost, rate, desc) => ({ id, name, icon, base_cost, rate, desc });
 
-let catalog = [{id: 0, name: "Beat Box", icon: "🥁", base_cost: 15, rate: 0.1, desc: "Simple percussion"}, {id: 1, name: "Drum Machine", icon: "🎛", base_cost: 100, rate: 0.5, desc: "Four-on-the-floor"}, {id: 2, name: "Synthesizer", icon: "🎹", base_cost: 500, rate: 4.0, desc: "Analog wave generator"}, {id: 3, name: "Vocoder", icon: "🎤", base_cost: 2000, rate: 10.0, desc: "Harmonic processor"}, {id: 4, name: "Sequencer", icon: "⚡", base_cost: 8000, rate: 40.0, desc: "Pattern automation"}, {id: 5, name: "Studio", icon: "🏠", base_cost: 30000, rate: 150.0, desc: "Full mixing suite"}, {id: 6, name: "Label", icon: "💿", base_cost: 100000, rate: 500.0, desc: "Global distribution"}];
+let CATALOG = [{id: 0, name: "Beat Box", icon: "🥁", base_cost: 15, rate: 0.1, desc: "Simple percussion"}, {id: 1, name: "Drum Machine", icon: "🎛", base_cost: 100, rate: 0.5, desc: "Four-on-the-floor"}, {id: 2, name: "Synthesizer", icon: "🎹", base_cost: 500, rate: 4.0, desc: "Analog wave generator"}, {id: 3, name: "Vocoder", icon: "🎤", base_cost: 2000, rate: 10.0, desc: "Harmonic processor"}, {id: 4, name: "Sequencer", icon: "⚡", base_cost: 8000, rate: 40.0, desc: "Pattern automation"}, {id: 5, name: "Studio", icon: "🏠", base_cost: 30000, rate: 150.0, desc: "Full mixing suite"}, {id: 6, name: "Label", icon: "💿", base_cost: 100000, rate: 500.0, desc: "Global distribution"}];
 
 const Game = (() => {
   let _state = { vibes: 0, total_vibes: 0, vps: 0, counts: [0, 0, 0, 0, 0, 0, 0] };
@@ -31,27 +31,28 @@ const building_cost = (() => {
   };
 })();
 
+const calc_vps = (counts) => $sum_by(CATALOG, (b) => b.rate * counts[b.id]);
+
 /**
  * @returns {*}
  */
 const click = () => Game.set({vibes: Game.vibes + 1, total_vibes: Game.total_vibes + 1});
 
 /**
- * @param {*} idx
+ * @param {number} idx
  * @returns {*}
  */
 const buy = (idx) => {
-  let b = catalog[idx];
+  let b = CATALOG[idx];
   let cost = building_cost(b.base_cost, Game.counts[idx]);
   if (Game.vibes >= cost) {
     let new_counts = $set_at(Game.counts, idx, Game.counts[idx] + 1);
-    let new_vps = $sum_by(catalog, (b) => b.rate * new_counts[b.id]);
-    return Game.set({vibes: Game.vibes - cost, vps: new_vps, counts: new_counts});
+    return Game.set({vibes: Game.vibes - cost, vps: calc_vps(new_counts), counts: new_counts});
   }
 };
 
 /**
- * @param {*} dt
+ * @param {number} dt
  * @returns {*}
  */
 const tick = (dt) => {
@@ -64,7 +65,7 @@ const tick = (dt) => {
 const fmt = (v) => v >= 1000_000_000 ? `${$floor(v / 1000_000_000)}B` : v >= 1000_000 ? `${$floor(v / 1000_000)}M` : v >= 1000 ? `${$floor(v / 1000)}K` : `${$floor(v)}`;
 
 /**
- * @returns {*}
+ * @returns {string}
  */
 const milestone = () => {
   let tv = $floor(Game.total_vibes);
@@ -92,7 +93,7 @@ const render_building = (b) => {
 
 const total_owned = () => $fold(Game.counts, 0, (acc, n) => acc + n);
 
-const best_building = () => $max_by($filter(catalog, (b) => Game.counts[b.id] > 0), (b) => b.rate * Game.counts[b.id]);
+const best_building = () => $max_by($filter(CATALOG, (b) => Game.counts[b.id] > 0), (b) => b.rate * Game.counts[b.id]);
 
 /**
  * @returns {*}
@@ -103,7 +104,7 @@ const render = () => {
   document.getElementById("total").textContent = `${fmt(Game.total_vibes)} total`;
   document.getElementById("msg").textContent = milestone();
   document.getElementById("owned").textContent = `${total_owned()} producers`;
-  return document.getElementById("blds").innerHTML = $map(catalog, (b) => render_building(b)).join("");
+  return document.getElementById("blds").innerHTML = $map(CATALOG, (b) => render_building(b)).join("");
 };
 
 Game.subscribe(() => (() => {

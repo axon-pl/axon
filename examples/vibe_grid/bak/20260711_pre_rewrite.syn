@@ -1,5 +1,7 @@
-// ── VIBE GRID — structural rewrite ───────────────────────────────────────────
-// Host: Game store · click · buy · tick · render (demo/vibe_grid.html)
+// ── VIBE GRID — Synth v1.0 Demo ───────────────────────────────────────────────
+// Showcases: record · store · template literals · sum_by · object shorthand · @memo
+
+// ── Data types ─────────────────────────────────────────────────────────────────
 
 record Building {
   id:        int
@@ -10,7 +12,9 @@ record Building {
   desc:      string
 }
 
-let CATALOG = [
+// ── Building catalog ──────────────────────────────────────────────────────────
+
+let catalog = [
   { id: 0, name: "Beat Box",     icon: "🥁", base_cost: 15,     rate: 0.1,   desc: "Simple percussion"    },
   { id: 1, name: "Drum Machine", icon: "🎛", base_cost: 100,    rate: 0.5,   desc: "Four-on-the-floor"    },
   { id: 2, name: "Synthesizer",  icon: "🎹", base_cost: 500,    rate: 4.0,   desc: "Analog wave generator" },
@@ -20,6 +24,8 @@ let CATALOG = [
   { id: 6, name: "Label",        icon: "💿", base_cost: 100000, rate: 500.0, desc: "Global distribution"  },
 ]
 
+// ── Reactive store ────────────────────────────────────────────────────────────
+
 store Game {
   vibes:       float = 0
   total_vibes: float = 0
@@ -27,44 +33,45 @@ store Game {
   counts:      int[] = [0, 0, 0, 0, 0, 0, 0]
 }
 
+// ── Core calculations ─────────────────────────────────────────────────────────
+
+// Cost scales 1.15x per owned copy — @memo caches results
 @memo
-fn building_cost(base_cost: int, owned: int) -> int =
+fn building_cost(base_cost, owned) =
   floor(base_cost * pow(1.15, owned))
 
-fn calc_vps(counts: int[]) -> float =
-  CATALOG.sum_by(b => b.rate * counts[b.id])
+// ── Actions ───────────────────────────────────────────────────────────────────
 
 fn click() {
   Game.set({ vibes: Game.vibes + 1, total_vibes: Game.total_vibes + 1 })
 }
 
-fn buy(idx: int) {
-  let b    = CATALOG[idx]
+fn buy(idx) {
+  let b    = catalog[idx]
   let cost = building_cost(b.base_cost, Game.counts[idx])
   if Game.vibes >= cost {
     let new_counts = set_at(Game.counts, idx, Game.counts[idx] + 1)
-    Game.set({
-      vibes: Game.vibes - cost,
-      vps: calc_vps(new_counts),
-      counts: new_counts
-    })
+    let new_vps    = catalog.sum_by(b => b.rate * new_counts[b.id])
+    Game.set({ vibes: Game.vibes - cost, vps: new_vps, counts: new_counts })
   }
 }
 
-fn tick(dt: float) {
+fn tick(dt) {
   let earned = Game.vps * dt
   if earned > 0 {
     Game.set({ vibes: Game.vibes + earned, total_vibes: Game.total_vibes + earned })
   }
 }
 
-fn fmt(v: float) -> string =
+// ── Display helpers ───────────────────────────────────────────────────────────
+
+fn fmt(v) =
   v >= 1_000_000_000 ? `${floor(v / 1_000_000_000)}B`
     : v >= 1_000_000 ? `${floor(v / 1_000_000)}M`
     : v >= 1_000     ? `${floor(v / 1_000)}K`
     : `${floor(v)}`
 
-fn milestone() -> string {
+fn milestone() {
   let tv = floor(Game.total_vibes)
   tv < 1       ? "Drop the beat..."
     : tv < 10  ? "Feeling the rhythm"
@@ -75,6 +82,9 @@ fn milestone() -> string {
     : "MAXIMUM VIBES"
 }
 
+// ── Building card renderer ────────────────────────────────────────────────────
+
+// Template literals (v1.0) — expressions interpolate directly, no concatenation
 fn render_building(b: Building) -> string {
   let owned = Game.counts[b.id]
   let cost  = building_cost(b.base_cost, owned)
@@ -90,14 +100,18 @@ fn render_building(b: Building) -> string {
   </div>`
 }
 
-fn total_owned() -> int =
+// ── Stats panel (pipeline showcase) ──────────────────────────────────────────
+
+fn total_owned() =
   Game.counts
     |> fold(0, (acc, n) => acc + n)
 
 fn best_building() =
-  CATALOG
+  catalog
     |> filter(b => Game.counts[b.id] > 0)
     |> max_by(b => b.rate * Game.counts[b.id])
+
+// ── Render ────────────────────────────────────────────────────────────────────
 
 fn render() {
   document.getElementById("vibes").textContent   = fmt(Game.vibes)
@@ -106,7 +120,7 @@ fn render() {
   document.getElementById("msg").textContent     = milestone()
   document.getElementById("owned").textContent   = `${total_owned()} producers`
   document.getElementById("blds").innerHTML      =
-    CATALOG.map(b => render_building(b)).join("")
+    catalog.map(b => render_building(b)).join("")
 }
 
 on Game.change { render() }

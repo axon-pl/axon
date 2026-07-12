@@ -1,10 +1,8 @@
 const Point = (c, r) => ({ c, r });
 
-let CANVAS_W = 800;
-let CANVAS_H = 520;
-let CELL_SIZE = 10;
-let COLS = 80;
-let ROWS = 52;
+const Grid = (cols, rows, cell, w, h) => ({ cols, rows, cell, w, h });
+
+let GRID = {cols: 80, rows: 52, cell: 10, w: 800, h: 520};
 
 const Life = (() => {
   let _state = { gen: 0, pop: 0, running: false, speed: 4 };
@@ -22,11 +20,13 @@ const Life = (() => {
   };
 })();
 
-let cells = $map($range(0, ROWS * COLS), (i) => false);
+let cells = $map($range(0, GRID.rows * GRID.cols), (i) => false);
 
-const idx = (c, r) => r * COLS + c;
+const idx = (c, r) => r * GRID.cols + c;
 
-const at = (c, r) => c >= 0 && c < COLS && r >= 0 && r < ROWS ? cells[idx(c, r)] : false;
+const in_bounds = (c, r) => c >= 0 && c < GRID.cols && r >= 0 && r < GRID.rows;
+
+const at = (c, r) => in_bounds(c, r) ? cells[idx(c, r)] : false;
 
 const nbr = (c, r) => (at(c - 1, r - 1) ? 1 : 0) + (at(c, r - 1) ? 1 : 0) + (at(c + 1, r - 1) ? 1 : 0) + (at(c - 1, r) ? 1 : 0) + (at(c + 1, r) ? 1 : 0) + (at(c - 1, r + 1) ? 1 : 0) + (at(c, r + 1) ? 1 : 0) + (at(c + 1, r + 1) ? 1 : 0);
 
@@ -36,20 +36,21 @@ const next_state = (c, r) => (() => {
   return ((_m) => (_m === 3) ? true : (_m === 2) ? alive : false)(n);
 })();
 
+const pop_count = () => $count(cells, (v) => v);
+
 /**
  * @returns {*}
  */
 const step = () => {
-  cells = $flat_map($range(0, ROWS), (r) => $map($range(0, COLS), (c) => next_state(c, r)));
-  let pop = $count(cells, (v) => v);
-  return Life.set({gen: Life.gen + 1, pop});
+  cells = $flat_map($range(0, GRID.rows), (r) => $map($range(0, GRID.cols), (c) => next_state(c, r)));
+  return Life.set({gen: Life.gen + 1, pop: pop_count()});
 };
 
 /**
  * @returns {*}
  */
 const clear_grid = () => {
-  cells = $map($range(0, ROWS * COLS), (i) => false);
+  cells = $map($range(0, GRID.rows * GRID.cols), (i) => false);
   return Life.set({gen: 0, pop: 0});
 };
 
@@ -57,37 +58,34 @@ const clear_grid = () => {
  * @returns {*}
  */
 const randomize = () => {
-  cells = $map($range(0, ROWS * COLS), (i) => $random() < 0.28);
-  let pop = $count(cells, (v) => v);
-  return Life.set({gen: 0, pop});
+  cells = $map($range(0, GRID.rows * GRID.cols), (i) => $random() < 0.28);
+  return Life.set({gen: 0, pop: pop_count()});
 };
 
 /**
- * @param {*} c
- * @param {*} r
- * @param {*} v
+ * @param {number} c
+ * @param {number} r
+ * @param {boolean} v
  * @returns {*}
  */
 const paint = (c, r, v) => {
-  if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
+  if (in_bounds(c, r)) {
     cells = $set_at(cells, idx(c, r), v);
-    let pop = $count(cells, (a) => a);
-    return Life.set({pop});
+    return Life.set({pop: pop_count()});
   }
 };
 
 /**
- * @param {*} c
- * @param {*} r
+ * @param {number} c
+ * @param {number} r
  * @returns {*}
  */
 const toggle = (c, r) => {
-  if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
+  if (in_bounds(c, r)) {
     let i = idx(c, r);
     let was = cells[i];
     cells = $set_at(cells, i, was ? false : true);
-    let pop = $count(cells, (a) => a);
-    return Life.set({pop});
+    return Life.set({pop: pop_count()});
   }
 };
 
@@ -114,8 +112,8 @@ const load_glider = () => {
  * @returns {*}
  */
 const load_pulsar = () => {
-  let cx = COLS / 2;
-  let cy = ROWS / 2;
+  let cx = GRID.cols / 2;
+  let cy = GRID.rows / 2;
   let offsets = [2, 3, 4, 8, 9, 10];
   for (const o of offsets) {
     paint(cx - o, cy - 1, true);
@@ -139,7 +137,7 @@ const load_glider_gun = () => {
 };
 
 /**
- * @param {*} name
+ * @param {string} name
  * @returns {*}
  */
 const load_preset = (name) => {
@@ -149,9 +147,9 @@ const load_preset = (name) => {
 
 const get_cells = () => cells;
 
-const get_cols = () => COLS;
+const get_cols = () => GRID.cols;
 
-const get_rows = () => ROWS;
+const get_rows = () => GRID.rows;
 
-const get_cellsize = () => CELL_SIZE;
+const get_cellsize = () => GRID.cell;
 

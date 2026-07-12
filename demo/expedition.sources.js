@@ -17,15 +17,17 @@ const Fleet = (() => {
   };
 })();
 
-let alpha_wing = [{id: 1, name: "Vanguard", sector: "Kepler", danger: 2, distance: 14, ore: 80, fuel: 60, data: 40}, {id: 2, name: "Ironclad", sector: "Kepler", danger: 3, distance: 22, ore: 120, fuel: 45, data: 20}, {id: 3, name: "Phantom", sector: "Kepler", danger: 4, distance: 31, ore: 200, fuel: 30, data: 90}, {id: 4, name: "Warden", sector: "Kepler", danger: 1, distance: 9, ore: 35, fuel: 100, data: 25}];
-let beta_wing = [{id: 5, name: "Horizon", sector: "Proxima", danger: 1, distance: 8, ore: 40, fuel: 90, data: 70}, {id: 6, name: "Spectre", sector: "Proxima", danger: 2, distance: 17, ore: 65, fuel: 75, data: 55}, {id: 7, name: "Nomad", sector: "Proxima", danger: 5, distance: 44, ore: 310, fuel: 20, data: 150}, {id: 8, name: "Relay", sector: "Helios", danger: 1, distance: 5, ore: 20, fuel: 110, data: 30}, {id: 9, name: "Tempest", sector: "Helios", danger: 3, distance: 28, ore: 90, fuel: 40, data: 80}, {id: 10, name: "Nexus", sector: "Helios", danger: 4, distance: 37, ore: 175, fuel: 25, data: 120}, {id: 11, name: "Harbinger", sector: "Vega", danger: 2, distance: 19, ore: 55, fuel: 85, data: 45}, {id: 12, name: "Pilgrim", sector: "Vega", danger: 3, distance: 25, ore: 110, fuel: 50, data: 65}, {id: 13, name: "Sentinel", sector: "Vega", danger: 5, distance: 52, ore: 280, fuel: 15, data: 200}];
-let fleet = [...alpha_wing, ...beta_wing];
+let FLEET = [{id: 1, name: "Vanguard", sector: "Kepler", danger: 2, distance: 14, ore: 80, fuel: 60, data: 40}, {id: 2, name: "Ironclad", sector: "Kepler", danger: 3, distance: 22, ore: 120, fuel: 45, data: 20}, {id: 3, name: "Phantom", sector: "Kepler", danger: 4, distance: 31, ore: 200, fuel: 30, data: 90}, {id: 4, name: "Warden", sector: "Kepler", danger: 1, distance: 9, ore: 35, fuel: 100, data: 25}, {id: 5, name: "Horizon", sector: "Proxima", danger: 1, distance: 8, ore: 40, fuel: 90, data: 70}, {id: 6, name: "Spectre", sector: "Proxima", danger: 2, distance: 17, ore: 65, fuel: 75, data: 55}, {id: 7, name: "Nomad", sector: "Proxima", danger: 5, distance: 44, ore: 310, fuel: 20, data: 150}, {id: 8, name: "Relay", sector: "Helios", danger: 1, distance: 5, ore: 20, fuel: 110, data: 30}, {id: 9, name: "Tempest", sector: "Helios", danger: 3, distance: 28, ore: 90, fuel: 40, data: 80}, {id: 10, name: "Nexus", sector: "Helios", danger: 4, distance: 37, ore: 175, fuel: 25, data: 120}, {id: 11, name: "Harbinger", sector: "Vega", danger: 2, distance: 19, ore: 55, fuel: 85, data: 45}, {id: 12, name: "Pilgrim", sector: "Vega", danger: 3, distance: 25, ore: 110, fuel: 50, data: 65}, {id: 13, name: "Sentinel", sector: "Vega", danger: 5, distance: 52, ore: 280, fuel: 15, data: 200}];
 
 const danger_label = (n) => ((_m) => (_m === 1) ? "Safe" : (_m === 2) ? "Low" : (_m === 3) ? "Moderate" : (_m === 4) ? "High" : "Critical")(n);
 
 const danger_cls = (n) => ((_m) => (_m === 1) ? "safe" : (_m === 2) ? "low" : (_m === 3) ? "mod" : (_m === 4) ? "high" : "crit")(n);
 
 const mission_summary = (name, sector, danger) => ({name, sector, danger});
+
+const matches_filter = (m, sector, max_danger) => (sector == "All" || m.sector == sector) && m.danger <= max_danger;
+
+const sort_missions = (missions, sort_key) => ((_m) => (_m === "distance") ? $sort_by(missions, (m) => m.distance) : (_m === "danger") ? $sort_by(missions, (m) => m.danger) : (_m === "ore") ? $sort_by_desc(missions, (m) => m.ore) : (_m === "data") ? $sort_by_desc(missions, (m) => m.data) : missions)(sort_key);
 
 /**
  * @returns {Mission}
@@ -34,8 +36,8 @@ const visible_missions = () => {
   let sector = Fleet.sector;
   let max_danger = Fleet.max_danger;
   let sort_key = Fleet.sort_key;
-  let filtered = $filter(fleet, (m) => (sector == "All" || m.sector == sector) && m.danger <= max_danger);
-  return ((_m) => (_m === "distance") ? $sort_by(filtered, (m) => m.distance) : (_m === "danger") ? $sort_by(filtered, (m) => m.danger) : (_m === "ore") ? $sort_by_desc(filtered, (m) => m.ore) : (_m === "data") ? $sort_by_desc(filtered, (m) => m.data) : filtered)(sort_key);
+  let filtered = $filter(FLEET, (m) => matches_filter(m, sector, max_danger));
+  return sort_missions(filtered, sort_key);
 };
 
 /**
@@ -50,8 +52,7 @@ const fleet_stats = (missions) => (() => {
   let sum_d = $sum_by(missions, (m) => m.danger);
   let avg_d = n > 0 ? Math.round(sum_d * 10 / n) / 10 : 0;
   let max_dist = n > 0 ? $max_by(missions, (m) => m.distance).distance : 0;
-  let danger4 = $filter(missions, (m) => m.danger >= 4);
-  let high_risk = $count(danger4);
+  let high_risk = $count($filter(missions, (m) => m.danger >= 4));
   return {count: n, ore, fuel, data, avg_d, max_dist, high_risk};
 })();
 
@@ -91,7 +92,7 @@ const render = () => {
   document.getElementById("stat-avgd").textContent = s.avg_d;
   document.getElementById("stat-dist").textContent = `${s.max_dist} ly`;
   document.getElementById("stat-risk").textContent = s.high_risk;
-  return document.getElementById("fleet-total").textContent = `${s.count} of ${$count(fleet)} missions`;
+  return document.getElementById("fleet-total").textContent = `${s.count} of ${$count(FLEET)} missions`;
 };
 
 Fleet.subscribe(() => (() => {

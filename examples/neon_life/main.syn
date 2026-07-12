@@ -1,16 +1,20 @@
-// ── NEON LIFE — Synth v1.0 Demo ───────────────────────────────────────────────
-// Showcases: record · store · for loops · flat_map · set_at · do notation
+// ── NEON LIFE — structural rewrite ───────────────────────────────────────────
+// Host: Life · step · clear_grid · randomize · paint · toggle · load_preset · getters
 
 record Point {
   c: int
   r: int
 }
 
-let CANVAS_W  = 800
-let CANVAS_H  = 520
-let CELL_SIZE = 10
-let COLS      = 80
-let ROWS      = 52
+record Grid {
+  cols: int
+  rows: int
+  cell: int
+  w: int
+  h: int
+}
+
+let GRID = { cols: 80, rows: 52, cell: 10, w: 800, h: 520 }
 
 store Life {
   gen:     int  = 0
@@ -19,24 +23,22 @@ store Life {
   speed:   int  = 4
 }
 
-let cells = range(0, ROWS * COLS).map(i => false)
+let mut cells = range(0, GRID.rows * GRID.cols).map(i => false)
 
-// ── Grid helpers ──────────────────────────────────────────────────────────────
+fn idx(c: int, r: int) -> int = r * GRID.cols + c
 
-fn idx(c, r)   = r * COLS + c
+fn in_bounds(c: int, r: int) -> bool =
+  c >= 0 and c < GRID.cols and r >= 0 and r < GRID.rows
 
-fn at(c, r)    =
-  c >= 0 and c < COLS and r >= 0 and r < ROWS
-    ? cells[idx(c, r)]
-    : false
+fn at(c: int, r: int) -> bool =
+  in_bounds(c, r) ? cells[idx(c, r)] : false
 
-fn nbr(c, r) =
+fn nbr(c: int, r: int) -> int =
   (at(c-1, r-1) ? 1 : 0) + (at(c, r-1) ? 1 : 0) + (at(c+1, r-1) ? 1 : 0) +
   (at(c-1, r  ) ? 1 : 0) +                          (at(c+1, r  ) ? 1 : 0) +
   (at(c-1, r+1) ? 1 : 0) + (at(c, r+1) ? 1 : 0) + (at(c+1, r+1) ? 1 : 0)
 
-// Conway rules expressed as a match
-fn next_state(c, r) =
+fn next_state(c: int, r: int) -> bool =
   do {
     let alive = at(c, r)
     let n     = nbr(c, r)
@@ -47,48 +49,40 @@ fn next_state(c, r) =
     }
   }
 
-// ── Simulation ────────────────────────────────────────────────────────────────
+fn pop_count() -> int = cells.count(v => v)
 
 fn step() {
-  cells = range(0, ROWS).flat_map(r =>
-    range(0, COLS).map(c => next_state(c, r))
+  cells = range(0, GRID.rows).flat_map(r =>
+    range(0, GRID.cols).map(c => next_state(c, r))
   )
-  let pop = cells.count(v => v)
-  Life.set({ gen: Life.gen + 1, pop })
+  Life.set({ gen: Life.gen + 1, pop: pop_count() })
 }
 
 fn clear_grid() {
-  cells = range(0, ROWS * COLS).map(i => false)
+  cells = range(0, GRID.rows * GRID.cols).map(i => false)
   Life.set({ gen: 0, pop: 0 })
 }
 
 fn randomize() {
-  cells = range(0, ROWS * COLS).map(i => random() < 0.28)
-  let pop = cells.count(v => v)
-  Life.set({ gen: 0, pop })
+  cells = range(0, GRID.rows * GRID.cols).map(i => random() < 0.28)
+  Life.set({ gen: 0, pop: pop_count() })
 }
 
-// ── Cell editing ──────────────────────────────────────────────────────────────
-
-fn paint(c, r, v) {
-  if c >= 0 and c < COLS and r >= 0 and r < ROWS {
+fn paint(c: int, r: int, v: bool) {
+  if in_bounds(c, r) {
     cells = set_at(cells, idx(c, r), v)
-    let pop = cells.count(a => a)
-    Life.set({ pop })
+    Life.set({ pop: pop_count() })
   }
 }
 
-fn toggle(c, r) {
-  if c >= 0 and c < COLS and r >= 0 and r < ROWS {
+fn toggle(c: int, r: int) {
+  if in_bounds(c, r) {
     let i   = idx(c, r)
     let was = cells[i]
     cells   = set_at(cells, i, was ? false : true)
-    let pop = cells.count(a => a)
-    Life.set({ pop })
+    Life.set({ pop: pop_count() })
   }
 }
-
-// ── Presets ───────────────────────────────────────────────────────────────────
 
 fn place(pts: Point[]) {
   for p in pts {
@@ -109,8 +103,8 @@ fn load_glider() {
 }
 
 fn load_pulsar() {
-  let cx      = COLS / 2
-  let cy      = ROWS / 2
+  let cx      = GRID.cols / 2
+  let cy      = GRID.rows / 2
   let offsets = [2, 3, 4, 8, 9, 10]
   for o in offsets {
     paint(cx-o, cy-1, true)
@@ -140,7 +134,7 @@ fn load_glider_gun() {
   ])
 }
 
-fn load_preset(name) {
+fn load_preset(name: string) {
   clear_grid()
   match name {
     | "random" => randomize()
@@ -151,9 +145,7 @@ fn load_preset(name) {
   }
 }
 
-// ── Accessors ─────────────────────────────────────────────────────────────────
-
 fn get_cells()    = cells
-fn get_cols()     = COLS
-fn get_rows()     = ROWS
-fn get_cellsize() = CELL_SIZE
+fn get_cols()     = GRID.cols
+fn get_rows()     = GRID.rows
+fn get_cellsize() = GRID.cell
