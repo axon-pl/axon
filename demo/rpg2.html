@@ -133,8 +133,7 @@ function drawBar(x, y, w, h, ratio, color) {
 function drawSilhouette(x, y, w, h, color, kind) {
   ctx.save()
   ctx.shadowColor = color
-  ctx.shadowBlur = 4
-  ctx.globalAlpha = 0.85
+  ctx.shadowBlur = 16
   ctx.fillStyle = color
   if (kind === 'knight') {
     ctx.fillRect(x + w * 0.3, y + h * 0.25, w * 0.4, h * 0.55)
@@ -176,7 +175,6 @@ function drawSilhouette(x, y, w, h, color, kind) {
   }
   ctx.restore()
   ctx.shadowBlur = 0
-  ctx.globalAlpha = 1
 }
 
 function foeKind(id) {
@@ -234,185 +232,181 @@ function drawEnd(view, title, color) {
 }
 
 function drawBattle(view, dt) {
-  const HUD_Y = 402
-  const HUD_H = 110
-  const FIELD_BOTTOM = HUD_Y - 8
-
-  // Quiet field
-  const sky = ctx.createLinearGradient(0, 0, 0, FIELD_BOTTOM)
-  sky.addColorStop(0, '#0b0a16')
-  sky.addColorStop(0.7, '#12101f')
-  sky.addColorStop(1, '#161225')
+  // Arena background
+  const sky = ctx.createLinearGradient(0, 0, 0, H)
+  sky.addColorStop(0, '#12082a')
+  sky.addColorStop(0.55, '#1a0f38')
+  sky.addColorStop(1, '#0a0618')
   ctx.fillStyle = sky
-  ctx.fillRect(0, 0, W, FIELD_BOTTOM)
+  ctx.fillRect(0, 0, W, H)
 
-  // Soft floor wash
-  const floor = ctx.createLinearGradient(0, 240, 0, FIELD_BOTTOM)
-  floor.addColorStop(0, 'transparent')
-  floor.addColorStop(1, 'rgba(0,0,0,0.35)')
-  ctx.fillStyle = floor
-  ctx.fillRect(0, 240, W, FIELD_BOTTOM - 240)
+  // Ground
+  ctx.fillStyle = '#16102e'
+  ctx.fillRect(0, 300, W, 220)
+  ctx.strokeStyle = 'rgba(0,229,255,0.15)'
+  ctx.beginPath()
+  ctx.moveTo(0, 300)
+  ctx.lineTo(W, 300)
+  ctx.stroke()
 
-  // Quiet encounter label
-  ctx.fillStyle = 'rgba(200,190,230,0.45)'
-  ctx.font = '11px Courier New'
+  // Title strip
+  ctx.fillStyle = '#ffd166'
+  ctx.font = 'bold 13px Courier New'
   ctx.textAlign = 'left'
-  ctx.fillText(view.title || '', 18, 22)
+  ctx.fillText(view.title || '', 20, 28)
 
   const anim = view.anim || { kind: 'none', timer: 0 }
-  const shake = anim.kind !== 'none' && anim.timer > 0.35 ? Math.sin(anim.timer * 40) * 2 : 0
+  const shake = anim.kind !== 'none' && anim.timer > 0.35 ? Math.sin(anim.timer * 40) * 3 : 0
 
-  // Enemies — mid-left, smaller
+  // Enemies left
   const foes = view.foes || []
   const foeHitKinds = { attack: 1, magic: 1, skill: 1 }
   foes.forEach((e, i) => {
     if (!e.alive && !(anim.side === 'hero' && foeHitKinds[anim.kind] && anim.target === i && anim.timer > 0)) return
-    const x = 90 + (i % 2) * 90 + shake
-    const y = 150 + Math.floor(i / 2) * 78
-    const alpha = e.alive ? 0.9 : 0.28
+    const x = 80 + (i % 2) * 110 + shake
+    const y = 95 + Math.floor(i / 2) * 88
+    const alpha = e.alive ? 1 : 0.35
     ctx.globalAlpha = alpha
-    const flash = anim.kind && foeHitKinds[anim.kind] && anim.side === 'hero' && anim.target === i && anim.timer > 0.2
-    drawSilhouette(x, y, 52, 64, flash ? '#d8d0e8' : e.color, foeKind(e.id))
+    const flash = foeHitKinds[anim.kind] && anim.side === 'hero' && anim.target === i && anim.timer > 0.2
+    drawSilhouette(x, y, 70, 90, flash ? '#ffffff' : e.color, foeKind(e.id))
     ctx.globalAlpha = 1
-    ctx.fillStyle = 'rgba(210,200,235,0.7)'
-    ctx.font = '10px Courier New'
+    ctx.fillStyle = '#e8e0ff'
+    ctx.font = '12px Courier New'
     ctx.textAlign = 'center'
-    ctx.fillText(e.name, x + 26, y + 76)
-    drawBar(x + 2, y + 80, 48, 4, e.maxHp ? e.hp / e.maxHp : 0, 'rgba(255,80,100,0.75)')
+    ctx.fillText(e.name, x + 35, y + 105)
+    drawBar(x, y + 110, 70, 7, e.maxHp ? e.hp / e.maxHp : 0, '#ff2d78')
     if (foeHitKinds[anim.kind] && anim.side === 'hero' && anim.target === i && anim.amount > 0 && anim.timer > 0.05) {
-      ctx.fillStyle = 'rgba(255,220,140,0.9)'
-      ctx.font = '12px Courier New'
-      ctx.fillText('-' + anim.amount, x + 26, y - 4 + (0.55 - anim.timer) * 22)
+      ctx.fillStyle = '#ffd166'
+      ctx.font = 'bold 16px Courier New'
+      ctx.fillText('-' + anim.amount, x + 35, y - 8 + (0.55 - anim.timer) * 30)
     }
   })
 
-  // Party — mid-right, smaller, no loud active frame
+  // Party right
   const party = view.party || []
   const allyFxKinds = { heal: 1, item: 1, defend: 1, guard: 1 }
   party.forEach((h, i) => {
-    const x = 640 + shake * -0.4
-    const y = 130 + i * 72
-    const active = view.phase !== 'enemy_act' && view.phase !== 'resolve' && view.phase !== 'battle_clear' && view.active === i
-    ctx.globalAlpha = h.alive ? (active ? 0.95 : 0.7) : 0.25
+    const x = 620 + shake * -0.5
+    const y = 80 + i * 78
+    const active = view.phase !== 'enemy_act' && view.phase !== 'resolve' && view.active === i
+    ctx.globalAlpha = h.alive ? 1 : 0.35
+    if (active) {
+      ctx.strokeStyle = '#ffd166'
+      ctx.lineWidth = 2
+      roundRect(x - 8, y - 8, 86, 78, 6)
+      ctx.stroke()
+    }
     const flash = (anim.side === 'enemy' && anim.target === i && anim.timer > 0.2) ||
       (allyFxKinds[anim.kind] && anim.side === 'hero' && anim.target === i && anim.timer > 0.2)
-    drawSilhouette(x, y, 48, 52, flash ? '#d8d0e8' : h.color, heroKind(h.heroClass))
+    drawSilhouette(x, y, 70, 70, flash ? '#ffffff' : h.color, heroKind(h.heroClass))
     ctx.globalAlpha = 1
-    if (active) {
-      ctx.fillStyle = 'rgba(255,209,102,0.55)'
-      ctx.font = '9px Courier New'
-      ctx.textAlign = 'center'
-      ctx.fillText('▼', x + 24, y - 2)
-    }
     if (h.defending) {
-      ctx.fillStyle = 'rgba(120,200,220,0.6)'
-      ctx.font = '9px Courier New'
+      ctx.fillStyle = '#00e5ff'
+      ctx.font = '10px Courier New'
       ctx.textAlign = 'center'
-      ctx.fillText('guard', x + 24, y + 60)
+      ctx.fillText('GUARD', x + 35, y - 4)
     }
     if (anim.side === 'enemy' && anim.target === i && anim.amount > 0 && anim.timer > 0.05) {
-      ctx.fillStyle = 'rgba(255,120,130,0.9)'
-      ctx.font = '12px Courier New'
+      ctx.fillStyle = '#ff5566'
+      ctx.font = 'bold 16px Courier New'
       ctx.textAlign = 'center'
-      ctx.fillText('-' + anim.amount, x + 24, y - 6 + (0.55 - anim.timer) * 22)
+      ctx.fillText('-' + anim.amount, x + 35, y - 10 + (0.55 - anim.timer) * 30)
     }
     if ((anim.kind === 'heal' || anim.kind === 'item') && anim.target === i && anim.amount > 0 && anim.timer > 0.05) {
-      ctx.fillStyle = 'rgba(100,210,160,0.9)'
-      ctx.font = '12px Courier New'
+      ctx.fillStyle = '#06d6a0'
+      ctx.font = 'bold 16px Courier New'
       ctx.textAlign = 'center'
-      ctx.fillText('+' + anim.amount, x + 24, y - 6)
+      ctx.fillText('+' + anim.amount, x + 35, y - 10)
     }
   })
 
-  // One-line log above HUD
+  // Battle log — bottom strip above menus (moved off the field)
+  drawPanel(16, 308, 768, 28, 'rgba(10,6,24,0.85)', 'rgba(255,209,102,0.35)')
   const logs = view.logs || []
-  ctx.fillStyle = 'rgba(180,170,210,0.55)'
   ctx.font = '11px Courier New'
   ctx.textAlign = 'left'
-  ctx.fillText(logs[0] || '', 18, HUD_Y - 12)
+  ctx.fillStyle = '#ffd166'
+  ctx.fillText(logs[0] || '', 28, 326)
 
-  // Bottom HUD — single quiet strip
-  ctx.fillStyle = 'rgba(8,7,16,0.82)'
-  ctx.fillRect(0, HUD_Y, W, HUD_H)
-  ctx.strokeStyle = 'rgba(140,130,180,0.2)'
-  ctx.beginPath()
-  ctx.moveTo(0, HUD_Y + 0.5)
-  ctx.lineTo(W, HUD_Y + 0.5)
-  ctx.stroke()
-
-  // Command column
-  const modeLabel = view.menu_mode === 'command' ? 'Command' :
-    view.menu_mode === 'magic' ? 'Magic' :
-    view.menu_mode === 'skill' ? 'Skill' :
-    view.menu_mode === 'item' ? 'Item' :
-    view.menu_mode === 'target_enemy' ? 'Target' :
-    view.menu_mode === 'target_ally' ? 'Ally' : String(view.menu_mode || '')
+  // Command / menu window
+  drawPanel(16, 342, 280, 162, 'rgba(16,16,40,0.92)', 'rgba(184,79,255,0.45)')
+  ctx.fillStyle = '#b84fff'
+  ctx.font = 'bold 12px Courier New'
+  ctx.textAlign = 'left'
+  const modeLabel = view.menu_mode === 'command' ? 'COMMAND' :
+    view.menu_mode === 'magic' ? 'MAGIC' :
+    view.menu_mode === 'skill' ? 'SKILL' :
+    view.menu_mode === 'item' ? 'ITEM' :
+    view.menu_mode === 'target_enemy' ? 'TARGET' :
+    view.menu_mode === 'target_ally' ? 'ALLY' : String(view.menu_mode || '').toUpperCase()
   const actor = party[view.active]
   const actorName = actor ? actor.name : ''
-  ctx.fillStyle = 'rgba(170,160,200,0.55)'
-  ctx.font = '11px Courier New'
-  ctx.textAlign = 'left'
-  ctx.fillText(modeLabel + (actorName ? ' · ' + actorName : ''), 18, HUD_Y + 18)
+  ctx.fillText(modeLabel + (actorName ? ' — ' + actorName : ''), 28, 362)
 
   const menu = view.menu || []
   const canPick = view.phase === 'hero_command' || view.phase === 'hero_pick'
   const nowMs = performance.now()
-  const menuTop = HUD_Y + 28
-  const rowH = 18
   menu.forEach((row, i) => {
-    const yy = menuTop + i * rowH
+    const yy = 382 + i * 22
     const selected = canPick && i === view.menu_index
     const flashed = canPick && i === flashIdx && nowMs < flashUntil
     if (flashed) {
-      ctx.fillStyle = 'rgba(255,209,102,0.2)'
-      ctx.fillRect(14, yy - 11, 200, 16)
-      ctx.fillStyle = 'rgba(255,220,150,0.95)'
-      ctx.fillText('▸ ' + row.label, 20, yy)
+      ctx.fillStyle = 'rgba(255,209,102,0.45)'
+      ctx.fillRect(24, yy - 14, 260, 20)
+      ctx.strokeStyle = '#ffd166'
+      ctx.lineWidth = 1.5
+      ctx.strokeRect(24.5, yy - 13.5, 259, 19)
+      ctx.fillStyle = '#ffd166'
+      ctx.fillText('▸ ' + row.label, 32, yy)
     } else if (selected) {
-      ctx.fillStyle = 'rgba(160,150,210,0.14)'
-      ctx.fillRect(14, yy - 11, 200, 16)
-      ctx.fillStyle = 'rgba(210,200,240,0.95)'
-      ctx.fillText('▸ ' + row.label, 20, yy)
+      ctx.fillStyle = 'rgba(0,229,255,0.22)'
+      ctx.fillRect(24, yy - 14, 260, 20)
+      ctx.strokeStyle = 'rgba(0,229,255,0.7)'
+      ctx.lineWidth = 1
+      ctx.strokeRect(24.5, yy - 13.5, 259, 19)
+      ctx.fillStyle = '#00e5ff'
+      ctx.fillText('▸ ' + row.label, 32, yy)
     } else {
-      ctx.fillStyle = 'rgba(160,155,185,0.7)'
-      ctx.fillText('  ' + row.label, 20, yy)
+      ctx.fillStyle = '#c8c0e8'
+      ctx.fillText('  ' + row.label, 32, yy)
     }
   })
   if (!canPick) {
-    ctx.fillStyle = 'rgba(130,125,160,0.65)'
-    ctx.font = '11px Courier New'
-    ctx.fillText(view.phase === 'resolve' ? '…' :
-      view.phase === 'enemy_act' ? 'Enemy turn' :
-      view.phase === 'battle_clear' ? 'Victory — confirm to continue' : view.phase, 20, HUD_Y + 88)
+    ctx.fillStyle = '#6a6490'
+    ctx.font = '12px Courier New'
+    ctx.fillText(view.phase === 'resolve' ? '…resolving' :
+      view.phase === 'enemy_act' ? 'Enemy turn…' :
+      view.phase === 'battle_clear' ? 'Victory! Confirm to continue' : view.phase, 32, 490)
   }
 
-  // Party stats — compact right
+  // Party status strip
+  drawPanel(312, 342, 472, 162, 'rgba(16,16,40,0.92)', 'rgba(0,229,255,0.35)')
   party.forEach((h, i) => {
-    const yy = HUD_Y + 18 + i * 30
-    const active = view.active === i && canPick
-    ctx.fillStyle = h.alive ? (active ? 'rgba(230,220,255,0.9)' : 'rgba(180,170,205,0.65)') : 'rgba(100,95,120,0.5)'
-    ctx.font = '11px Courier New'
+    const yy = 360 + i * 48
+    ctx.fillStyle = h.alive ? h.color : '#6a6490'
+    ctx.font = 'bold 13px Courier New'
     ctx.textAlign = 'left'
-    ctx.fillText(h.name, 250, yy)
-    ctx.fillStyle = 'rgba(130,125,155,0.55)'
-    ctx.fillText(h.heroClass, 320, yy)
-    drawBar(390, yy - 7, 140, 5, h.maxHp ? h.hp / h.maxHp : 0, 'rgba(200,70,90,0.65)')
-    ctx.fillStyle = 'rgba(170,165,195,0.55)'
-    ctx.font = '10px Courier New'
-    ctx.fillText(h.hp + '/' + h.maxHp, 538, yy)
-    drawBar(600, yy - 7, 90, 5, h.maxMp ? h.mp / h.maxMp : 0, 'rgba(80,160,190,0.55)')
-    ctx.fillStyle = 'rgba(170,165,195,0.5)'
-    ctx.fillText(h.mp + '/' + h.maxMp, 698, yy)
+    ctx.fillText(h.name, 328, yy)
+    ctx.fillStyle = '#6a6490'
+    ctx.font = '11px Courier New'
+    ctx.fillText(h.heroClass.toUpperCase(), 410, yy)
+    ctx.fillStyle = '#e8e0ff'
+    ctx.fillText('HP ' + h.hp + '/' + h.maxHp, 500, yy)
+    drawBar(500, yy + 6, 120, 6, h.maxHp ? h.hp / h.maxHp : 0, '#ff2d78')
+    ctx.fillStyle = '#e8e0ff'
+    ctx.fillText('MP ' + h.mp + '/' + h.maxMp, 640, yy)
+    drawBar(640, yy + 6, 110, 6, h.maxMp ? h.mp / h.maxMp : 0, '#00e5ff')
   })
 
-  ctx.fillStyle = 'rgba(130,125,160,0.45)'
-  ctx.font = '10px Courier New'
+  ctx.fillStyle = '#6a6490'
+  ctx.font = '11px Courier New'
   ctx.textAlign = 'right'
-  ctx.fillText('potions ×' + (view.potions ?? 0), W - 16, HUD_Y + 102)
+  ctx.fillText('Potions x' + (view.potions ?? 0), W - 20, 28)
+  ctx.fillText(view.hint || '', W - 20, 48)
 }
 
-// Menu geometry for click hit-testing (kept in sync with drawBattle HUD)
-const MENU_HIT = { x0: 14, x1: 220, y0: 419, rowH: 18 }
+// Menu geometry for click hit-testing (kept in sync with drawBattle)
+const MENU_HIT = { x0: 16, x1: 296, y0: 368, rowH: 22 }
 
 function draw(dt) {
   const view = get_view()
