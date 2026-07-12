@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mistwood — Sprite Anim Builder</title>
+<style>
+  :root {
+    --bg: #12141a;
+    --panel: #1a1e28;
+    --panel2: #222833;
+    --border: #343b4a;
+    --text: #e8ecf4;
+    --muted: #8b93a7;
+    --accent: #7eb8ff;
+    --accent2: #9dffb0;
+    --warn: #ffb86b;
+    --danger: #ff6b8a;
+    --frame: #5cff9d;
+    --sel: #ffd166;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 13px/1.4 "Segoe UI", system-ui, sans-serif; }
+  button, input, select, textarea { font: inherit; color: var(--text);
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 4px; }
+  button { cursor: pointer; padding: 5px 10px; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: #2a3d5c; border-color: var(--accent); }
+  button.danger { border-color: var(--danger); color: #ffc0cb; }
+  input[type="number"], input[type="text"] { padding: 4px 6px; width: 72px; }
+  input[type="text"].wide { width: 160px; }
+  label { color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .gap { gap: 12px; }
+
+  .app { display: grid; grid-template-rows: auto auto 1fr auto; height: 100%; min-height: 0; }
+  header { padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--panel);
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+  header h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+  header .meta { color: var(--muted); font-size: 12px; }
+
+  .tabs { display: flex; gap: 2px; padding: 8px 12px 0; border-bottom: 1px solid var(--border);
+    background: var(--panel); overflow-x: auto; }
+  .tab { padding: 8px 14px; border: 1px solid transparent; border-bottom: none;
+    border-radius: 6px 6px 0 0; background: transparent; color: var(--muted); }
+  .tab.active { background: var(--bg); color: var(--text); border-color: var(--border);
+    position: relative; top: 1px; }
+  .tab .badge { font-size: 10px; color: var(--accent2); margin-left: 4px; }
+
+  .main { display: grid; grid-template-columns: 1fr 320px; min-height: 0; }
+  @media (max-width: 980px) { .main { grid-template-columns: 1fr; } }
+
+  .workspace { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; padding: 10px; gap: 10px; }
+  .sheet-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .sheet-stage { position: relative; min-height: 0; overflow: auto; background: #0c0e12;
+    border: 1px solid var(--border); border-radius: 6px; }
+  #sheetCanvas { display: block; cursor: crosshair; max-width: none; image-rendering: pixelated; }
+  .hint { color: var(--muted); font-size: 12px; }
+  .warn { color: var(--warn); }
+
+  .timeline-wrap { border: 1px solid var(--border); border-radius: 6px; background: var(--panel);
+    padding: 8px; }
+  .timeline-wrap h2 { margin: 0 0 6px; font-size: 12px; color: var(--muted); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; }
+  .timeline { display: flex; gap: 6px; overflow-x: auto; min-height: 92px; padding-bottom: 4px; }
+  .tl-empty { color: var(--muted); align-self: center; padding: 12px; }
+  .tl-cell { flex: 0 0 auto; width: 72px; border: 2px solid var(--border); border-radius: 4px;
+    background: var(--panel2); cursor: grab; user-select: none; position: relative; }
+  .tl-cell.selected { border-color: var(--sel); }
+  .tl-cell.drag-over { border-color: var(--accent); }
+  .tl-cell canvas { display: block; width: 68px; height: 68px; image-rendering: pixelated;
+    background: #0a0c10; }
+  .tl-cell .idx { position: absolute; top: 2px; left: 3px; font-size: 10px; background: #000a;
+    padding: 0 3px; border-radius: 2px; }
+
+  .side { border-left: 1px solid var(--border); background: var(--panel); padding: 10px;
+    display: flex; flex-direction: column; gap: 12px; overflow: auto; min-height: 0; }
+  .side h2 { margin: 0; font-size: 12px; color: var(--muted); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; }
+  .card { background: var(--panel2); border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+  #previewCanvas { width: 100%; height: 180px; background: #0a0c10; border-radius: 4px;
+    image-rendering: pixelated; border: 1px solid var(--border); }
+  .nudge grid, .nudge { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .nudge label { display: flex; justify-content: space-between; gap: 6px; }
+  .nudge input { width: 64px; }
+  textarea#exportBox { width: 100%; height: 160px; resize: vertical; font-family: ui-monospace, Consolas, monospace;
+    font-size: 11px; line-height: 1.35; }
+  footer { padding: 6px 12px; border-top: 1px solid var(--border); background: var(--panel);
+    color: var(--muted); font-size: 11px; display: flex; justify-content: space-between; gap: 8px;
+    flex-wrap: wrap; }
+  .drop-zone { border: 1px dashed var(--border); border-radius: 6px; padding: 10px; text-align: center;
+    color: var(--muted); cursor: pointer; }
+  .drop-zone.drag { border-color: var(--accent); color: var(--accent); }
+  input[type="file"] { display: none; }
+  .status-ok { color: var(--accent2); }
+  .status-bad { color: var(--danger); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Sprite Anim Builder</h1>
+      <div class="meta">Auto-detect frames · order timelines · export Mistwood JSON</div>
+    </div>
+    <div class="row gap">
+      <label>Kind
+        <select id="charKind">
+          <option value="hero">hero</option>
+          <option value="enemy">enemy</option>
+        </select>
+      </label>
+      <label>Id <input class="wide" id="charId" type="text" value="theron" spellcheck="false"></label>
+      <label>Portrait <input class="wide" id="portrait" type="text" value="theron-portrait.jpg" spellcheck="false"></label>
+      <button type="button" id="btnSaveSession">Save session</button>
+      <button type="button" id="btnLoadSession">Load session</button>
+      <button type="button" id="btnImport">Import JSON…</button>
+      <button type="button" class="primary" id="btnExport">Copy export</button>
+      <button type="button" id="btnDownload">Download</button>
+    </div>
+  </header>
+
+  <div class="tabs" id="animTabs"></div>
+
+  <div class="main">
+    <div class="workspace">
+      <div class="sheet-bar">
+        <div class="drop-zone" id="dropZone">Drop sheet PNG here or click to load</div>
+        <input type="file" id="fileInput" accept="image/png,image/*,.png,.jpg,.jpeg,.webp">
+        <label>Sheet name <input class="wide" id="sheetName" type="text" spellcheck="false" placeholder="theron-idle.png"></label>
+        <label>FPS <input id="animFps" type="number" min="1" max="60" value="6"></label>
+        <label><input id="animLoop" type="checkbox" checked> loop</label>
+        <button type="button" id="btnDetect">Re-detect</button>
+        <span class="hint" id="detectStatus">No sheet loaded</span>
+      </div>
+
+      <div class="sheet-stage" id="sheetStage">
+        <canvas id="sheetCanvas"></canvas>
+      </div>
+
+      <div class="timeline-wrap">
+        <div class="row" style="justify-content:space-between;margin-bottom:4px">
+          <h2>Timeline (playback order)</h2>
+          <div class="row">
+            <button type="button" id="btnAddAll">Add all →</button>
+            <button type="button" id="btnClearTl">Clear</button>
+            <button type="button" id="btnDup">Duplicate</button>
+            <button type="button" class="danger" id="btnDel">Delete</button>
+          </div>
+        </div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Preview</h2>
+        <canvas id="previewCanvas" width="280" height="180"></canvas>
+        <div class="row">
+          <button type="button" class="primary" id="btnPlay">Play</button>
+          <button type="button" id="btnStop">Stop</button>
+          <span class="hint" id="previewFrame">frame —</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Chroma / detect</h2>
+        <div class="nudge">
+          <label>R <input id="chromaR" type="number" min="0" max="255" value="240"></label>
+          <label>G <input id="chromaG" type="number" min="0" max="255" value="4"></label>
+          <label>B <input id="chromaB" type="number" min="0" max="255" value="218"></label>
+          <label>Tol <input id="chromaTol" type="number" min="0" max="400" value="140"></label>
+          <label>Min W <input id="minW" type="number" min="1" max="500" value="16"></label>
+          <label>Min H <input id="minH" type="number" min="1" max="500" value="16"></label>
+          <label>Merge <input id="mergeGap" type="number" min="0" max="80" value="6"></label>
+          <label>Pad <input id="boxPad" type="number" min="0" max="20" value="0"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Selected detect box</h2>
+        <div class="nudge" id="boxNudge">
+          <label>x <input id="boxX" type="number"></label>
+          <label>y <input id="boxY" type="number"></label>
+          <label>w <input id="boxW" type="number" min="1"></label>
+          <label>h <input id="boxH" type="number" min="1"></label>
+        </div>
+        <button type="button" id="btnApplyBox">Apply to selected detect box</button>
+        <button type="button" id="btnAddSelected">Add selected → timeline</button>
+      </div>
+
+      <div class="card">
+        <h2>Export</h2>
+        <textarea id="exportBox" readonly spellcheck="false"></textarea>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <span>Left-click frame = append · right-click = select for nudge · drag timeline to reorder · Del removes · Space play/pause</span>
+    <span id="footerStatus"></span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const ANIM_DEFS = [
+    { id: 'idle',   label: 'Idle',   fps: 6,  loop: true },
+    { id: 'attack', label: 'Attack', fps: 12, loop: false },
+    { id: 'hit',    label: 'Hurt',   fps: 10, loop: false },
+    { id: 'down',   label: 'Die',    fps: 8,  loop: false },
+    { id: 'cast',   label: 'Cast',   fps: 10, loop: false },
+    { id: 'defend', label: 'Defend', fps: 4,  loop: false },
+  ]
+
+  const LS_KEY = 'mistwood-anim-builder-v1'
+
+  /** @type {Record<string, AnimSlot>} */
+  let slots = Object.create(null)
+  let activeAnim = 'idle'
+  let detectBoxes = []
+  let selectedDetect = -1
+  let selectedTl = -1
+  let sheetImg = null
+  let sheetNatural = { w: 0, h: 0 }
+  let playing = false
+  let playFrame = 0
+  let playAcc = 0
+  let lastTs = 0
+  let dragTlFrom = -1
+
+  /**
+   * @typedef {{
+   *   sheetName: string,
+   *   fps: number,
+   *   loop: boolean,
+   *   dataUrl: string|null,
+   *   timeline: {x:number,y:number,w:number,h:number}[],
+   *   detectBoxes: {x:number,y:number,w:number,h:number}[],
+   * }} AnimSlot
+   */
+
+  const $ = (id) => document.getElementById(id)
+  const sheetCanvas = /** @type {HTMLCanvasElement} */ ($('sheetCanvas'))
+  const sheetCtx = sheetCanvas.getContext('2d')
+  const previewCanvas = /** @type {HTMLCanvasElement} */ ($('previewCanvas'))
+  const previewCtx = previewCanvas.getContext('2d')
+
+  function emptySlot(def) {
+    return {
+      sheetName: '',
+      fps: def.fps,
+      loop: def.loop,
+      dataUrl: null,
+      timeline: [],
+      detectBoxes: [],
+    }
+  }
+
+  function initSlots() {
+    slots = Object.create(null)
+    for (const d of ANIM_DEFS) slots[d.id] = emptySlot(d)
+  }
+
+  function active() {
+    return slots[activeAnim]
+  }
+
+  function chroma() {
+    return {
+      r: +$('chromaR').value,
+      g: +$('chromaG').value,
+      b: +$('chromaB').value,
+      tol: +$('chromaTol').value,
+    }
+  }
+
+  function isBg(r, g, b, a, ch) {
+    if (a < 20) return true
+    const dist = Math.abs(r - ch.r) + Math.abs(g - ch.g) + Math.abs(b - ch.b)
+    const mag = Math.min(r, b) - g
+    const bright = r >= 170 && b >= 150 && g <= 110
+    const dark = r >= 100 && b >= 100 && g <= 45 && Math.abs(r - b) <= 55
+    const fringe = mag >= 50 && Math.min(r, b) >= 100 && g <= 145
+    const hotPink = Math.min(r, b) >= 200 && g <= 160 && mag >= 40
+    if (bright || dark || fringe || hotPink || dist < ch.tol) return true
+    if (r + g + b <= 42) return true
+    return false
+  }
+
+  /**
+   * Connected-component frame detection with nearby-box merge.
+   * @param {HTMLImageElement|HTMLCanvasElement} img
+   */
+  function detectFrames(img) {
+    const w = img.naturalWidth || img.width
+    const h = img.naturalHeight || img.height
+    const c = document.createElement('canvas')
+    c.width = w
+    c.height = h
+    const ctx = c.getContext('2d')
+    ctx.drawImage(img, 0, 0)
+    const { data } = ctx.getImageData(0, 0, w, h)
+    const ch = chroma()
+    const minW = +$('minW').value
+    const minH = +$('minH').value
+    const mergeGap = +$('mergeGap').value
+    const pad = +$('boxPad').value
+
+    const fg = new Uint8Array(w * h)
+    for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+      fg[p] = isBg(data[i], data[i + 1], data[i + 2], data[i + 3], ch) ? 0 : 1
+    }
+
+    const seen = new Uint8Array(w * h)
+    /** @type {{x:number,y:number,w:number,h:number}[]} */
+    const boxes = []
+    const qx = new Int32Array(w * h)
+    const qy = new Int32Array(w * h)
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const start = y * w + x
+        if (!fg[start] || seen[start]) continue
+        let qh = 0, qt = 0
+        qx[qt] = x
+        qy[qt] = y
+        qt++
+        seen[start] = 1
+        let minX = x, maxX = x, minY = y, maxY = y, count = 0
+        while (qh < qt) {
+          const cx = qx[qh]
+          const cy = qy[qh]
+          qh++
+          count++
+          if (cx < minX) minX = cx
+          if (cx > maxX) maxX = cx
+          if (cy < minY) minY = cy
+          if (cy > maxY) maxY = cy
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              if (!dx && !dy) continue
+              const nx = cx + dx
+              const ny = cy + dy
+              if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue
+              const ni = ny * w + nx
+              if (!fg[ni] || seen[ni]) continue
+              seen[ni] = 1
+              qx[qt] = nx
+              qy[qt] = ny
+              qt++
+            }
+          }
+        }
+        const bw = maxX - minX + 1
+        const bh = maxY - minY + 1
+        if (count < 24 || bw < minW || bh < minH) continue
+        boxes.push({ x: minX, y: minY, w: bw, h: bh })
+      }
+    }
+
+    let merged = mergeNearby(boxes, mergeGap)
+    merged = merged.filter((b) => b.w >= minW && b.h >= minH)
+    if (pad) {
+      merged = merged.map((b) => ({
+        x: Math.max(0, b.x - pad),
+        y: Math.max(0, b.y - pad),
+        w: Math.min(w - Math.max(0, b.x - pad), b.w + pad * 2),
+        h: Math.min(h - Math.max(0, b.y - pad), b.h + pad * 2),
+      }))
+    }
+    merged.sort((a, b) => {
+      const row = a.y - b.y
+      if (Math.abs(row) > Math.min(a.h, b.h) * 0.45) return row
+      return a.x - b.x
+    })
+    return merged
+  }
+
+  function mergeNearby(boxes, gap) {
+    if (!boxes.length || gap <= 0) return boxes.slice()
+    const out = boxes.map((b) => ({ ...b }))
+    let changed = true
+    while (changed) {
+      changed = false
+      for (let i = 0; i < out.length; i++) {
+        for (let j = i + 1; j < out.length; j++) {
+          const a = out[i]
+          const b = out[j]
+          if (!near(a, b, gap)) continue
+          const x0 = Math.min(a.x, b.x)
+          const y0 = Math.min(a.y, b.y)
+          const x1 = Math.max(a.x + a.w, b.x + b.w)
+          const y1 = Math.max(a.y + a.h, b.y + b.h)
+          out[i] = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }
+          out.splice(j, 1)
+          changed = true
+          break
+        }
+        if (changed) break
+      }
+    }
+    return out
+  }
+
+  function near(a, b, gap) {
+    const ax1 = a.x + a.w
+    const ay1 = a.y + a.h
+    const bx1 = b.x + b.w
+    const by1 = b.y + b.h
+    const sepX = Math.max(0, Math.max(a.x, b.x) - Math.min(ax1, bx1))
+    const sepY = Math.max(0, Math.max(a.y, b.y) - Math.min(ay1, by1))
+    // Axis-aligned gap between rects (0 if overlapping)
+    const gapX = a.x > bx1 ? a.x - bx1 : b.x > ax1 ? b.x - ax1 : 0
+    const gapY = a.y > by1 ? a.y - by1 : b.y > ay1 ? b.y - ay1 : 0
+    if (gapX === 0 && gapY === 0) return true
+    if (gapX === 0 && gapY <= gap) return true
+    if (gapY === 0 && gapX <= gap) return true
+    return sepX <= gap && sepY <= gap && (gapX + gapY) <= gap * 2
+  }
+
+  function renderTabs() {
+    const el = $('animTabs')
+    el.innerHTML = ''
+    for (const d of ANIM_DEFS) {
+      const s = slots[d.id]
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'tab' + (d.id === activeAnim ? ' active' : '')
+      const n = s.timeline.length
+      btn.innerHTML = `${d.label}<span class="badge">${s.dataUrl ? (n ? n + 'f' : 'sheet') : '—'}</span>`
+      btn.addEventListener('click', () => switchAnim(d.id))
+      el.appendChild(btn)
+    }
+  }
+
+  function switchAnim(id) {
+    stashUiIntoSlot()
+    activeAnim = id
+    selectedDetect = -1
+    selectedTl = -1
+    playing = false
+    playFrame = 0
+    loadSlotIntoUi()
+    renderTabs()
+    redrawAll()
+  }
+
+  function stashUiIntoSlot() {
+    const s = active()
+    if (!s) return
+    s.sheetName = $('sheetName').value.trim()
+    s.fps = +$('animFps').value || 6
+    s.loop = $('animLoop').checked
+    s.detectBoxes = detectBoxes.map((b) => ({ ...b }))
+    // timeline already live on slot
+  }
+
+  function loadSlotIntoUi() {
+    const s = active()
+    $('sheetName').value = s.sheetName
+    $('animFps').value = String(s.fps)
+    $('animLoop').checked = !!s.loop
+    detectBoxes = s.detectBoxes.map((b) => ({ ...b }))
+    if (s.dataUrl) {
+      const img = new Image()
+      img.onload = () => {
+        sheetImg = img
+        sheetNatural = { w: img.naturalWidth, h: img.naturalHeight }
+        if (!detectBoxes.length) {
+          detectBoxes = detectFrames(img)
+          s.detectBoxes = detectBoxes.map((b) => ({ ...b }))
+        }
+        updateDetectStatus()
+        redrawAll()
+      }
+      img.src = s.dataUrl
+    } else {
+      sheetImg = null
+      sheetNatural = { w: 0, h: 0 }
+      detectBoxes = []
+      sheetCanvas.width = 1
+      sheetCanvas.height = 1
+      updateDetectStatus()
+      redrawAll()
+    }
+  }
+
+  function updateDetectStatus() {
+    const el = $('detectStatus')
+    if (!sheetImg) {
+      el.textContent = 'No sheet loaded'
+      el.className = 'hint'
+      return
+    }
+    const n = detectBoxes.length
+    el.textContent = n
+      ? `Detected ${n} frame${n === 1 ? '' : 's'} · ${sheetNatural.w}×${sheetNatural.h}`
+      : 'No frames detected — tweak chroma/min size and Re-detect'
+    el.className = n ? 'hint status-ok' : 'hint warn'
+  }
+
+  function drawSheet() {
+    if (!sheetImg) {
+      sheetCtx.clearRect(0, 0, sheetCanvas.width, sheetCanvas.height)
+      return
+    }
+    const w = sheetNatural.w
+    const h = sheetNatural.h
+    sheetCanvas.width = w
+    sheetCanvas.height = h
+    sheetCtx.imageSmoothingEnabled = false
+    sheetCtx.clearRect(0, 0, w, h)
+    sheetCtx.drawImage(sheetImg, 0, 0)
+
+    detectBoxes.forEach((b, i) => {
+      const sel = i === selectedDetect
+      sheetCtx.strokeStyle = sel ? '#ffd166' : '#5cff9d'
+      sheetCtx.lineWidth = sel ? 2 : 1
+      sheetCtx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1)
+      const label = String(i)
+      sheetCtx.font = 'bold 12px Segoe UI, sans-serif'
+      const tw = sheetCtx.measureText(label).width + 6
+      sheetCtx.fillStyle = sel ? '#ffd166' : '#0a0c10cc'
+      sheetCtx.fillRect(b.x, b.y, tw, 14)
+      sheetCtx.fillStyle = sel ? '#12141a' : '#5cff9d'
+      sheetCtx.fillText(label, b.x + 3, b.y + 11)
+    })
+  }
+
+  function renderTimeline() {
+    const el = $('timeline')
+    el.innerHTML = ''
+    const s = active()
+    if (!s.timeline.length) {
+      const empty = document.createElement('div')
+      empty.className = 'tl-empty'
+      empty.textContent = 'Click detected frames on the sheet to build playback order'
+      el.appendChild(empty)
+      return
+    }
+    s.timeline.forEach((box, i) => {
+      const cell = document.createElement('div')
+      cell.className = 'tl-cell' + (i === selectedTl ? ' selected' : '')
+      cell.draggable = true
+      cell.dataset.index = String(i)
+      const c = document.createElement('canvas')
+      c.width = 68
+      c.height = 68
+      const ctx = c.getContext('2d')
+      ctx.imageSmoothingEnabled = false
+      ctx.fillStyle = '#0a0c10'
+      ctx.fillRect(0, 0, 68, 68)
+      if (sheetImg) {
+        const scale = Math.min(64 / box.w, 64 / box.h)
+        const dw = box.w * scale
+        const dh = box.h * scale
+        const dx = (68 - dw) / 2
+        const dy = (68 - dh) / 2
+        ctx.drawImage(sheetImg, box.x, box.y, box.w, box.h, dx, dy, dw, dh)
+      }
+      const idx = document.createElement('div')
+      idx.className = 'idx'
+      idx.textContent = String(i)
+      cell.appendChild(c)
+      cell.appendChild(idx)
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation()
+        selectedTl = i
+        renderTimeline()
+        drawPreviewFrame(i)
+      })
+      cell.addEventListener('dragstart', () => { dragTlFrom = i })
+      cell.addEventListener('dragover', (e) => {
+        e.preventDefault()
+        cell.classList.add('drag-over')
+      })
+      cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'))
+      cell.addEventListener('drop', (e) => {
+        e.preventDefault()
+        cell.classList.remove('drag-over')
+        const to = i
+        if (dragTlFrom < 0 || dragTlFrom === to) return
+        const item = s.timeline.splice(dragTlFrom, 1)[0]
+        s.timeline.splice(to, 0, item)
+        selectedTl = to
+        dragTlFrom = -1
+        renderTimeline()
+        refreshExport()
+      })
+      el.appendChild(cell)
+    })
+  }
+
+  function drawPreviewFrame(fi) {
+    const s = active()
+    const ctx = previewCtx
+    const W = previewCanvas.width
+    const H = previewCanvas.height
+    ctx.imageSmoothingEnabled = false
+    ctx.fillStyle = '#0a0c10'
+    ctx.fillRect(0, 0, W, H)
+    const box = s.timeline[fi]
+    $('previewFrame').textContent = box
+      ? `frame ${fi + 1}/${s.timeline.length}`
+      : 'frame —'
+    if (!sheetImg || !box) return
+    const scale = Math.min((W - 16) / box.w, (H - 16) / box.h)
+    const dw = box.w * scale
+    const dh = box.h * scale
+    const dx = (W - dw) / 2
+    const dy = (H - dh) / 2
+    ctx.drawImage(sheetImg, box.x, box.y, box.w, box.h, dx, dy, dw, dh)
+  }
+
+  function redrawAll() {
+    drawSheet()
+    renderTimeline()
+    syncBoxNudge()
+    drawPreviewFrame(playing ? playFrame : Math.max(0, selectedTl))
+    refreshExport()
+    $('btnPlay').textContent = playing ? 'Pause' : 'Play'
+  }
+
+  function syncBoxNudge() {
+    const b = detectBoxes[selectedDetect]
+    if (!b) {
+      ;['boxX', 'boxY', 'boxW', 'boxH'].forEach((id) => { $(id).value = '' })
+      return
+    }
+    $('boxX').value = String(b.x)
+    $('boxY').value = String(b.y)
+    $('boxW').value = String(b.w)
+    $('boxH').value = String(b.h)
+  }
+
+  function hitTestBox(mx, my) {
+    for (let i = detectBoxes.length - 1; i >= 0; i--) {
+      const b = detectBoxes[i]
+      if (mx >= b.x && my >= b.y && mx < b.x + b.w && my < b.y + b.h) return i
+    }
+    return -1
+  }
+
+  function canvasCoords(ev) {
+    const rect = sheetCanvas.getBoundingClientRect()
+    const sx = sheetCanvas.width / rect.width
+    const sy = sheetCanvas.height / rect.height
+    return {
+      x: (ev.clientX - rect.left) * sx,
+      y: (ev.clientY - rect.top) * sy,
+    }
+  }
+
+  function appendTimelineBox(box) {
+    active().timeline.push({ x: box.x, y: box.y, w: box.w, h: box.h })
+    selectedTl = active().timeline.length - 1
+    renderTabs()
+    redrawAll()
+  }
+
+  function loadImageFile(file) {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = /** @type {string} */ (reader.result)
+      const img = new Image()
+      img.onload = () => {
+        const s = active()
+        s.dataUrl = dataUrl
+        if (!s.sheetName) s.sheetName = file.name
+        $('sheetName').value = s.sheetName
+        sheetImg = img
+        sheetNatural = { w: img.naturalWidth, h: img.naturalHeight }
+        detectBoxes = detectFrames(img)
+        s.detectBoxes = detectBoxes.map((b) => ({ ...b }))
+        selectedDetect = detectBoxes.length ? 0 : -1
+        updateDetectStatus()
+        renderTabs()
+        redrawAll()
+        setFooter(`Loaded ${file.name}`)
+      }
+      img.src = dataUrl
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function buildExportObject() {
+    stashUiIntoSlot()
+    const id = $('charId').value.trim() || 'character'
+    const kind = $('charKind').value
+    const anims = {}
+    for (const d of ANIM_DEFS) {
+      const s = slots[d.id]
+      if (!s.dataUrl && !s.timeline.length && !s.sheetName) continue
+      anims[d.id] = {
+        sheet: s.sheetName || `${id}-${d.id}.png`,
+        fps: s.fps,
+        loop: !!s.loop,
+        frames: s.timeline.map((f) => ({ x: f.x, y: f.y, w: f.w, h: f.h })),
+      }
+    }
+    const entry = { anims }
+    if (kind === 'hero') {
+      entry.portrait = $('portrait').value.trim() || `${id}-portrait.jpg`
+    }
+    return { [id]: entry }
+  }
+
+  function refreshExport() {
+    try {
+      $('exportBox').value = JSON.stringify(buildExportObject(), null, 2)
+    } catch (err) {
+      $('exportBox').value = String(err)
+    }
+  }
+
+  function setFooter(msg) {
+    $('footerStatus').textContent = msg || ''
+  }
+
+  function sessionPayload() {
+    stashUiIntoSlot()
+    return {
+      version: 1,
+      charId: $('charId').value,
+      charKind: $('charKind').value,
+      portrait: $('portrait').value,
+      chroma: chroma(),
+      minW: +$('minW').value,
+      minH: +$('minH').value,
+      mergeGap: +$('mergeGap').value,
+      boxPad: +$('boxPad').value,
+      activeAnim,
+      slots,
+    }
+  }
+
+  function applySession(data) {
+    if (!data || !data.slots) throw new Error('Invalid session')
+    $('charId').value = data.charId || 'theron'
+    $('charKind').value = data.charKind || 'hero'
+    $('portrait').value = data.portrait || ''
+    if (data.chroma) {
+      $('chromaR').value = data.chroma.r
+      $('chromaG').value = data.chroma.g
+      $('chromaB').value = data.chroma.b
+      $('chromaTol').value = data.chroma.tol
+    }
+    if (data.minW != null) $('minW').value = data.minW
+    if (data.minH != null) $('minH').value = data.minH
+    if (data.mergeGap != null) $('mergeGap').value = data.mergeGap
+    if (data.boxPad != null) $('boxPad').value = data.boxPad
+    initSlots()
+    for (const d of ANIM_DEFS) {
+      if (data.slots[d.id]) slots[d.id] = { ...emptySlot(d), ...data.slots[d.id] }
+    }
+    activeAnim = data.activeAnim && slots[data.activeAnim] ? data.activeAnim : 'idle'
+    selectedDetect = -1
+    selectedTl = -1
+    playing = false
+    renderTabs()
+    loadSlotIntoUi()
+  }
+
+  function importCharacterJson(text) {
+    const parsed = JSON.parse(text)
+    let id = $('charId').value.trim()
+    let entry = parsed[id]
+    if (!entry) {
+      const keys = Object.keys(parsed)
+      if (keys.length === 1) {
+        id = keys[0]
+        entry = parsed[id]
+        $('charId').value = id
+      } else if (parsed.anims) {
+        entry = parsed
+      } else {
+        throw new Error('Could not find character entry in JSON')
+      }
+    }
+    if (entry.portrait) $('portrait').value = entry.portrait
+    if (!entry.sheet && entry.anims) {
+      // per-anim sheets (new format) or classic shared sheet
+    }
+    const sharedSheet = entry.sheet || ''
+    initSlots()
+    const anims = entry.anims || {}
+    for (const d of ANIM_DEFS) {
+      const a = anims[d.id]
+      if (!a) continue
+      const s = slots[d.id]
+      s.sheetName = a.sheet || sharedSheet || s.sheetName
+      s.fps = a.fps != null ? a.fps : s.fps
+      s.loop = a.loop != null ? !!a.loop : s.loop
+      s.timeline = (a.frames || []).map((f) => ({ x: f.x, y: f.y, w: f.w, h: f.h }))
+      // Keep dataUrl if already loaded for this slot; import alone can't restore pixels
+    }
+    activeAnim = ANIM_DEFS.find((d) => slots[d.id].timeline.length)?.id || 'idle'
+    renderTabs()
+    loadSlotIntoUi()
+    setFooter(`Imported ${id} — reload sheets to preview`)
+  }
+
+  // ── Events ──────────────────────────────────────────────────────────────
+  sheetCanvas.addEventListener('click', (ev) => {
+    if (!sheetImg) return
+    const { x, y } = canvasCoords(ev)
+    const i = hitTestBox(x, y)
+    if (i < 0) return
+    selectedDetect = i
+    appendTimelineBox(detectBoxes[i])
+  })
+  sheetCanvas.addEventListener('contextmenu', (ev) => {
+    ev.preventDefault()
+    if (!sheetImg) return
+    const { x, y } = canvasCoords(ev)
+    const i = hitTestBox(x, y)
+    if (i < 0) return
+    selectedDetect = i
+    syncBoxNudge()
+    drawSheet()
+  })
+
+  sheetCanvas.addEventListener('mousemove', (ev) => {
+    if (!sheetImg) return
+    const { x, y } = canvasCoords(ev)
+    sheetCanvas.style.cursor = hitTestBox(x, y) >= 0 ? 'pointer' : 'crosshair'
+  })
+
+  $('dropZone').addEventListener('click', () => $('fileInput').click())
+  $('fileInput').addEventListener('change', () => {
+    const f = $('fileInput').files && $('fileInput').files[0]
+    loadImageFile(f)
+    $('fileInput').value = ''
+  })
+  ;['dragenter', 'dragover'].forEach((t) => {
+    $('dropZone').addEventListener(t, (e) => {
+      e.preventDefault()
+      $('dropZone').classList.add('drag')
+    })
+  })
+  ;['dragleave', 'drop'].forEach((t) => {
+    $('dropZone').addEventListener(t, (e) => {
+      e.preventDefault()
+      $('dropZone').classList.remove('drag')
+    })
+  })
+  $('dropZone').addEventListener('drop', (e) => {
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]
+    loadImageFile(f)
+  })
+
+  $('btnDetect').addEventListener('click', () => {
+    if (!sheetImg) return
+    detectBoxes = detectFrames(sheetImg)
+    active().detectBoxes = detectBoxes.map((b) => ({ ...b }))
+    selectedDetect = detectBoxes.length ? 0 : -1
+    updateDetectStatus()
+    redrawAll()
+  })
+
+  ;['chromaR', 'chromaG', 'chromaB', 'chromaTol', 'minW', 'minH', 'mergeGap', 'boxPad'].forEach((id) => {
+    $(id).addEventListener('change', () => {
+      if (!sheetImg) return
+      detectBoxes = detectFrames(sheetImg)
+      active().detectBoxes = detectBoxes.map((b) => ({ ...b }))
+      updateDetectStatus()
+      redrawAll()
+    })
+  })
+
+  $('sheetName').addEventListener('input', () => {
+    active().sheetName = $('sheetName').value.trim()
+    refreshExport()
+  })
+  $('animFps').addEventListener('input', () => {
+    active().fps = +$('animFps').value || 6
+    refreshExport()
+  })
+  $('animLoop').addEventListener('change', () => {
+    active().loop = $('animLoop').checked
+    refreshExport()
+  })
+  ;['charId', 'charKind', 'portrait'].forEach((id) => {
+    $(id).addEventListener('input', refreshExport)
+    $(id).addEventListener('change', refreshExport)
+  })
+
+  $('btnAddAll').addEventListener('click', () => {
+    detectBoxes.forEach((b) => active().timeline.push({ ...b }))
+    selectedTl = active().timeline.length - 1
+    renderTabs()
+    redrawAll()
+  })
+  $('btnClearTl').addEventListener('click', () => {
+    active().timeline = []
+    selectedTl = -1
+    renderTabs()
+    redrawAll()
+  })
+  $('btnDup').addEventListener('click', () => {
+    const s = active()
+    if (selectedTl < 0 || !s.timeline[selectedTl]) return
+    const box = { ...s.timeline[selectedTl] }
+    s.timeline.splice(selectedTl + 1, 0, box)
+    selectedTl++
+    renderTabs()
+    redrawAll()
+  })
+  $('btnDel').addEventListener('click', () => {
+    const s = active()
+    if (selectedTl < 0) return
+    s.timeline.splice(selectedTl, 1)
+    if (selectedTl >= s.timeline.length) selectedTl = s.timeline.length - 1
+    renderTabs()
+    redrawAll()
+  })
+
+  $('btnApplyBox').addEventListener('click', () => {
+    if (selectedDetect < 0 || !detectBoxes[selectedDetect]) return
+    detectBoxes[selectedDetect] = {
+      x: +$('boxX').value,
+      y: +$('boxY').value,
+      w: Math.max(1, +$('boxW').value),
+      h: Math.max(1, +$('boxH').value),
+    }
+    active().detectBoxes = detectBoxes.map((b) => ({ ...b }))
+    redrawAll()
+  })
+  $('btnAddSelected').addEventListener('click', () => {
+    if (selectedDetect < 0 || !detectBoxes[selectedDetect]) return
+    appendTimelineBox(detectBoxes[selectedDetect])
+  })
+
+  $('btnPlay').addEventListener('click', () => {
+    if (!active().timeline.length) return
+    playing = !playing
+    if (playing) {
+      playFrame = Math.max(0, selectedTl)
+      playAcc = 0
+      lastTs = performance.now()
+    }
+    redrawAll()
+  })
+  $('btnStop').addEventListener('click', () => {
+    playing = false
+    playFrame = 0
+    playAcc = 0
+    redrawAll()
+  })
+
+  $('btnExport').addEventListener('click', async () => {
+    refreshExport()
+    const text = $('exportBox').value
+    try {
+      await navigator.clipboard.writeText(text)
+      setFooter('Copied export JSON')
+    } catch {
+      $('exportBox').select()
+      setFooter('Clipboard blocked — select & copy manually')
+    }
+  })
+  $('btnDownload').addEventListener('click', () => {
+    refreshExport()
+    const id = $('charId').value.trim() || 'character'
+    const blob = new Blob([$('exportBox').value], { type: 'application/json' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${id}.anims.json`
+    a.click()
+    URL.revokeObjectURL(a.href)
+    setFooter(`Downloaded ${id}.anims.json`)
+  })
+
+  $('btnSaveSession').addEventListener('click', () => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(sessionPayload()))
+      setFooter('Session saved to localStorage')
+    } catch (err) {
+      setFooter('Save failed: ' + err.message)
+    }
+  })
+  $('btnLoadSession').addEventListener('click', () => {
+    try {
+      const raw = localStorage.getItem(LS_KEY)
+      if (!raw) throw new Error('No saved session')
+      applySession(JSON.parse(raw))
+      setFooter('Session restored')
+    } catch (err) {
+      setFooter('Load failed: ' + err.message)
+    }
+  })
+  $('btnImport').addEventListener('click', () => {
+    const text = prompt('Paste character JSON (full { id: {...} } or anims object)')
+    if (!text) return
+    try {
+      importCharacterJson(text)
+      refreshExport()
+    } catch (err) {
+      setFooter('Import failed: ' + err.message)
+      alert(err.message)
+    }
+  })
+
+  window.addEventListener('keydown', (ev) => {
+    const tag = (ev.target && /** @type {HTMLElement} */ (ev.target).tagName) || ''
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+    if (ev.code === 'Space') {
+      ev.preventDefault()
+      $('btnPlay').click()
+    } else if (ev.key === 'Delete' || ev.key === 'Backspace') {
+      ev.preventDefault()
+      $('btnDel').click()
+    }
+  })
+
+  function tick(ts) {
+    requestAnimationFrame(tick)
+    if (!playing) return
+    const s = active()
+    const n = s.timeline.length
+    if (!n) { playing = false; redrawAll(); return }
+    const dt = Math.min(0.1, (ts - lastTs) / 1000)
+    lastTs = ts
+    const fps = s.fps || 6
+    playAcc += dt
+    const frameDur = 1 / fps
+    while (playAcc >= frameDur) {
+      playAcc -= frameDur
+      if (s.loop) {
+        playFrame = (playFrame + 1) % n
+      } else if (playFrame < n - 1) {
+        playFrame++
+      } else {
+        playing = false
+        $('btnPlay').textContent = 'Play'
+      }
+    }
+    drawPreviewFrame(playFrame)
+    $('previewFrame').textContent = `frame ${playFrame + 1}/${n}`
+  }
+
+  // Boot
+  initSlots()
+  renderTabs()
+  loadSlotIntoUi()
+  refreshExport()
+  requestAnimationFrame(tick)
+
+  try {
+    const raw = localStorage.getItem(LS_KEY)
+    if (raw) {
+      // Soft restore hint only — don't auto-load heavy dataUrls without asking
+      setFooter('Saved session available — Load session to restore')
+    }
+  } catch { /* ignore */ }
+})()
+</script>
+</body>
+</html>
