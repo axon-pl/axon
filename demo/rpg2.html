@@ -43,7 +43,7 @@
   .hdr-right { font-size: .62rem; color: var(--muted); letter-spacing: .08em; text-align: right; line-height: 1.5; }
   .hdr-right a { color: var(--cyan); text-decoration: none; }
   .canvas-wrap {
-    position: relative; width: 100%; max-width: 800px; aspect-ratio: 800 / 520;
+    position: relative; width: 100%; max-width: 800px; aspect-ratio: var(--rpg2-ratio, 800 / 520);
     border: 1px solid #2a2a4a; border-radius: 8px; overflow: hidden;
     box-shadow: 0 0 40px #b84fff22, 0 0 80px #00e5ff11;
   }
@@ -73,7 +73,11 @@
 <link rel="stylesheet" href="game-mobile.css">
 <link rel="stylesheet" href="site-footer.css">
 <style>
-  .canvas-wrap.rpg2-canvas { touch-action: manipulation; }
+  /* Mobile: taller canvas so full-bleed menu rows stay tappable */
+  .canvas-wrap.rpg2-canvas {
+    aspect-ratio: var(--rpg2-ratio, 800 / 520) !important;
+    touch-action: manipulation;
+  }
 </style>
 </head>
 <body>
@@ -111,39 +115,78 @@
 <script>
 const canvas = document.getElementById('c')
 const ctx = canvas.getContext('2d')
-const W = 800, H = 520
+const W = 800
+let H = 520
 
 function isCompactUi() {
   return canvas.clientWidth < 560
     || window.matchMedia('(hover: none) and (pointer: coarse)').matches
 }
 
+function syncCanvasSize() {
+  const compact = isCompactUi()
+  const nextH = compact ? 840 : 520
+  if (canvas.height !== nextH) {
+    canvas.height = nextH
+    H = nextH
+  } else {
+    H = canvas.height
+  }
+  document.documentElement.style.setProperty('--rpg2-ratio', '800 / ' + nextH)
+}
+
 function hudLayout() {
   const compact = isCompactUi()
-  // Compact: slightly taller menu rows + larger type. Desktop stays classic.
+  if (compact) {
+    // Full-bleed command menu under a shorter field — big tap rows on phones
+    return {
+      compact: true,
+      fieldH: 260,
+      logY: 368,
+      logH: 32,
+      menuX: 12,
+      menuY: 404,
+      menuW: 776,
+      menuH: 420,
+      menuTitleY: 436,
+      menuRow0: 480,
+      menuRowH: 88,
+      menuHitPad: 4,
+      menuFont: 26,
+      menuTitleFont: 18,
+      partyX: 12,
+      partyY: 264,
+      partyW: 776,
+      partyH: 100,
+      nameFont: 16,
+      metaFont: 14,
+      titleFont: 16,
+      logFont: 14
+    }
+  }
   return {
-    compact,
-    fieldH: compact ? 300 : 308,
-    logY: compact ? 300 : 308,
-    logH: compact ? 28 : 28,
+    compact: false,
+    fieldH: 308,
+    logY: 308,
+    logH: 28,
     menuX: 16,
-    menuY: compact ? 332 : 342,
+    menuY: 342,
     menuW: 280,
-    menuH: compact ? 172 : 162,
-    menuTitleY: compact ? 352 : 362,
-    menuRow0: compact ? 374 : 382,
-    menuRowH: compact ? 32 : 22,
-    menuHitPad: compact ? 2 : 0,
-    menuFont: compact ? 15 : 12,
-    menuTitleFont: compact ? 13 : 12,
+    menuH: 162,
+    menuTitleY: 362,
+    menuRow0: 382,
+    menuRowH: 22,
+    menuHitPad: 0,
+    menuFont: 12,
+    menuTitleFont: 12,
     partyX: 312,
-    partyY: compact ? 332 : 342,
+    partyY: 342,
     partyW: 472,
-    partyH: compact ? 172 : 162,
-    nameFont: compact ? 14 : 13,
-    metaFont: compact ? 12 : 11,
-    titleFont: compact ? 14 : 13,
-    logFont: compact ? 12 : 11
+    partyH: 162,
+    nameFont: 13,
+    metaFont: 11,
+    titleFont: 13,
+    logFont: 11
   }
 }
 
@@ -1223,15 +1266,15 @@ function drawBattle(view, dt) {
     view.menu_mode === 'target_ally' ? 'ALLY' : String(view.menu_mode || '').toUpperCase()
   const actor = party[view.active]
   const actorName = actor ? actor.name : ''
-  ctx.fillText(modeLabel + (actorName ? ' — ' + actorName : ''), 28, hud.menuTitleY)
+  ctx.fillText(modeLabel + (actorName ? ' — ' + actorName : ''), hud.menuX + 16, hud.menuTitleY)
 
   const menu = view.menu || []
   const canPick = view.phase === 'hero_command' || view.phase === 'hero_pick'
   const nowMs = performance.now()
   const boxH = Math.max(20, Math.round(hud.menuRowH * (20 / 22)))
-  const boxX = 24
-  const boxW = 260
-  const textX = 32
+  const boxX = hud.compact ? hud.menuX + 14 : 24
+  const boxW = hud.compact ? hud.menuW - 28 : 260
+  const textX = boxX + 8
   menu.forEach((row, i) => {
     const yy = hud.menuRow0 + i * hud.menuRowH
     const selected = canPick && i === view.menu_index
@@ -1318,9 +1361,11 @@ function drawBattle(view, dt) {
 function menuHit() {
   const hud = hudLayout()
   const boxH = Math.max(20, Math.round(hud.menuRowH * (20 / 22)))
+  const boxX = hud.compact ? hud.menuX + 14 : 24
+  const boxW = hud.compact ? hud.menuW - 28 : 260
   return {
-    x0: 24,
-    x1: 284,
+    x0: boxX,
+    x1: boxX + boxW,
     y0: hud.menuRow0 - Math.round(boxH * 0.7) - hud.menuHitPad,
     rowH: hud.menuRowH
   }
@@ -1416,6 +1461,7 @@ function dipAlpha() {
 }
 
 function draw(dt) {
+  syncCanvasSize()
   const live = get_view()
   updateDip(dt, live)
   const under = (dip.phase === 'out' && dip.holdView) ? dip.holdView : live
@@ -1479,7 +1525,11 @@ function loop(now) {
   draw(dt)
   requestAnimationFrame(loop)
 }
-loadPartyAssets().finally(() => requestAnimationFrame(loop))
+loadPartyAssets().finally(() => {
+  syncCanvasSize()
+  window.addEventListener('resize', syncCanvasSize)
+  requestAnimationFrame(loop)
+})
 </script>
 </body>
 </html>
