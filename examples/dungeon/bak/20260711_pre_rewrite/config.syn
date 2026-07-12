@@ -1,0 +1,100 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// dungeon/config.syn
+// Parses a user-supplied dungeon seed code into a validated DungeonConfig.
+// All parsing functions return Result — failures carry precise error messages.
+//
+// Accepted format:  "level:seed"   e.g. "3:42"  or  "1:99999"
+// ─────────────────────────────────────────────────────────────────────────────
+
+export record DungeonConfig {
+  level: int
+  seed:  int
+}
+
+// ── Individual field parsers ──────────────────────────────────────────────────
+
+@throws
+@pure
+export fn parse_level(s: string) -> any {
+  // v1.0: parse_int returns null on bad input — no isNaN dance
+  let n = parse_int(s)
+  if n == null { return err(`Level must be a number — got: "${s}"`) }
+  if n < 1     { return err(`Level must be at least 1 — got: ${n}`) }
+  if n > 10    { return err(`Level must be 10 or less — got: ${n}`) }
+  refine n: "a dungeon level in [1, 10]"
+  ok(n)
+}
+
+@throws
+@pure
+export fn parse_seed(s: string) -> any {
+  let n = parse_int(s)
+  if n == null { return err(`Seed must be a number — got: "${s}"`) }
+  let seed = Math.abs(n) % 2147483648
+  refine seed: "a non-negative dungeon seed in [0, 2^31)"
+  ok(seed)
+}
+
+// ── Config parser — chains field parsers with ? ───────────────────────────────
+
+@throws
+@pure
+export fn parse_config(input: string) -> any {
+  let trimmed = input.trim()
+  if trimmed.length == 0 { return err("Enter a code in the format level:seed — e.g. 3:42") }
+  let parts = trimmed.split(":")
+  if parts.length < 2 { return err("Format is level:seed — e.g. 3:42") }
+  let level = parse_level(parts[0].trim())?
+  let seed  = parse_seed(parts[1].trim())?
+  ok({ level, seed })
+}
+
+// ── Describe config ───────────────────────────────────────────────────────────
+
+export fn config_summary(cfg: DungeonConfig) -> string =
+  `Level ${cfg.level} · Seed ${cfg.seed}`
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+@test "valid code parses correctly" {
+  let r = parse_config("3:42")
+  is_ok(r) && r.value.level == 3 && r.value.seed == 42
+}
+
+@test "empty input returns Err" {
+  is_err(parse_config(""))
+}
+
+@test "missing colon returns Err" {
+  is_err(parse_config("999"))
+}
+
+@test "non-numeric level returns Err" {
+  let r = parse_config("abc:42")
+  is_err(r) && r.message == "Level must be a number — got: \"abc\""
+}
+
+@test "level 0 returns Err" {
+  let r = parse_config("0:42")
+  is_err(r) && r.message == "Level must be at least 1 — got: 0"
+}
+
+@test "level 11 returns Err" {
+  let r = parse_config("11:42")
+  is_err(r) && r.message == "Level must be 10 or less — got: 11"
+}
+
+@test "negative seed is normalised" {
+  let r = parse_config("1:-42")
+  is_ok(r) && r.value.seed == 42
+}
+
+@test "large seed is clamped to 2^31" {
+  let r = parse_config("1:9999999999")
+  is_ok(r) && r.value.seed >= 0 && r.value.seed < 2147483648
+}
+
+@test "whitespace is trimmed" {
+  let r = parse_config("  2 : 100 ")
+  is_ok(r) && r.value.level == 2 && r.value.seed == 100
+}

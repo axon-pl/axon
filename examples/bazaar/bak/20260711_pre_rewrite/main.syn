@@ -1,5 +1,5 @@
-// ── The Bazaar — medium structural rewrite ───────────────────────────────────
-// Host: make_state · render · filter/sort/cart mutations (multi-file: items, catalog)
+// ── The Bazaar — Synth v1.0 Demo ─────────────────────────────────────────────
+// Showcases: multi-file modules · templates · find · spread updates · records
 
 import { Item, Category, keep_if, transform, order_by, order_by_desc, by_category, by_rarity, by_max_price, search_items, describe_item, cart_total, rarity_color, rarity_rank, category_icon, category_name } from "./items"
 import { get_catalog } from "./catalog"

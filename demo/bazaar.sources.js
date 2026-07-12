@@ -137,9 +137,27 @@ const total = (items, value_of) => {
   return acc;
 };
 
-const rarity_rank = (r) => ((_m) => (_m === "Common") ? 1 : (_m === "Uncommon") ? 2 : (_m === "Rare") ? 3 : (_m === "Epic") ? 4 : (_m === "Legendary") ? 5 : 0)(r);
+const RarityMeta = (id, rank, color) => ({ id, rank, color });
 
-const rarity_color = (r) => ((_m) => (_m === "Common") ? "#aaaaaa" : (_m === "Uncommon") ? "#1eff00" : (_m === "Rare") ? "#0070dd" : (_m === "Epic") ? "#a335ee" : (_m === "Legendary") ? "#ff8000" : "#ffffff")(r);
+let RARITY_META = [{id: "Common", rank: 1, color: "#aaaaaa"}, {id: "Uncommon", rank: 2, color: "#1eff00"}, {id: "Rare", rank: 3, color: "#0070dd"}, {id: "Epic", rank: 4, color: "#a335ee"}, {id: "Legendary", rank: 5, color: "#ff8000"}];
+
+/**
+ * @param {string} r
+ * @returns {number}
+ */
+const rarity_rank = (r) => {
+  let hit = $find(RARITY_META, (m) => m.id == r);
+  return hit ? hit.rank : 0;
+};
+
+/**
+ * @param {string} r
+ * @returns {string}
+ */
+const rarity_color = (r) => {
+  let hit = $find(RARITY_META, (m) => m.id == r);
+  return hit ? hit.color : "#ffffff";
+};
 
 const category_icon = (c) => ((_m) => ((_m != null && _m.tag === "Weapon") || _m === "Weapon") ? "⚔️" : ((_m != null && _m.tag === "Armor") || _m === "Armor") ? "🛡️" : ((_m != null && _m.tag === "Potion") || _m === "Potion") ? "⚗️" : ((_m != null && _m.tag === "Relic") || _m === "Relic") ? "💎" : ((_m != null && _m.tag === "Scroll") || _m === "Scroll") ? "📜" : undefined)(c);
 

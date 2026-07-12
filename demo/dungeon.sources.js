@@ -94,11 +94,38 @@ const Chest = Object.freeze({ tag: "Chest" });
 const Water = Object.freeze({ tag: "Water" });
 const Torch = Object.freeze({ tag: "Torch" });
 
-const is_passable = (tag) => tag == "Floor" || tag == "Door" || tag == "Stairs" || tag == "Torch";
+const TileMeta = (id, glyph, label, passable) => ({ id, glyph, label, passable });
 
-const tile_glyph = (tag) => ((_m) => (_m === "Floor") ? "·" : (_m === "Wall") ? "█" : (_m === "Door") ? "▯" : (_m === "Stairs") ? "≋" : (_m === "Chest") ? "■" : (_m === "Water") ? "≈" : (_m === "Torch") ? "†" : "?")(tag);
+let TILE_META = [{id: "Floor", glyph: "·", label: "open floor", passable: true}, {id: "Wall", glyph: "█", label: "stone wall", passable: false}, {id: "Door", glyph: "▯", label: "wooden door", passable: true}, {id: "Stairs", glyph: "≋", label: "staircase", passable: true}, {id: "Chest", glyph: "■", label: "treasure chest", passable: false}, {id: "Water", glyph: "≈", label: "deep water", passable: false}, {id: "Torch", glyph: "†", label: "wall torch", passable: true}];
 
-const tile_label = (tag) => ((_m) => (_m === "Floor") ? "open floor" : (_m === "Wall") ? "stone wall" : (_m === "Door") ? "wooden door" : (_m === "Stairs") ? "staircase" : (_m === "Chest") ? "treasure chest" : (_m === "Water") ? "deep water" : (_m === "Torch") ? "wall torch" : "unknown")(tag);
+const tile_meta = (tag) => $find(TILE_META, (t) => t.id == tag);
+
+/**
+ * @param {string} tag
+ * @returns {boolean}
+ */
+const is_passable = (tag) => {
+  let hit = tile_meta(tag);
+  return hit ? hit.passable : false;
+};
+
+/**
+ * @param {string} tag
+ * @returns {string}
+ */
+const tile_glyph = (tag) => {
+  let hit = tile_meta(tag);
+  return hit ? hit.glyph : "?";
+};
+
+/**
+ * @param {string} tag
+ * @returns {string}
+ */
+const tile_label = (tag) => {
+  let hit = tile_meta(tag);
+  return hit ? hit.label : "unknown";
+};
 
 __synth_tests.push({ desc: "floor is passable", fn: () => is_passable("Floor") == true });
 
@@ -644,7 +671,7 @@ const parse_seed = (s) => {
  * @returns {*}
  */
 const parse_config = (input) => {
-  let trimmed = $trim(input, );
+  let trimmed = $trim(input);
   if (trimmed.length == 0) {
     return $err("Enter a code in the format level:seed — e.g. 3:42");
   }
@@ -652,10 +679,10 @@ const parse_config = (input) => {
   if (parts.length < 2) {
     return $err("Format is level:seed — e.g. 3:42");
   }
-  const _r46 = parse_level($trim(parts[0], ));
+  const _r46 = parse_level($trim(parts[0]));
   if (_r46.tag === 'Err') return _r46;
   let level = _r46.value;
-  const _r49 = parse_seed($trim(parts[1], ));
+  const _r49 = parse_seed($trim(parts[1]));
   if (_r49.tag === 'Err') return _r49;
   let seed = _r49.value;
   return $ok({level, seed});
@@ -726,14 +753,27 @@ const go_prev = (s) => ({...s, level: s.level - 1, seed: next_seed(s.seed)});
  * @returns {string}
  */
 const map_name = (level, seed) => {
-  let adj = ["Sunken", "Flooded", "Forgotten", "Ancient", "Crumbling", "Darkened", "Shattered", "Cursed", "Hollow", "Ruined", "Scorched", "Mossy", "Twisted", "Silent", "Pale", "Burning", "Frozen", "Gilded", "Haunted", "Blighted", "Crimson", "Ashen", "Murky", "Lost", "Forsaken", "Tarnished", "Rotting", "Sealed", "Fractured", "Drowned"];
-  let noun = ["Hall", "Vault", "Passage", "Chamber", "Catacombs", "Sanctum", "Tomb", "Cavern", "Lair", "Pit", "Maze", "Crypt", "Gallery", "Abyss", "Warren", "Cellar", "Archive", "Ossuary", "Barrow", "Grotto", "Keep", "Depths", "Ruin", "Antechamber", "Oubliette"];
-  let h1 = (seed % adj.length + adj.length) % adj.length;
-  let h2 = ((seed + level * 7) % noun.length + noun.length) % noun.length;
-  return `The ${adj[h1]} ${noun[h2]}`;
+  let NAME_ADJ = ["Sunken", "Flooded", "Forgotten", "Ancient", "Crumbling", "Darkened", "Shattered", "Cursed", "Hollow", "Ruined", "Scorched", "Mossy", "Twisted", "Silent", "Pale", "Burning", "Frozen", "Gilded", "Haunted", "Blighted", "Crimson", "Ashen", "Murky", "Lost", "Forsaken", "Tarnished", "Rotting", "Sealed", "Fractured", "Drowned"];
+  let NAME_NOUN = ["Hall", "Vault", "Passage", "Chamber", "Catacombs", "Sanctum", "Tomb", "Cavern", "Lair", "Pit", "Maze", "Crypt", "Gallery", "Abyss", "Warren", "Cellar", "Archive", "Ossuary", "Barrow", "Grotto", "Keep", "Depths", "Ruin", "Antechamber", "Oubliette"];
+  let h1 = (seed % NAME_ADJ.length + NAME_ADJ.length) % NAME_ADJ.length;
+  let h2 = ((seed + level * 7) % NAME_NOUN.length + NAME_NOUN.length) % NAME_NOUN.length;
+  return `The ${NAME_ADJ[h1]} ${NAME_NOUN[h2]}`;
 };
 
-const level_description = (level) => ((_m) => (_m === 1) ? "Torch-lit corridors. Watch your step." : (_m === 2) ? "Flooded halls. Not all paths are safe." : (_m === 3) ? "Ancient vaults. Chests shimmer in the gloom." : (_m === 4) ? "The dead rest here. So might you." : (_m === 5) ? "No light reaches this deep." : (level > 5) ? "You shouldn't be here." : "Press onward.")(level);
+/**
+ * @param {number} level
+ * @returns {string}
+ */
+const level_description = (level) => {
+  let hit = $find(LEVEL_BLURBS, (b) => b.level == level);
+  if (hit) {
+    return hit.text;
+  } else if (level > 5) {
+    return "You shouldn't be here.";
+  } else {
+    return "Press onward.";
+  }
+};
 
 const render_header = (level, seed) => `<div class="dungeon-header">
     <h2 class="level-name">Level ${level} — ${map_name(level, seed)}</h2>

@@ -1,5 +1,9 @@
-// dungeon/main.syn — medium structural rewrite
-// Host: init · render · navigation · code-input (multi-file bundle)
+// ─────────────────────────────────────────────────────────────────────────────
+// dungeon/main.syn — Synth v1.0 multi-file bundle demo
+//
+// Showcases: Result parsing · parse_int · template literals · spread updates
+// State flows as immutable data — render(s) redraws and re-wires every control.
+// ─────────────────────────────────────────────────────────────────────────────
 
 import { Floor, Wall, Door, Stairs, Chest, Water, Torch } from "./tiles"
 import { generate, count_tag } from "./generator"
@@ -27,7 +31,7 @@ fn go_prev(s: AppState) -> AppState = { ...s, level: s.level - 1, seed: next_see
 // ── Map name generator ────────────────────────────────────────────────────────
 
 fn map_name(level: int, seed: int) -> string {
-  let NAME_ADJ = [
+  let adj = [
     "Sunken",    "Flooded",   "Forgotten", "Ancient",   "Crumbling",
     "Darkened",  "Shattered", "Cursed",    "Hollow",    "Ruined",
     "Scorched",  "Mossy",     "Twisted",   "Silent",    "Pale",
@@ -35,24 +39,28 @@ fn map_name(level: int, seed: int) -> string {
     "Crimson",   "Ashen",     "Murky",     "Lost",      "Forsaken",
     "Tarnished", "Rotting",   "Sealed",    "Fractured", "Drowned"
   ]
-  let NAME_NOUN = [
+  let noun = [
     "Hall",      "Vault",     "Passage",   "Chamber",   "Catacombs",
     "Sanctum",   "Tomb",      "Cavern",    "Lair",      "Pit",
     "Maze",      "Crypt",     "Gallery",   "Abyss",     "Warren",
     "Cellar",    "Archive",   "Ossuary",   "Barrow",    "Grotto",
     "Keep",      "Depths",    "Ruin",      "Antechamber","Oubliette"
   ]
-  let h1 = (seed % NAME_ADJ.length  + NAME_ADJ.length)  % NAME_ADJ.length
-  let h2 = ((seed + level * 7) % NAME_NOUN.length + NAME_NOUN.length) % NAME_NOUN.length
-  `The ${NAME_ADJ[h1]} ${NAME_NOUN[h2]}`
+  let h1 = (seed % adj.length  + adj.length)  % adj.length
+  let h2 = ((seed + level * 7) % noun.length + noun.length) % noun.length
+  `The ${adj[h1]} ${noun[h2]}`
 }
 
-fn level_description(level: int) -> string {
-  let hit = LEVEL_BLURBS.find(b => b.level == level)
-  if hit { hit.text }
-  else if level > 5 { "You shouldn't be here." }
-  else { "Press onward." }
-}
+fn level_description(level: int) -> string =
+  match level {
+    | 1 => "Torch-lit corridors. Watch your step."
+    | 2 => "Flooded halls. Not all paths are safe."
+    | 3 => "Ancient vaults. Chests shimmer in the gloom."
+    | 4 => "The dead rest here. So might you."
+    | 5 => "No light reaches this deep."
+    | _ when level > 5 => "You shouldn't be here."
+    | _ => "Press onward."
+  }
 
 fn render_header(level: int, seed: int) -> string =
   `<div class="dungeon-header">

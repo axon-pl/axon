@@ -1,5 +1,5 @@
-// ── Chronicle — Synth v1.0 Demo ───────────────────────────────────────────────
-// Showcases: store · async/await · on...change · template literals
+// ── Chronicle — medium structural rewrite
+// Host: Kingdom store · start · pause · set_speed · tick · render
 
 // ── Reactive store ────────────────────────────────────────────────────────────
 
@@ -32,74 +32,94 @@ store Kingdom {
   }
 }
 
-@pure fn event_for(day: int, weather: string) -> string {
+let EVENT_LINES = [
+  "A merchant caravan arrived bearing exotic spices from the east",
+  "The blacksmith forged a blade of legendary steel by moonlight",
+  "Scouts reported strange lights dancing in the northern woods",
+  "The harvest exceeded all expectations — granaries overflow",
+  "A traveling bard performed forgotten tales of the old wars",
+  "The council ratified sweeping new trade agreements",
+  "A dragon silhouette crossed the mountain pass at dusk",
+  "The healers guild opened their doors to the poor and sick",
+  "A grand feast was held in the great keep",
+  "The watchtower bell rang out — riders approach the gates",
+  "A stranger arrived at the inn bearing an unusual map",
+  "The kingdom's coffers swelled with a fresh tax levy",
+  "A temple ceremony drew pilgrims from distant lands",
+  "The royal astronomers charted a new comet in the sky",
+  "Border skirmishes erupted along the eastern frontier",
+  "A mysterious plague struck the livestock in the valley",
+  "The mages guild completed their great tower after ten years",
+  "Refugees from the southern war sought shelter at the gates",
+  "The king's champion defeated a challenger in the arena",
+  "An ancient ruin was uncovered beneath the city streets",
+  "The river flooded, sweeping away the old mill bridge",
+  "A new vein of silver was struck deep in the mountain mines",
+  "The thieves guild was dismantled in a midnight raid",
+  "A diplomatic envoy arrived bearing gifts from the northern court",
+  "The royal library received a shipment of forbidden tomes",
+  "A giant wolf was spotted prowling the outer farms at night",
+  "The shipwrights launched the kingdom's greatest warship",
+  "Rebels were routed at the crossroads by the royal guard",
+  "The old hermit of the forest gave a cryptic prophecy",
+  "A fire broke out in the merchant quarter before dawn",
+  "The queen's advisor was found dead under strange circumstances",
+  "A jousting tournament drew nobles from across the realm",
+  "The harvest festival filled the streets with song and light",
+  "An earthquake cracked the citadel's eastern wall",
+  "The salt trade was monopolized by a powerful merchant guild",
+  "A pair of white ravens delivered a message from unknown lands",
+  "The alchemists produced a metal harder than iron",
+  "Three knights went missing on the road to the eastern chapel",
+  "The aqueduct burst, flooding the lower district for three days",
+  "A peace treaty was signed after years of border conflict",
+  "The master cartographer unveiled a new map of the known world",
+  "Wolves descended from the highlands and raided the sheepfolds",
+  "The new bridge over the river was dedicated with celebration",
+  "A shipment of rare dyes arrived from across the sea",
+  "The crown prince returned from his grand tour of the realm",
+  "An arcane storm twisted the weather for seven strange days",
+  "The miners uncovered a sealed vault deep beneath the old fort",
+  "A wandering knight pledged their sword to the kingdom's cause",
+  "The census revealed the kingdom's population had doubled",
+  "A plague of locusts devoured three fields before being driven off",
+  "The arena hosted its grandest gladiatorial spectacle in years",
+  "A child was born under a double rainbow — heralded as blessed",
+  "The nomads of the plains offered tribute and asked for alliance",
+  "A mysterious ship docked at port bearing no flag and no crew",
+  "The court jester was arrested for revealing a royal secret",
+  "A new road was completed linking the capital to the coast",
+  "The royal hound returned alone after weeks missing in the wilds",
+  "Bandits seized the northern pass, demanding toll from travellers",
+  "The cathedral bells rang without any hand to pull the ropes",
+  "An ambassador demanded reparations for last season's raid",
+  "The council voted to expand the city walls to the river",
+  "The old oracle emerged from solitude and spoke of change",
+  "Three merchant ships were lost in the straits in one night"
+]
+
+let SEASON_ICONS = [
+  { id: "spring", icon: "🌸" },
+  { id: "summer", icon: "☀️" },
+  { id: "autumn", icon: "🍂" },
+  { id: "winter", icon: "❄️" },
+]
+
+let WEATHER_ICONS = [
+  { id: "clear",    icon: "☀️" },
+  { id: "rain",     icon: "🌧" },
+  { id: "snow",     icon: "❄️" },
+  { id: "fog",      icon: "🌫" },
+  { id: "frost",    icon: "🧊" },
+  { id: "haze",     icon: "🌫" },
+  { id: "blizzard", icon: "🌨" },
+  { id: "drought",  icon: "🌵" },
+]
+
+@pure
+fn event_for(day: int, weather: string) -> string {
   let seed = (day * 1103515245 + 12345) % 64
-  let base = match seed {
-    | 0  => "A merchant caravan arrived bearing exotic spices from the east"
-    | 1  => "The blacksmith forged a blade of legendary steel by moonlight"
-    | 2  => "Scouts reported strange lights dancing in the northern woods"
-    | 3  => "The harvest exceeded all expectations — granaries overflow"
-    | 4  => "A traveling bard performed forgotten tales of the old wars"
-    | 5  => "The council ratified sweeping new trade agreements"
-    | 6  => "A dragon silhouette crossed the mountain pass at dusk"
-    | 7  => "The healers guild opened their doors to the poor and sick"
-    | 8  => "A grand feast was held in the great keep"
-    | 9  => "The watchtower bell rang out — riders approach the gates"
-    | 10 => "A stranger arrived at the inn bearing an unusual map"
-    | 11 => "The kingdom's coffers swelled with a fresh tax levy"
-    | 12 => "A temple ceremony drew pilgrims from distant lands"
-    | 13 => "The royal astronomers charted a new comet in the sky"
-    | 14 => "Border skirmishes erupted along the eastern frontier"
-    | 15 => "A mysterious plague struck the livestock in the valley"
-    | 16 => "The mages guild completed their great tower after ten years"
-    | 17 => "Refugees from the southern war sought shelter at the gates"
-    | 18 => "The king's champion defeated a challenger in the arena"
-    | 19 => "An ancient ruin was uncovered beneath the city streets"
-    | 20 => "The river flooded, sweeping away the old mill bridge"
-    | 21 => "A new vein of silver was struck deep in the mountain mines"
-    | 22 => "The thieves guild was dismantled in a midnight raid"
-    | 23 => "A diplomatic envoy arrived bearing gifts from the northern court"
-    | 24 => "The royal library received a shipment of forbidden tomes"
-    | 25 => "A giant wolf was spotted prowling the outer farms at night"
-    | 26 => "The shipwrights launched the kingdom's greatest warship"
-    | 27 => "Rebels were routed at the crossroads by the royal guard"
-    | 28 => "The old hermit of the forest gave a cryptic prophecy"
-    | 29 => "A fire broke out in the merchant quarter before dawn"
-    | 30 => "The queen's advisor was found dead under strange circumstances"
-    | 31 => "A jousting tournament drew nobles from across the realm"
-    | 32 => "The harvest festival filled the streets with song and light"
-    | 33 => "An earthquake cracked the citadel's eastern wall"
-    | 34 => "The salt trade was monopolized by a powerful merchant guild"
-    | 35 => "A pair of white ravens delivered a message from unknown lands"
-    | 36 => "The alchemists produced a metal harder than iron"
-    | 37 => "Three knights went missing on the road to the eastern chapel"
-    | 38 => "The aqueduct burst, flooding the lower district for three days"
-    | 39 => "A peace treaty was signed after years of border conflict"
-    | 40 => "The master cartographer unveiled a new map of the known world"
-    | 41 => "Wolves descended from the highlands and raided the sheepfolds"
-    | 42 => "The new bridge over the river was dedicated with celebration"
-    | 43 => "A shipment of rare dyes arrived from across the sea"
-    | 44 => "The crown prince returned from his grand tour of the realm"
-    | 45 => "An arcane storm twisted the weather for seven strange days"
-    | 46 => "The miners uncovered a sealed vault deep beneath the old fort"
-    | 47 => "A wandering knight pledged their sword to the kingdom's cause"
-    | 48 => "The census revealed the kingdom's population had doubled"
-    | 49 => "A plague of locusts devoured three fields before being driven off"
-    | 50 => "The arena hosted its grandest gladiatorial spectacle in years"
-    | 51 => "A child was born under a double rainbow — heralded as blessed"
-    | 52 => "The nomads of the plains offered tribute and asked for alliance"
-    | 53 => "A mysterious ship docked at port bearing no flag and no crew"
-    | 54 => "The court jester was arrested for revealing a royal secret"
-    | 55 => "A new road was completed linking the capital to the coast"
-    | 56 => "The royal hound returned alone after weeks missing in the wilds"
-    | 57 => "Bandits seized the northern pass, demanding toll from travellers"
-    | 58 => "The cathedral bells rang without any hand to pull the ropes"
-    | 59 => "An ambassador demanded reparations for last season's raid"
-    | 60 => "The council voted to expand the city walls to the river"
-    | 61 => "The old oracle emerged from solitude and spoke of change"
-    | 62 => "Three merchant ships were lost in the straits in one night"
-    | _  => "The kingdom rested in an unusual quiet"
-  }
+  let base = seed < EVENT_LINES.length ? EVENT_LINES[seed] : "The kingdom rested in an unusual quiet"
   match weather {
     | "snow"    => "{base} — braving the heavy snowfall"
     | "rain"    => "{base} — beneath relentless rain"
@@ -112,27 +132,17 @@ store Kingdom {
   }
 }
 
-@pure fn season_icon(season: string) -> string =
-  match season {
-    | "spring" => "🌸"
-    | "summer" => "☀️"
-    | "autumn" => "🍂"
-    | "winter" => "❄️"
-    | _        => "🌍"
-  }
+@pure
+fn season_icon(season: string) -> string {
+  let hit = SEASON_ICONS.find(s => s.id == season)
+  hit ? hit.icon : "🌍"
+}
 
-@pure fn weather_icon(weather: string) -> string =
-  match weather {
-    | "clear"    => "☀️"
-    | "rain"     => "🌧"
-    | "snow"     => "❄️"
-    | "fog"      => "🌫"
-    | "frost"    => "🧊"
-    | "haze"     => "🌫"
-    | "blizzard" => "🌨"
-    | "drought"  => "🌵"
-    | _          => "🌤"
-  }
+@pure
+fn weather_icon(weather: string) -> string {
+  let hit = WEATHER_ICONS.find(w => w.id == weather)
+  hit ? hit.icon : "🌤"
+}
 
 // ── Async tick ────────────────────────────────────────────────────────────────
 

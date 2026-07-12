@@ -1,0 +1,58 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Synth v0.5.0 — dungeon/tiles.syn
+// Tile type definitions for the dungeon map toolkit.
+// All symbols exported for use by other modules.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Tagged union: every tile kind in the dungeon
+export type Tile = | Floor | Wall | Door | Stairs | Chest | Water | Torch
+
+// Is this tile tag walkable?
+export fn is_passable(tag: string) -> bool =
+  tag == "Floor" || tag == "Door" || tag == "Stairs" || tag == "Torch"
+
+// Return the display glyph for a tile tag
+export fn tile_glyph(tag: string) -> string =
+  match tag {
+    | "Floor"   => "·"
+    | "Wall"    => "█"
+    | "Door"    => "▯"
+    | "Stairs"  => "≋"
+    | "Chest"   => "■"
+    | "Water"   => "≈"
+    | "Torch"   => "†"
+    | _         => "?"
+  }
+
+// Return a human label for a tile tag
+export fn tile_label(tag: string) -> string =
+  match tag {
+    | "Floor"   => "open floor"
+    | "Wall"    => "stone wall"
+    | "Door"    => "wooden door"
+    | "Stairs"  => "staircase"
+    | "Chest"   => "treasure chest"
+    | "Water"   => "deep water"
+    | "Torch"   => "wall torch"
+    | _         => "unknown"
+  }
+
+@test "floor is passable" {
+  is_passable("Floor") == true
+}
+
+@test "wall is not passable" {
+  is_passable("Wall") == false
+}
+
+@test "chest is not passable" {
+  is_passable("Chest") == false
+}
+
+@test "stairs glyph is correct" {
+  tile_glyph("Stairs") == "≋"
+}
+
+@test "door label is correct" {
+  tile_label("Door") == "wooden door"
+}

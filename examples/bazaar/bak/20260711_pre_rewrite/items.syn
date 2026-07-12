@@ -62,31 +62,27 @@ fn total<T>(items: T[], value_of: fn(T) -> int) -> int {
   acc
 }
 
-// ── Rarity / category meta tables ─────────────────────────────
+// ── Rarity helpers ────────────────────────────────────────────
 
-record RarityMeta {
-  id:    string
-  rank:  int
-  color: string
-}
+fn rarity_rank(r: string) -> int =
+  match r {
+    | "Common"    => 1
+    | "Uncommon"  => 2
+    | "Rare"      => 3
+    | "Epic"      => 4
+    | "Legendary" => 5
+    | _           => 0
+  }
 
-let RARITY_META = [
-  { id: "Common",    rank: 1, color: "#aaaaaa" },
-  { id: "Uncommon",  rank: 2, color: "#1eff00" },
-  { id: "Rare",      rank: 3, color: "#0070dd" },
-  { id: "Epic",      rank: 4, color: "#a335ee" },
-  { id: "Legendary", rank: 5, color: "#ff8000" },
-]
-
-fn rarity_rank(r: string) -> int {
-  let hit = RARITY_META.find(m => m.id == r)
-  hit ? hit.rank : 0
-}
-
-fn rarity_color(r: string) -> string {
-  let hit = RARITY_META.find(m => m.id == r)
-  hit ? hit.color : "#ffffff"
-}
+fn rarity_color(r: string) -> string =
+  match r {
+    | "Common"    => "#aaaaaa"
+    | "Uncommon"  => "#1eff00"
+    | "Rare"      => "#0070dd"
+    | "Epic"      => "#a335ee"
+    | "Legendary" => "#ff8000"
+    | _           => "#ffffff"
+  }
 
 // ── Category helpers ──────────────────────────────────────────
 

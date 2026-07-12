@@ -1,41 +1,44 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Synth v0.5.0 — dungeon/tiles.syn
-// Tile type definitions for the dungeon map toolkit.
-// All symbols exported for use by other modules.
+// dungeon/tiles.syn — medium structural rewrite
+// Tile type definitions + meta table for glyph/label lookups.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Tagged union: every tile kind in the dungeon
 export type Tile = | Floor | Wall | Door | Stairs | Chest | Water | Torch
 
-// Is this tile tag walkable?
-export fn is_passable(tag: string) -> bool =
-  tag == "Floor" || tag == "Door" || tag == "Stairs" || tag == "Torch"
+record TileMeta {
+  id:       string
+  glyph:    string
+  label:    string
+  passable: bool
+}
 
-// Return the display glyph for a tile tag
-export fn tile_glyph(tag: string) -> string =
-  match tag {
-    | "Floor"   => "·"
-    | "Wall"    => "█"
-    | "Door"    => "▯"
-    | "Stairs"  => "≋"
-    | "Chest"   => "■"
-    | "Water"   => "≈"
-    | "Torch"   => "†"
-    | _         => "?"
-  }
+let TILE_META = [
+  { id: "Floor",  glyph: "·", label: "open floor",      passable: true  },
+  { id: "Wall",   glyph: "█", label: "stone wall",      passable: false },
+  { id: "Door",   glyph: "▯", label: "wooden door",     passable: true  },
+  { id: "Stairs", glyph: "≋", label: "staircase",       passable: true  },
+  { id: "Chest",  glyph: "■", label: "treasure chest",  passable: false },
+  { id: "Water",  glyph: "≈", label: "deep water",      passable: false },
+  { id: "Torch",  glyph: "†", label: "wall torch",      passable: true  },
+]
 
-// Return a human label for a tile tag
-export fn tile_label(tag: string) -> string =
-  match tag {
-    | "Floor"   => "open floor"
-    | "Wall"    => "stone wall"
-    | "Door"    => "wooden door"
-    | "Stairs"  => "staircase"
-    | "Chest"   => "treasure chest"
-    | "Water"   => "deep water"
-    | "Torch"   => "wall torch"
-    | _         => "unknown"
-  }
+fn tile_meta(tag: string) -> TileMeta? =
+  TILE_META.find(t => t.id == tag)
+
+export fn is_passable(tag: string) -> bool {
+  let hit = tile_meta(tag)
+  hit ? hit.passable : false
+}
+
+export fn tile_glyph(tag: string) -> string {
+  let hit = tile_meta(tag)
+  hit ? hit.glyph : "?"
+}
+
+export fn tile_label(tag: string) -> string {
+  let hit = tile_meta(tag)
+  hit ? hit.label : "unknown"
+}
 
 @test "floor is passable" {
   is_passable("Floor") == true

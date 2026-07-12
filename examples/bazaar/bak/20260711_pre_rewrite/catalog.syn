@@ -1,0 +1,33 @@
+// ──────────────────────────────────────────────────────────────
+// The Bazaar — Item catalog data
+// 20 handcrafted items across all categories and rarities
+// ──────────────────────────────────────────────────────────────
+
+import { Item, Weapon, Armor, Potion, Relic, Scroll } from "./items"
+
+export fn get_catalog() -> Item[] = [
+  { name: "Iron Sword",         category: Weapon,  rarity: "Common",    price: 40,   power: 12, lore: "A standard blade, well-worn but reliable." },
+  { name: "Serpent Fang",       category: Weapon,  rarity: "Uncommon",  price: 120,  power: 28, lore: "Said to carry a venom that slows the mind." },
+  { name: "Stormcaller Axe",    category: Weapon,  rarity: "Rare",      price: 380,  power: 55, lore: "Crackling with static, it calls lightning on a crit." },
+  { name: "Dawnbreaker",        category: Weapon,  rarity: "Epic",      price: 950,  power: 88, lore: "Forged at first light, it burns undead on contact." },
+  { name: "Worldender",         category: Weapon,  rarity: "Legendary", price: 4200, power: 140, lore: "No chronicle speaks of who first unsheathed it." },
+
+  { name: "Leather Vest",       category: Armor,   rarity: "Common",    price: 35,   power: 8,  lore: "Light and breathable. Smells faintly of mead." },
+  { name: "Chain Hauberk",      category: Armor,   rarity: "Uncommon",  price: 110,  power: 22, lore: "Rattles on stairs. Very effective, very loud." },
+  { name: "Shadowweave Cloak",  category: Armor,   rarity: "Rare",      price: 420,  power: 40, lore: "Absorbs faint light. Rogues pay triple for these." },
+  { name: "Aegis of the Fallen",category: Armor,   rarity: "Epic",      price: 1100, power: 75, lore: "Carved with the names of the seven lost kingdoms." },
+
+  { name: "Minor Healing",      category: Potion,  rarity: "Common",    price: 15,   power: 20, lore: "Tastes of copper. Works on most wounds." },
+  { name: "Swiftfoot Draught",  category: Potion,  rarity: "Uncommon",  price: 55,   power: 0,  lore: "Doubles movement speed for one hour. Side-effects: hiccups." },
+  { name: "Greater Elixir",     category: Potion,  rarity: "Rare",      price: 200,  power: 60, lore: "Used by healers who have run out of spells." },
+  { name: "Phoenix Tears",      category: Potion,  rarity: "Legendary", price: 2800, power: 999, lore: "Said to pull souls back from the other shore." },
+
+  { name: "Lucky Coin",         category: Relic,   rarity: "Common",    price: 60,   power: 5,  lore: "Warm to the touch. Never lands on tails." },
+  { name: "Whispering Orb",     category: Relic,   rarity: "Uncommon",  price: 150,  power: 18, lore: "Murmurs weather forecasts in an unknown language." },
+  { name: "Eye of Eternity",    category: Relic,   rarity: "Epic",      price: 1500, power: 65, lore: "Grants true sight. The price is one real eye." },
+  { name: "Shard of the Abyss", category: Relic,   rarity: "Legendary", price: 5000, power: 200, lore: "Cold. Always cold. Even in fire." },
+
+  { name: "Torch Scroll",       category: Scroll,  rarity: "Common",    price: 20,   power: 10, lore: "Casts a small light. Very popular in dungeons." },
+  { name: "Scroll of Binding",  category: Scroll,  rarity: "Uncommon",  price: 90,   power: 30, lore: "Roots an enemy in place for three breaths." },
+  { name: "Tome of Unmaking",   category: Scroll,  rarity: "Rare",      price: 500,  power: 70, lore: "Erases one object from history. One use only." }
+]
