@@ -31,13 +31,13 @@ function rel(p) {
 /** @type {{ label: string, syn: string, out: string, mode: 'single' | 'bundle', embed?: string }[]} */
 const DEMOS = [
   // Runnable .sources.js — stdlib loaded separately in HTML
-  { label: 'breakout', syn: 'examples/breakout.syn', out: 'demo/breakout.sources.js', mode: 'single' },
-  { label: 'drift', syn: 'examples/drift.syn', out: 'demo/drift.sources.js', mode: 'single' },
-  { label: 'expedition', syn: 'examples/expedition.syn', out: 'demo/expedition.sources.js', mode: 'single' },
-  { label: 'invaders', syn: 'examples/invaders.syn', out: 'demo/invaders.sources.js', mode: 'single' },
-  { label: 'kanban', syn: 'examples/kanban.syn', out: 'demo/kanban.sources.js', mode: 'single' },
-  { label: 'neon_life', syn: 'examples/neon_life.syn', out: 'demo/neon_life.sources.js', mode: 'single' },
-  { label: 'vibe_grid', syn: 'examples/vibe_grid.syn', out: 'demo/vibe_grid.sources.js', mode: 'single' },
+  { label: 'breakout', syn: 'examples/breakout/main.syn', out: 'demo/breakout.sources.js', mode: 'single' },
+  { label: 'drift', syn: 'examples/drift/main.syn', out: 'demo/drift.sources.js', mode: 'single' },
+  { label: 'expedition', syn: 'examples/expedition/main.syn', out: 'demo/expedition.sources.js', mode: 'single' },
+  { label: 'invaders', syn: 'examples/invaders/main.syn', out: 'demo/invaders.sources.js', mode: 'single' },
+  { label: 'kanban', syn: 'examples/kanban/main.syn', out: 'demo/kanban.sources.js', mode: 'single' },
+  { label: 'neon_life', syn: 'examples/neon_life/main.syn', out: 'demo/neon_life.sources.js', mode: 'single' },
+  { label: 'vibe_grid', syn: 'examples/vibe_grid/main.syn', out: 'demo/vibe_grid.sources.js', mode: 'single' },
 
   // Self-contained bundles (stdlib inlined)
   { label: 'bazaar', syn: 'examples/bazaar/main.syn', out: 'demo/bazaar.sources.js', mode: 'bundle' },
@@ -45,10 +45,10 @@ const DEMOS = [
   { label: 'dungeon', syn: 'examples/dungeon/main.syn', out: 'demo/dungeon.sources.js', mode: 'bundle' },
 
   // Runnable + source-viewer embed
-    { label: 'controls', syn: 'examples/controls.syn', out: 'demo/controls.synth.js', mode: 'single' },
-    { label: 'combat', syn: 'examples/combat.syn', out: 'demo/combat.synth.js', mode: 'single', embed: 'embed_combat.js' },
-    { label: 'music', syn: 'examples/music.syn', out: 'demo/music.synth.js', mode: 'single', embed: 'embed_music.js' },
-    { label: 'rpg', syn: 'examples/rpg.syn', out: 'demo/rpg.synth.js', mode: 'single', embed: 'embed_rpg.js' },
+  { label: 'controls', syn: 'examples/controls/main.syn', out: 'demo/controls.synth.js', mode: 'single' },
+  { label: 'combat', syn: 'examples/combat/main.syn', out: 'demo/combat.synth.js', mode: 'single', embed: 'embed_combat.js' },
+  { label: 'music', syn: 'examples/music/main.syn', out: 'demo/music.synth.js', mode: 'single', embed: 'embed_music.js' },
+  { label: 'rpg', syn: 'examples/rpg/main.syn', out: 'demo/rpg.synth.js', mode: 'single', embed: 'embed_rpg.js' },
 ]
 
 function lineDiff(before, after) {

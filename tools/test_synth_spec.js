@@ -19,12 +19,12 @@ function moduleOf(spec, file) {
 }
 
 // ── intent_router golden ───────────────────────────────────────────────────
-const router = specFromEntry(compiler, path.join(ROOT, 'examples/intent_router.syn'), { root: ROOT })
+const router = specFromEntry(compiler, path.join(ROOT, 'examples/intent_router/main.syn'), { root: ROOT })
 assert.strictEqual(router.synthSpecVersion, '0.1')
-assert.strictEqual(router.entry, 'examples/intent_router.syn')
+assert.strictEqual(router.entry, 'examples/intent_router/main.syn')
 assert.strictEqual(router.modules.length, 1)
 
-const rmod = moduleOf(router, 'examples/intent_router.syn')
+const rmod = moduleOf(router, 'examples/intent_router/main.syn')
 const route = rmod.functions.find((f) => f.name === 'route_intent')
 assert.ok(route, 'route_intent missing')
 assert.ok(route.likely.length >= 5, 'expected likely arms')
@@ -43,8 +43,8 @@ if (process.env.UPDATE_SPEC_GOLDEN === '1') {
 }
 
 // ── controls (constraints + @intent) ───────────────────────────────────────
-const controls = specFromEntry(compiler, path.join(ROOT, 'examples/controls.syn'), { root: ROOT })
-const cmod = moduleOf(controls, 'examples/controls.syn')
+const controls = specFromEntry(compiler, path.join(ROOT, 'examples/controls/main.syn'), { root: ROOT })
+const cmod = moduleOf(controls, 'examples/controls/main.syn')
 const withIntent = cmod.functions.filter((f) => f.intent)
 assert.ok(withIntent.length >= 1, 'controls should have @intent fns')
 assert.ok(cmod.types.some((t) => t.constraint), 'expected constrained type')
@@ -60,8 +60,8 @@ const totalFns = dungeon.modules.reduce((n, m) => n + m.functions.length, 0)
 assert.ok(totalFns >= 5, `expected several fns across dungeon, got ${totalFns}`)
 
 // ── -o path exercised via JSON round-trip of single-source helper ──────────
-const src = fs.readFileSync(path.join(ROOT, 'examples/intent_router.syn'), 'utf8')
-const fromSrc = specFromSource(compiler, src, { file: 'examples/intent_router.syn' })
+const src = fs.readFileSync(path.join(ROOT, 'examples/intent_router/main.syn'), 'utf8')
+const fromSrc = specFromSource(compiler, src, { file: 'examples/intent_router/main.syn' })
 assert.deepStrictEqual(fromSrc, router)
 
 console.log('ok  synth spec')

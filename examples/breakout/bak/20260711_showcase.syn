@@ -1,0 +1,417 @@
+// ═══════════════════════════════════════════════════════════════════════════════
+// NEON BREAKOUT — structural showcase twin
+// File: breakout_showcase.syn
+//
+// Same play-feel + host API as examples/breakout.syn.
+// Different shape: constant data in records/tables, physics as mutable records
+// (field updates in place — no per-bounce object spawn), and light `where`
+// contracts on scoring/level *boundaries* — not on every hot-path float.
+//
+// Host contract (demo/breakout.html):
+//   Game · tick · move_paddle · start_game · next_level
+//   get_ball · get_paddle · get_bricks · status_line
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Boundary contracts (validate at edges — not every physics write) ──────────
+
+type Score = int where >= 0
+type Level = int where >= 1
+
+// ── Domain records ────────────────────────────────────────────────────────────
+
+record Arena {
+  w: float
+  h: float
+}
+
+record BrickGrid {
+  cols:  int
+  rows:  int
+  gap:   float
+  brick_w: float
+  brick_h: float
+  origin_y: float
+}
+
+record PaddleSpec {
+  w: float
+  h: float
+  y: float
+}
+
+record BallSpec {
+  r:     float
+  speed: float
+}
+
+// Immutable look+pay for one brick row (replaces twin match tables).
+record RowStyle {
+  color:  string
+  points: int
+}
+
+record Ball {
+  x:  float
+  y:  float
+  vx: float
+  vy: float
+  r:  float
+}
+
+record Paddle {
+  x: float
+  y: float
+  w: float
+  h: float
+}
+
+// What the canvas paints for one live brick.
+record Brick {
+  x:     float
+  y:     float
+  w:     float
+  h:     float
+  color: string
+}
+
+// One collision candidate while scanning the grid.
+record BrickHit {
+  found: bool
+  row: int
+  col: int
+  from_bottom: bool
+}
+
+// ── Constant world (one place to tune the game) ───────────────────────────────
+
+let ARENA = { w: 800.0, h: 520.0 }
+
+let GRID = do {
+  let cols = 10
+  let rows = 6
+  let gap  = 5.0
+  let brick_w = (ARENA.w - (cols - 1) * gap) / cols
+  { cols: cols, rows: rows, gap: gap, brick_w: brick_w, brick_h: 22.0, origin_y: 60.0 }
+}
+
+let PADDLE_SPEC = { w: 100.0, h: 12.0, y: ARENA.h - 40.0 }
+let BALL_SPEC   = { r: 8.0, speed: 630.0 }
+
+// Index = row. Edit colors/scoring here — no parallel match arms to keep in sync.
+// (Untyped let: `RowStyle[]` on a top-level array literal currently hangs the checker.)
+let ROW_STYLES = [
+  { color: "#ff2d78", points: 60 },
+  { color: "#ff6e3a", points: 50 },
+  { color: "#ffd166", points: 40 },
+  { color: "#06d6a0", points: 30 },
+  { color: "#00e5ff", points: 20 },
+  { color: "#b84fff", points: 10 },
+]
+
+let LEVEL_SPEED_STEP = 0.12
+
+// ── Derived helpers over constant data ────────────────────────────────────────
+
+@pure @total
+@intent "Row style with safe fallback to the last band"
+fn row_style(row: int) -> RowStyle =
+  if row >= 0 and row < ROW_STYLES.length { ROW_STYLES[row] }
+  else { ROW_STYLES[ROW_STYLES.length - 1] }
+
+@pure @total
+fn row_color(row: int) -> string = row_style(row).color
+
+@pure @total
+fn row_points(row: int) -> Score = row_style(row).points
+
+@memo @pure @total
+fn brick_x(col: int) = col * (GRID.brick_w + GRID.gap)
+
+@memo @pure @total
+fn brick_y(row: int) = GRID.origin_y + row * (GRID.brick_h + GRID.gap)
+
+@pure @total
+fn brick_index(row: int, col: int) = row * GRID.cols + col
+
+@pure @total
+fn cell_count() = GRID.rows * GRID.cols
+
+@pure @total
+@intent "Level 1 = 1.0, each further level adds LEVEL_SPEED_STEP — Level is >= 1"
+fn speed_mult(level: Level) = 1.0 + (level - 1) * LEVEL_SPEED_STEP
+
+@pure @total
+fn fresh_bricks() = range(0, cell_count()).map(i => true)
+
+@pure @total
+@intent "Serve pose: centered above paddle, random vx sign, upward vy"
+fn serve_ball() -> Ball = {
+  x:  ARENA.w / 2,
+  y:  ARENA.h - 120,
+  vx: BALL_SPEC.speed * (random() > 0.5 ? 0.6 : 0 - 0.6),
+  vy: 0 - BALL_SPEC.speed * 0.8,
+  r:  BALL_SPEC.r
+}
+
+@pure @total
+fn centered_paddle() -> Paddle = {
+  x: (ARENA.w - PADDLE_SPEC.w) / 2,
+  y: PADDLE_SPEC.y,
+  w: PADDLE_SPEC.w,
+  h: PADDLE_SPEC.h
+}
+
+// ── Live session state ────────────────────────────────────────────────────────
+
+store Game {
+  score:  int    = 0
+  lives:  int    = 3
+  phase:  string = "title"
+  level:  int    = 1
+  hi:     int    = 0
+}
+
+// Physics bodies — mutable records (mutate fields in place each frame).
+let mut ball   = serve_ball()
+let mut paddle = centered_paddle()
+let bricks     = fresh_bricks()
+
+// ── Lifecycle ─────────────────────────────────────────────────────────────────
+
+fn copy_ball(from: Ball, into: Ball) {
+  into.x  = from.x
+  into.y  = from.y
+  into.vx = from.vx
+  into.vy = from.vy
+  into.r  = from.r
+}
+
+fn copy_paddle(from: Paddle, into: Paddle) {
+  into.x = from.x
+  into.y = from.y
+  into.w = from.w
+  into.h = from.h
+}
+
+fn reset_ball() {
+  copy_ball(serve_ball(), ball)
+}
+
+fn reset_bricks() {
+  bricks = fresh_bricks()
+}
+
+fn start_game() {
+  copy_ball(serve_ball(), ball)
+  copy_paddle(centered_paddle(), paddle)
+  bricks = fresh_bricks()
+  Game.set({ score: 0, lives: 3, phase: "playing", level: 1 })
+}
+
+fn next_level() {
+  copy_ball(serve_ball(), ball)
+  copy_paddle(centered_paddle(), paddle)
+  bricks = fresh_bricks()
+  Game.set({ phase: "playing", level: Game.level + 1 })
+}
+
+fn move_paddle(pointer_x: float) {
+  paddle.x = clamp(pointer_x - paddle.w / 2, 0, ARENA.w - paddle.w)
+}
+
+@intent "Add brick points — Score contract rejects negatives at the edge"
+fn award_points(pts: Score) {
+  let score = Game.score + pts
+  let hi    = score > Game.hi ? score : Game.hi
+  Game.set({ score: score, hi: hi })
+}
+
+fn alive_count() = bricks.count(alive => alive)
+
+// ── Collisions (operate on Ball / grid data) ──────────────────────────────────
+
+@pure @total
+@intent "First overlapping live brick (found=false if none)"
+fn find_brick_hit(b: Ball, field: bool[]) -> BrickHit =
+  do {
+    let mut hit = { found: false, row: 0 - 1, col: 0 - 1, from_bottom: false }
+    let r = 0
+    while r < GRID.rows {
+      let c = 0
+      while c < GRID.cols {
+        let idx = brick_index(r, c)
+        if field[idx] and not hit.found {
+          let bx = brick_x(c)
+          let by = brick_y(r)
+          let in_x = b.x + b.r > bx and b.x - b.r < bx + GRID.brick_w
+          let in_y = b.y + b.r > by and b.y - b.r < by + GRID.brick_h
+          if in_x and in_y {
+            hit.found = true
+            hit.row = r
+            hit.col = c
+            hit.from_bottom = b.y > by + GRID.brick_h / 2
+          }
+        }
+        c += 1
+      }
+      r += 1
+    }
+    hit
+  }
+
+fn apply_brick_hit(hit: BrickHit) {
+  let idx = brick_index(hit.row, hit.col)
+  bricks = set_at(bricks, idx, false)
+  ball.vy = hit.from_bottom ? abs(ball.vy) : 0 - abs(ball.vy)
+  award_points(row_points(hit.row))
+}
+
+fn check_brick_collisions() {
+  let hit = find_brick_hit(ball, bricks)
+  if hit.found { apply_brick_hit(hit) }
+}
+
+@intent "Wall bounce — mutates ball fields in place"
+fn bounce_walls() {
+  if ball.x - ball.r < 0 {
+    ball.x  = ball.r
+    ball.vx = abs(ball.vx)
+  }
+  if ball.x + ball.r > ARENA.w {
+    ball.x  = ARENA.w - ball.r
+    ball.vx = 0 - abs(ball.vx)
+  }
+  if ball.y - ball.r < 0 {
+    ball.y  = ball.r
+    ball.vy = abs(ball.vy)
+  }
+}
+
+@intent "Paddle response — same top-sweep + side logic, mutates ball"
+fn bounce_paddle(mult: float) {
+  let prev_vy = ball.vy
+  let on_x = ball.x + ball.r > paddle.x and ball.x - ball.r < paddle.x + paddle.w
+
+  if on_x and prev_vy > 0 and ball.y + ball.r >= paddle.y {
+    ball.y = paddle.y - ball.r
+    let hit_pos = clamp((ball.x - paddle.x) / paddle.w, 0.05, 0.95)
+    let angle   = (hit_pos - 0.5) * 1.8
+    let speed   = BALL_SPEC.speed * mult
+    ball.vx = speed * angle
+    ball.vy = 0 - sqrt(speed * speed - ball.vx * ball.vx)
+  }
+
+  let side_in_y = ball.y + ball.r > paddle.y and ball.y - ball.r < paddle.y + paddle.h
+  if on_x and side_in_y and prev_vy <= 0 {
+    let left_pen  = ball.x + ball.r - paddle.x
+    let right_pen = paddle.x + paddle.w + ball.r - ball.x
+    if left_pen < right_pen {
+      ball.x  = paddle.x - ball.r
+      ball.vx = 0 - abs(ball.vx)
+    } else {
+      ball.x  = paddle.x + paddle.w + ball.r
+      ball.vx = abs(ball.vx)
+    }
+  }
+}
+
+fn handle_ball_lost() {
+  if ball.y - ball.r > ARENA.h {
+    let lives = Game.lives - 1
+    if lives <= 0 {
+      Game.set({ lives: 0, phase: "gameover" })
+    } else {
+      Game.set({ lives: lives, phase: "ready" })
+      copy_ball(serve_ball(), ball)
+    }
+  }
+}
+
+// ── Frame tick ────────────────────────────────────────────────────────────────
+
+fn tick(dt: float) {
+  if Game.phase != "playing" { 0 } else {
+    let mult = speed_mult(Game.level)
+
+    ball.x += ball.vx * dt * mult
+    ball.y += ball.vy * dt * mult
+
+    bounce_walls()
+    bounce_paddle(mult)
+    check_brick_collisions()
+    handle_ball_lost()
+
+    if alive_count() == 0 {
+      Game.set({ phase: "levelup" })
+    }
+  }
+}
+
+// ── Host snapshots ────────────────────────────────────────────────────────────
+
+fn get_ball() = { x: ball.x, y: ball.y, r: ball.r }
+
+fn get_paddle() = { x: paddle.x, y: paddle.y, w: paddle.w, h: paddle.h }
+
+fn get_bricks() -> Brick[] =
+  range(0, GRID.rows)
+  |> flat_map(r =>
+    range(0, GRID.cols)
+    |> filter(c => bricks[brick_index(r, c)])
+    |> map(c => {
+      x: brick_x(c),
+      y: brick_y(r),
+      w: GRID.brick_w,
+      h: GRID.brick_h,
+      color: row_color(r)
+    })
+  )
+
+fn status_line() =
+  match Game.phase {
+    | "title"    => "PRESS SPACE OR CLICK TO START"
+    | "ready"    => "BALL LOST — PRESS SPACE TO CONTINUE"
+    | "levelup"  => "LEVEL CLEAR! PRESS SPACE FOR NEXT LEVEL"
+    | "gameover" => "GAME OVER — PRESS SPACE TO RETRY"
+    | _          => ""
+  }
+
+// ── Tests on the data tables / pure transforms ────────────────────────────────
+
+@test "ROW_STYLES has six bands" {
+  ROW_STYLES.length == 6
+}
+
+@test "row_points returns non-negative Score values" {
+  row_points(0) == 60 and row_points(5) == 10
+}
+
+@test "row 3 color is mint" {
+  row_color(3) == "#06d6a0"
+}
+
+@test "GRID brick width matches original formula" {
+  abs(GRID.brick_w - (800 - 9 * 5) / 10) < 0.0001
+}
+
+@test "brick_index row-major" {
+  brick_index(2, 3) == 23
+}
+
+@test "speed_mult accepts Level >= 1" {
+  speed_mult(1) == 1.0 and abs(speed_mult(3) - 1.24) < 0.0001
+}
+
+@test "bounce_walls left edge mutates in place" {
+  let mut b = { x: 0 - 1.0, y: 100.0, vx: 0 - 200.0, vy: 100.0, r: 8.0 }
+  // local mirror of bounce_walls logic for a pure unit check
+  if b.x - b.r < 0 {
+    b.x  = b.r
+    b.vx = abs(b.vx)
+  }
+  b.x == 8.0 and b.vx == 200.0
+}
+
+@test "fresh_bricks is full field" {
+  fresh_bricks().count(a => a) == 60
+}

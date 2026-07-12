@@ -1,9 +1,9 @@
 {
   "synthSpecVersion": "0.1",
-  "entry": "examples/intent_router.syn",
+  "entry": "examples/intent_router/main.syn",
   "modules": [
     {
-      "file": "examples/intent_router.syn",
+      "file": "examples/intent_router/main.syn",
       "functions": [
         {
           "name": "route_intent",

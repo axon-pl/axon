@@ -408,7 +408,7 @@
   <script src="synth.stdlib.js"></script>
   <script src="intent_router.sources.js"></script>
   <script>
-    // Must match likely claims in examples/intent_router.syn (codegen order).
+    // Must match likely claims in examples/intent_router/main.syn (codegen order).
     const CLAIMS = [
       { intent: 'greet',   claim: 'greeting hello hi hey' },
       { intent: 'help',    claim: 'help how do I docs documentation' },
@@ -567,13 +567,13 @@
 
     fetch('intent_router.syn').then(async (r) => {
       if (!r.ok) {
-        document.getElementById('src').textContent = '// See examples/intent_router.syn in the repo';
+        document.getElementById('src').textContent = '// See examples/intent_router/main.syn in the repo';
         return;
       }
       const src = await r.text();
       document.getElementById('src').innerHTML = highlight(src);
     }).catch(() => {
-      document.getElementById('src').textContent = '// See examples/intent_router.syn';
+      document.getElementById('src').textContent = '// See examples/intent_router/main.syn';
     });
 
     function highlight(src) {

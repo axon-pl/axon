@@ -5,7 +5,7 @@ const path = require('path')
 
 const root = path.resolve(__dirname, '..')
 
-const syn = fs.readFileSync(path.join(root, 'examples', 'music.syn'), 'utf8')
+const syn = fs.readFileSync(path.join(root, 'examples', 'music', 'main.syn'), 'utf8')
 const js  = fs.readFileSync(path.join(root, 'demo',     'music.synth.js'), 'utf8')
 
 const escape = s => s.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')

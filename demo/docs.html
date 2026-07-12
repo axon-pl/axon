@@ -2675,10 +2675,10 @@ npm install
 npm run build:toolchain
 
 # Transpile a source file
-synth examples/rpg.syn demo/rpg.synth.js
+synth examples/rpg/main.syn demo/rpg.synth.js
 
 # Run @test declarations
-synth --test examples/rpg.syn
+synth --test examples/rpg/main.syn
 `);
 
     setCode('hello-code', `
@@ -3228,11 +3228,11 @@ main()
 
     setCode('cli-code', `
 # Single-file transpile
-synth examples/rpg.syn demo/rpg.synth.js
+synth examples/rpg/main.syn demo/rpg.synth.js
 #   ✓ Transpiled rpg.syn → rpg.synth.js (bootstrap)
 
 # Run @test declarations  (auto-bundles if file has imports)
-synth --test examples/rpg.syn
+synth --test examples/rpg/main.syn
 #   Synth tests — rpg.syn
 #   ────────────────────────────────────────
 #   ✓ level_title: mage lv10 = Archmage
@@ -3253,13 +3253,13 @@ synth --fmt src/main.syn
 #   ✓  main.syn — formatted
 
 # Extract AI-queryable JSON  (v1.2.0)
-synth --spec examples/intent_router.syn
+synth --spec examples/intent_router/main.syn
 synth --spec examples/dungeon/main.syn -o dungeon.spec.json
 `);
 
     setCode('spec-cli-code', `
 # Single file → stdout
-synth --spec examples/intent_router.syn
+synth --spec examples/intent_router/main.syn
 
 # Multi-file entry (follows imports) → file
 synth --spec examples/dungeon/main.syn -o dungeon.spec.json
