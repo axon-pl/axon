@@ -253,14 +253,14 @@ fn command_menu(hero: any) -> any[] {
     ]
     | "mage" => [
       { id: "fight",  label: "Fight" },
-      { id: "magic",  label: "Magic" },
       { id: "defend", label: "Defend" },
+      { id: "magic",  label: "Magic" },
       { id: "item",   label: "Item" }
     ]
     | _ => [
       { id: "fight",  label: "Fight" },
-      { id: "skill",  label: "Skill" },
       { id: "defend", label: "Defend" },
+      { id: "skill",  label: "Skill" },
       { id: "item",   label: "Item" }
     ]
   }

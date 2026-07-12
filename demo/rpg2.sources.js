@@ -251,7 +251,7 @@ const advance_after_clear = () => start_encounter(Game.encounter + 1);
  * @param {*} hero
  * @returns {*}
  */
-const command_menu = (hero) => ((_m) => (_m === "knight") ? [{id: "fight", label: "Fight"}, {id: "defend", label: "Defend"}, {id: "guard", label: "Guard"}, {id: "item", label: "Item"}] : (_m === "mage") ? [{id: "fight", label: "Fight"}, {id: "magic", label: "Magic"}, {id: "defend", label: "Defend"}, {id: "item", label: "Item"}] : [{id: "fight", label: "Fight"}, {id: "skill", label: "Skill"}, {id: "defend", label: "Defend"}, {id: "item", label: "Item"}])(hero.heroClass);
+const command_menu = (hero) => ((_m) => (_m === "knight") ? [{id: "fight", label: "Fight"}, {id: "defend", label: "Defend"}, {id: "guard", label: "Guard"}, {id: "item", label: "Item"}] : (_m === "mage") ? [{id: "fight", label: "Fight"}, {id: "defend", label: "Defend"}, {id: "magic", label: "Magic"}, {id: "item", label: "Item"}] : [{id: "fight", label: "Fight"}, {id: "defend", label: "Defend"}, {id: "skill", label: "Skill"}, {id: "item", label: "Item"}])(hero.heroClass);
 
 const magic_menu = () => [{id: "fire", label: "Fire   8 MP"}, {id: "cure", label: "Cure   6 MP"}, {id: "bolt", label: "Arcane 10 MP"}, {id: "back", label: "← Back"}];
 
