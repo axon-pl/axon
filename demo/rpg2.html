@@ -1651,9 +1651,19 @@ function draw(dt) {
 let flashIdx = -1
 let flashUntil = 0
 let confirmAt = 0
+let menuHoverIdx = -1
 
 function assetsBlocking() {
   return !loadState.ready
+}
+
+function menuIndexAt(x, y, menuLen) {
+  if (menuLen <= 0) return -1
+  const hit = menuHit()
+  if (x < hit.x0 || x > hit.x1 || y < hit.y0) return -1
+  const idx = Math.floor((y - hit.y0) / hit.rowH)
+  if (idx < 0 || idx >= menuLen) return -1
+  return idx
 }
 
 function onConfirm() { if (!assetsBlocking() && !dipBlocking()) menu_confirm() }
@@ -1669,6 +1679,37 @@ document.addEventListener('keydown', e => {
   else if (e.code === 'Escape' || e.code === 'KeyX' || e.code === 'Backspace') { e.preventDefault(); onCancel() }
 })
 
+canvas.addEventListener('mousemove', e => {
+  if (assetsBlocking() || dipBlocking()) {
+    if (menuHoverIdx !== -1) menuHoverIdx = -1
+    return
+  }
+  const view = get_view()
+  const hud = hudLayout()
+  if (hud.compact || view.scene !== 'battle') {
+    if (menuHoverIdx !== -1) menuHoverIdx = -1
+    canvas.style.cursor = 'pointer'
+    return
+  }
+  if (view.phase !== 'hero_command' && view.phase !== 'hero_pick') {
+    if (menuHoverIdx !== -1) menuHoverIdx = -1
+    canvas.style.cursor = 'pointer'
+    return
+  }
+  const rect = canvas.getBoundingClientRect()
+  const x = (e.clientX - rect.left) * W / rect.width
+  const y = (e.clientY - rect.top) * H / rect.height
+  const menu = view.menu || []
+  const idx = menuIndexAt(x, y, menu.length)
+  menuHoverIdx = idx
+  canvas.style.cursor = idx >= 0 ? 'pointer' : 'default'
+})
+
+canvas.addEventListener('mouseleave', () => {
+  menuHoverIdx = -1
+  canvas.style.cursor = 'pointer'
+})
+
 canvas.addEventListener('click', e => {
   if (assetsBlocking() || confirmAt || dipBlocking()) return
   const view = get_view()
@@ -1680,15 +1721,12 @@ canvas.addEventListener('click', e => {
   const x = (e.clientX - rect.left) * W / rect.width
   const y = (e.clientY - rect.top) * H / rect.height
   const menu = view.menu || []
-  const hit = menuHit()
-  if (x >= hit.x0 && x <= hit.x1 && y >= hit.y0) {
-    const idx = Math.floor((y - hit.y0) / hit.rowH)
-    if (idx >= 0 && idx < menu.length) {
-      menu_set_index(idx)
-      flashIdx = idx
-      flashUntil = performance.now() + 160
-      confirmAt = performance.now() + 160
-    }
+  const idx = menuIndexAt(x, y, menu.length)
+  if (idx >= 0) {
+    menu_set_index(idx)
+    flashIdx = idx
+    flashUntil = performance.now() + 160
+    confirmAt = performance.now() + 160
   }
 })
 
