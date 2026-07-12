@@ -1562,11 +1562,9 @@ function updateDip(dt, live) {
   const key = sceneKey(live)
   if (dip.phase === 'idle') {
     if (dip.lastKey === null) {
-      // First frame: optional fade-in from black
+      // First ready frame: show title as-is (no fade-up from black after loading)
       dip.holdView = live
       dip.lastKey = key
-      dip.phase = 'in'
-      dip.t = 0
     } else if (key !== dip.lastKey) {
       dip.phase = 'out'
       dip.t = 0
