@@ -1360,13 +1360,13 @@ function drawBattle(view, dt) {
 // Menu geometry for click hit-testing (kept in sync with drawBattle / hudLayout)
 function menuHit() {
   const hud = hudLayout()
-  const boxH = Math.max(20, Math.round(hud.menuRowH * (20 / 22)))
+  const boxH = Math.max(20, Math.round(hud.menuRowH * (hud.compact ? 0.7 : 20 / 22)))
   const boxX = hud.compact ? hud.menuX + 14 : 24
   const boxW = hud.compact ? hud.menuW - 28 : 260
   return {
     x0: boxX,
     x1: boxX + boxW,
-    y0: hud.menuRow0 - Math.round(boxH * 0.7) - hud.menuHitPad,
+    y0: hud.menuRow0 - Math.round(boxH * (hud.compact ? 0.55 : 0.7)) - hud.menuHitPad,
     rowH: hud.menuRowH
   }
 }
