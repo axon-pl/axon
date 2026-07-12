@@ -130,6 +130,215 @@ function drawBar(x, y, w, h, ratio, color) {
   }
 }
 
+// ── Strike particles (sword / bow / magic) ────────────────────────────────────
+let particles = []
+let fxBeams = []
+let lastFxKey = ''
+
+function foeAnchor(i) {
+  return { x: 80 + (i % 2) * 110 + 35, y: 95 + Math.floor(i / 2) * 88 + 42 }
+}
+function heroAnchor(i) {
+  return { x: 655, y: 80 + i * 78 + 35 }
+}
+
+function pushSpark(x, y, vx, vy, life, size, color, shape) {
+  particles.push({ x, y, vx, vy, life, max: life, size, color, shape: shape || 'dot' })
+}
+
+function burstAt(cx, cy, n, colors, speed, shape) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2
+    const s = speed * (0.35 + Math.random() * 0.9)
+    pushSpark(cx, cy, Math.cos(a) * s, Math.sin(a) * s,
+      0.22 + Math.random() * 0.35,
+      1.5 + Math.random() * 3.5,
+      colors[i % colors.length],
+      shape)
+  }
+}
+
+function spawnStrikeFx(anim, party, foes) {
+  const kind = anim.kind
+  if (kind !== 'attack' && kind !== 'magic' && kind !== 'skill') return
+  const actor = Math.max(0, anim.actor | 0)
+  const target = Math.max(0, anim.target | 0)
+  const from = anim.side === 'enemy' ? foeAnchor(actor) : heroAnchor(actor)
+  const to = anim.side === 'enemy' ? heroAnchor(target) : foeAnchor(target)
+  const text = String(anim.text || '')
+
+  if (kind === 'attack') {
+    // Sword: slash arc + steel / gold sparks at impact
+    fxBeams.push({
+      style: 'slash', x0: from.x - 30, y0: from.y - 10, x1: to.x + 10, y1: to.y,
+      life: 0.28, max: 0.28, color: '#ffd166'
+    })
+    burstAt(to.x, to.y, 14, ['#ffd166', '#ffffff', '#ff9f43', '#e8e0ff'], 140, 'slash')
+    burstAt(to.x, to.y, 6, ['#ffffff', '#ffd166'], 60, 'dot')
+  } else if (kind === 'skill') {
+    // Bow: arrow streak(s) + green feather sparks
+    const rain = /rain/i.test(text)
+    const targets = rain
+      ? foes.map((e, i) => e && e.alive !== false ? i : -1).filter(i => i >= 0)
+      : [target]
+    if (targets.length === 0) targets.push(target)
+    targets.forEach((ti, n) => {
+      const hit = foeAnchor(ti)
+      const delay = n * 0.04
+      fxBeams.push({
+        style: 'arrow', x0: from.x - 20, y0: from.y, x1: hit.x, y1: hit.y,
+        life: 0.32, max: 0.32, color: '#06d6a0', delay
+      })
+      burstAt(hit.x, hit.y, 10, ['#06d6a0', '#7CFC9A', '#e8ffe8', '#00e5ff'], 120, 'feather')
+    })
+  } else if (kind === 'magic') {
+    // Magic: bolt beam + arcane orb burst
+    const fire = /fire/i.test(text)
+    const colors = fire
+      ? ['#ff2d78', '#ff9f43', '#ffd166', '#b84fff']
+      : ['#b84fff', '#00e5ff', '#ff2d78', '#e8e0ff']
+    fxBeams.push({
+      style: 'bolt', x0: from.x - 20, y0: from.y, x1: to.x, y1: to.y,
+      life: 0.36, max: 0.36, color: colors[0]
+    })
+    burstAt(to.x, to.y, 18, colors, 160, 'star')
+    for (let i = 0; i < 8; i++) {
+      const a = (Math.PI * 2 * i) / 8
+      pushSpark(to.x, to.y, Math.cos(a) * 40, Math.sin(a) * 40, 0.4, 4, colors[i % colors.length], 'orb')
+    }
+  }
+}
+
+function syncStrikeFx(anim, party, foes) {
+  const key = anim.kind === 'none' ? '' :
+    [anim.kind, anim.side, anim.actor, anim.target, anim.amount, anim.text].join('|')
+  if (key && key !== lastFxKey) {
+    lastFxKey = key
+    spawnStrikeFx(anim, party, foes)
+  }
+  if (!key) lastFxKey = ''
+}
+
+function updateStrikeFx(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i]
+    p.life -= dt
+    p.x += p.vx * dt
+    p.y += p.vy * dt
+    p.vx *= 0.92
+    p.vy *= 0.92
+    if (p.shape === 'orb') p.vy -= 20 * dt
+    if (p.life <= 0) particles.splice(i, 1)
+  }
+  for (let i = fxBeams.length - 1; i >= 0; i--) {
+    const b = fxBeams[i]
+    if (b.delay > 0) { b.delay -= dt; continue }
+    b.life -= dt
+    if (b.life <= 0) fxBeams.splice(i, 1)
+  }
+}
+
+function drawStrikeFx() {
+  fxBeams.forEach(b => {
+    if (b.delay > 0) return
+    const t = Math.max(0, b.life / b.max)
+    ctx.save()
+    ctx.globalAlpha = Math.min(1, t * 1.4)
+    ctx.strokeStyle = b.color
+    ctx.shadowColor = b.color
+    ctx.shadowBlur = 12
+    if (b.style === 'slash') {
+      ctx.lineWidth = 3 + (1 - t) * 2
+      ctx.beginPath()
+      const mx = (b.x0 + b.x1) / 2
+      const my = (b.y0 + b.y1) / 2 - 40 * t
+      ctx.moveTo(b.x0, b.y0)
+      ctx.quadraticCurveTo(mx, my, b.x1, b.y1)
+      ctx.stroke()
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 1.2
+      ctx.stroke()
+    } else if (b.style === 'arrow') {
+      const prog = 1 - t
+      const x = b.x0 + (b.x1 - b.x0) * Math.min(1, prog * 1.35)
+      const y = b.y0 + (b.y1 - b.y0) * Math.min(1, prog * 1.35)
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(b.x0, b.y0)
+      ctx.lineTo(x, y)
+      ctx.stroke()
+      // arrowhead
+      const ang = Math.atan2(b.y1 - b.y0, b.x1 - b.x0)
+      ctx.fillStyle = b.color
+      ctx.beginPath()
+      ctx.moveTo(x, y)
+      ctx.lineTo(x - Math.cos(ang - 0.4) * 10, y - Math.sin(ang - 0.4) * 10)
+      ctx.lineTo(x - Math.cos(ang + 0.4) * 10, y - Math.sin(ang + 0.4) * 10)
+      ctx.closePath()
+      ctx.fill()
+    } else if (b.style === 'bolt') {
+      ctx.lineWidth = 2.5
+      ctx.beginPath()
+      let x = b.x0, y = b.y0
+      ctx.moveTo(x, y)
+      const steps = 6
+      for (let s = 1; s <= steps; s++) {
+        const p = s / steps
+        const nx = b.x0 + (b.x1 - b.x0) * p
+        const ny = b.y0 + (b.y1 - b.y0) * p + Math.sin(p * 18 + b.life * 30) * 8 * (1 - p)
+        ctx.lineTo(nx, ny)
+      }
+      ctx.stroke()
+      ctx.fillStyle = b.color
+      ctx.globalAlpha = t
+      ctx.beginPath()
+      ctx.arc(b.x1, b.y1, 6 + (1 - t) * 10, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.restore()
+  })
+
+  particles.forEach(p => {
+    const a = Math.max(0, p.life / p.max)
+    ctx.save()
+    ctx.globalAlpha = a
+    ctx.fillStyle = p.color
+    ctx.shadowColor = p.color
+    ctx.shadowBlur = 8
+    if (p.shape === 'slash') {
+      ctx.translate(p.x, p.y)
+      ctx.rotate(Math.atan2(p.vy, p.vx))
+      ctx.fillRect(-p.size * 2, -p.size * 0.35, p.size * 4, p.size * 0.7)
+    } else if (p.shape === 'feather') {
+      ctx.beginPath()
+      ctx.ellipse(p.x, p.y, p.size * 1.6, p.size * 0.6, Math.atan2(p.vy, p.vx), 0, Math.PI * 2)
+      ctx.fill()
+    } else if (p.shape === 'star') {
+      ctx.translate(p.x, p.y)
+      ctx.rotate(a * 6)
+      ctx.beginPath()
+      for (let i = 0; i < 4; i++) {
+        const ang = (i * Math.PI) / 2
+        ctx.lineTo(Math.cos(ang) * p.size * 2, Math.sin(ang) * p.size * 2)
+        ctx.lineTo(Math.cos(ang + Math.PI / 4) * p.size * 0.5, Math.sin(ang + Math.PI / 4) * p.size * 0.5)
+      }
+      ctx.closePath()
+      ctx.fill()
+    } else if (p.shape === 'orb') {
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size * a, 0, Math.PI * 2)
+      ctx.fill()
+    } else {
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size * a, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.restore()
+  })
+  ctx.shadowBlur = 0
+  ctx.globalAlpha = 1
+}
+
 function drawSilhouette(x, y, w, h, color, kind) {
   ctx.save()
   ctx.shadowColor = color
@@ -260,6 +469,9 @@ function drawBattle(view, dt) {
 
   // Enemies left
   const foes = view.foes || []
+  const party = view.party || []
+  syncStrikeFx(anim, party, foes)
+  updateStrikeFx(typeof dt === 'number' ? dt : 1 / 60)
   const foeHitKinds = { attack: 1, magic: 1, skill: 1 }
   foes.forEach((e, i) => {
     if (!e.alive && !(anim.side === 'hero' && foeHitKinds[anim.kind] && anim.target === i && anim.timer > 0)) return
@@ -285,7 +497,6 @@ function drawBattle(view, dt) {
   })
 
   // Party right
-  const party = view.party || []
   const allyFxKinds = { heal: 1, item: 1, defend: 1, guard: 1 }
   party.forEach((h, i) => {
     const shake = anim.side === 'enemy' && anim.target === i ? pulse : 0
@@ -322,6 +533,9 @@ function drawBattle(view, dt) {
       ctx.fillText('+' + anim.amount, x + 35, y - 10)
     }
   })
+
+  // Strike FX over the field, under the HUD
+  drawStrikeFx()
 
   // Battle log — bottom strip above menus (moved off the field)
   drawPanel(16, 308, 768, 28, 'rgba(10,6,24,0.85)', 'rgba(255,209,102,0.35)')
