@@ -189,6 +189,13 @@
         </div>
         <button type="button" id="btnApplyBox">Apply to selected detect box</button>
         <button type="button" id="btnAddSelected">Add selected → timeline</button>
+        <div class="row" style="margin-top:4px">
+          <button type="button" id="btnDupDetect" title="Clone selected box to the right">Duplicate →</button>
+          <button type="button" id="btnSplitDetect" title="Split selected box into left + right halves">Split ↔</button>
+          <button type="button" id="btnNewDetect" title="Add a blank detect box">New box</button>
+          <button type="button" class="danger" id="btnDelDetect">Delete box</button>
+        </div>
+        <p class="hint" style="margin:4px 0 0">Merged two sprites? Shrink one side, then <b>Duplicate →</b> and nudge the copy onto the leftover. Or <b>Split ↔</b>, or Shift-drag on the sheet to draw a new box.</p>
       </div>
 
       <div class="card">
@@ -199,7 +206,7 @@
   </div>
 
   <footer>
-    <span>Left-click frame = append · right-click = select for nudge · drag timeline to reorder · Del removes · Space play/pause</span>
+    <span>Left-click = append · right-click = select · Shift-drag = new box · Duplicate/Split for merged frames · Del = timeline · Space = play</span>
     <span id="footerStatus"></span>
   </footer>
 </div>
@@ -230,6 +237,8 @@
   let playAcc = 0
   let lastTs = 0
   let dragTlFrom = -1
+  /** @type {null | {x0:number,y0:number,x1:number,y1:number}} */
+  let drawMarquee = null
 
   /**
    * @typedef {{
@@ -528,6 +537,31 @@
       sheetCtx.fillStyle = sel ? '#12141a' : '#5cff9d'
       sheetCtx.fillText(label, b.x + 3, b.y + 11)
     })
+    if (drawMarquee) {
+      const x = Math.min(drawMarquee.x0, drawMarquee.x1)
+      const y = Math.min(drawMarquee.y0, drawMarquee.y1)
+      const w = Math.abs(drawMarquee.x1 - drawMarquee.x0)
+      const h = Math.abs(drawMarquee.y1 - drawMarquee.y0)
+      sheetCtx.strokeStyle = '#7eb8ff'
+      sheetCtx.setLineDash([4, 3])
+      sheetCtx.lineWidth = 1
+      sheetCtx.strokeRect(x + 0.5, y + 0.5, Math.max(0, w - 1), Math.max(0, h - 1))
+      sheetCtx.setLineDash([])
+    }
+  }
+
+  function commitDetectBoxes() {
+    active().detectBoxes = detectBoxes.map((b) => ({ ...b }))
+    updateDetectStatus()
+    redrawAll()
+  }
+
+  function insertDetectBox(box, afterIndex) {
+    const at = afterIndex >= 0 ? afterIndex + 1 : detectBoxes.length
+    detectBoxes.splice(at, 0, { ...box })
+    selectedDetect = at
+    commitDetectBoxes()
+    setFooter(`Detect box ${at} added — nudge x/y/w/h if needed`)
   }
 
   function renderTimeline() {
@@ -806,7 +840,8 @@
 
   // ── Events ──────────────────────────────────────────────────────────────
   sheetCanvas.addEventListener('click', (ev) => {
-    if (!sheetImg) return
+    if (!sheetImg || drawMarquee) return
+    if (ev.shiftKey) return
     const { x, y } = canvasCoords(ev)
     const i = hitTestBox(x, y)
     if (i < 0) return
@@ -824,10 +859,39 @@
     drawSheet()
   })
 
-  sheetCanvas.addEventListener('mousemove', (ev) => {
-    if (!sheetImg) return
+  sheetCanvas.addEventListener('mousedown', (ev) => {
+    if (!sheetImg || !ev.shiftKey || ev.button !== 0) return
+    ev.preventDefault()
     const { x, y } = canvasCoords(ev)
-    sheetCanvas.style.cursor = hitTestBox(x, y) >= 0 ? 'pointer' : 'crosshair'
+    drawMarquee = { x0: x, y0: y, x1: x, y1: y }
+    drawSheet()
+  })
+  window.addEventListener('mousemove', (ev) => {
+    if (!drawMarquee) {
+      if (!sheetImg) return
+      const rect = sheetCanvas.getBoundingClientRect()
+      if (ev.clientX < rect.left || ev.clientY < rect.top || ev.clientX > rect.right || ev.clientY > rect.bottom) return
+      const { x, y } = canvasCoords(ev)
+      sheetCanvas.style.cursor = ev.shiftKey ? 'crosshair' : (hitTestBox(x, y) >= 0 ? 'pointer' : 'crosshair')
+      return
+    }
+    const { x, y } = canvasCoords(ev)
+    drawMarquee.x1 = x
+    drawMarquee.y1 = y
+    drawSheet()
+  })
+  window.addEventListener('mouseup', (ev) => {
+    if (!drawMarquee) return
+    const x = Math.round(Math.min(drawMarquee.x0, drawMarquee.x1))
+    const y = Math.round(Math.min(drawMarquee.y0, drawMarquee.y1))
+    const w = Math.round(Math.abs(drawMarquee.x1 - drawMarquee.x0))
+    const h = Math.round(Math.abs(drawMarquee.y1 - drawMarquee.y0))
+    drawMarquee = null
+    if (w >= 4 && h >= 4) {
+      insertDetectBox({ x, y, w, h }, selectedDetect)
+    } else {
+      drawSheet()
+    }
   })
 
   $('dropZone').addEventListener('click', () => $('fileInput').click())
@@ -927,12 +991,61 @@
       w: Math.max(1, +$('boxW').value),
       h: Math.max(1, +$('boxH').value),
     }
-    active().detectBoxes = detectBoxes.map((b) => ({ ...b }))
-    redrawAll()
+    commitDetectBoxes()
   })
   $('btnAddSelected').addEventListener('click', () => {
     if (selectedDetect < 0 || !detectBoxes[selectedDetect]) return
     appendTimelineBox(detectBoxes[selectedDetect])
+  })
+  $('btnDupDetect').addEventListener('click', () => {
+    if (selectedDetect < 0 || !detectBoxes[selectedDetect]) {
+      setFooter('Right-click a detect box first')
+      return
+    }
+    const src = detectBoxes[selectedDetect]
+    const gap = Math.max(2, +$('mergeGap').value || 2)
+    insertDetectBox({
+      x: src.x + src.w + gap,
+      y: src.y,
+      w: src.w,
+      h: src.h,
+    }, selectedDetect)
+  })
+  $('btnSplitDetect').addEventListener('click', () => {
+    if (selectedDetect < 0 || !detectBoxes[selectedDetect]) {
+      setFooter('Right-click a detect box first')
+      return
+    }
+    const src = detectBoxes[selectedDetect]
+    if (src.w < 8) {
+      setFooter('Box too narrow to split')
+      return
+    }
+    const leftW = Math.floor(src.w / 2)
+    const rightW = src.w - leftW
+    detectBoxes[selectedDetect] = { x: src.x, y: src.y, w: leftW, h: src.h }
+    insertDetectBox({ x: src.x + leftW, y: src.y, w: rightW, h: src.h }, selectedDetect)
+  })
+  $('btnNewDetect').addEventListener('click', () => {
+    if (!sheetImg) {
+      setFooter('Load a sheet first')
+      return
+    }
+    const w = Math.max(24, +$('minW').value || 24)
+    const h = Math.max(24, +$('minH').value || 24)
+    const base = detectBoxes[selectedDetect]
+    insertDetectBox({
+      x: base ? base.x + base.w + 4 : 8,
+      y: base ? base.y : 8,
+      w,
+      h,
+    }, selectedDetect)
+  })
+  $('btnDelDetect').addEventListener('click', () => {
+    if (selectedDetect < 0 || !detectBoxes[selectedDetect]) return
+    detectBoxes.splice(selectedDetect, 1)
+    if (selectedDetect >= detectBoxes.length) selectedDetect = detectBoxes.length - 1
+    commitDetectBoxes()
   })
 
   $('btnPlay').addEventListener('click', () => {
