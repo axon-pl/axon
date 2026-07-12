@@ -809,6 +809,8 @@ function drawSilhouette(x, y, w, h, color, kind) {
     ctx.lineTo(w * 0.86, h * 0.54)
     ctx.closePath(); fill()
   } else if (kind === 'wyrm' || kind === 'boss') {
+    ctx.fillStyle = color
+    ctx.strokeStyle = color
     // Shadow Wyrm — coiled body, wings, horned head, tail
     // body coil
     ctx.beginPath()
@@ -874,6 +876,8 @@ function drawSilhouette(x, y, w, h, color, kind) {
       ctx.closePath(); fill()
     }
   } else {
+    ctx.fillStyle = color
+    ctx.strokeStyle = color
     // generic foe fallback
     ctx.beginPath()
     ctx.ellipse(w * 0.5, h * 0.55, w * 0.32, h * 0.32, 0, 0, Math.PI * 2); fill()
