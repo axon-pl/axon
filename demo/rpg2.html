@@ -228,6 +228,22 @@ const ASSET_BASE = 'assets/rpg2/'
 let partyMeta = null
 let enemyMeta = null
 let spritesReady = false
+let loadState = {
+  ready: false,
+  failed: false,
+  done: 0,
+  total: 1,
+  t: 0,
+  fade: 1
+}
+
+function loadProgress() {
+  return Math.max(0, Math.min(1, loadState.done / Math.max(1, loadState.total)))
+}
+
+function bumpLoad() {
+  loadState.done++
+}
 const heroSheets = {}   // id -> keyed canvas
 const enemySheets = {}  // id -> keyed canvas
 const heroPortraits = {} // id -> Image
@@ -308,34 +324,170 @@ async function loadPartyAssets() {
     ])
     partyMeta = await partyRes.json()
     enemyMeta = await enemyRes.json()
+    bumpLoad()
+
     const chroma = partyMeta.chroma || enemyMeta.chroma || { r: 240, g: 4, b: 218, tolerance: 140 }
     const heroes = partyMeta.heroes || {}
-    await Promise.all(Object.keys(heroes).map(async id => {
-      const h = heroes[id]
-      const sheet = await loadImage(ASSET_BASE + h.sheet)
-      heroSheets[id] = chromaKeyToCanvas(sheet, chroma)
-      if (h.portrait) {
-        heroPortraits[id] = await loadImage(ASSET_BASE + h.portrait)
-      }
-      heroAnim[id] = { name: 'idle', frame: 0, timer: 0, oneShot: false }
-    }))
     const enemies = enemyMeta.enemies || {}
-    const enemyChroma = enemyMeta.chroma || chroma
-    await Promise.all(Object.keys(enemies).map(async id => {
-      const e = enemies[id]
-      const sheet = await loadImage(ASSET_BASE + e.sheet)
-      enemySheets[id] = chromaKeyToCanvas(sheet, e.chroma || enemyChroma)
-    }))
     const bgs = partyMeta.backgrounds || {}
-    await Promise.all(Object.keys(bgs).map(async k => {
-      const file = bgs[k]
-      if (!battleBgs[file]) battleBgs[file] = await loadImage(ASSET_BASE + file)
-    }))
+
+    const jobs = []
+    Object.keys(heroes).forEach(id => {
+      const h = heroes[id]
+      jobs.push({ kind: 'hero', id, sheet: h.sheet, portrait: h.portrait || null })
+    })
+    Object.keys(enemies).forEach(id => {
+      const e = enemies[id]
+      jobs.push({ kind: 'enemy', id, sheet: e.sheet, chroma: e.chroma || null })
+    })
+    Object.keys(bgs).forEach(k => {
+      jobs.push({ kind: 'bg', file: bgs[k] })
+    })
+    // json pair already counted as 1; each job is one (sheet) or two (sheet+portrait) units
+    loadState.total = 1 + jobs.reduce((n, j) => n + (j.kind === 'hero' && j.portrait ? 2 : 1), 0)
+    loadState.done = 1
+
+    const enemyChroma = enemyMeta.chroma || chroma
+    for (const job of jobs) {
+      if (job.kind === 'hero') {
+        const sheet = await loadImage(ASSET_BASE + job.sheet)
+        heroSheets[job.id] = chromaKeyToCanvas(sheet, chroma)
+        bumpLoad()
+        if (job.portrait) {
+          heroPortraits[job.id] = await loadImage(ASSET_BASE + job.portrait)
+          bumpLoad()
+        }
+        heroAnim[job.id] = { name: 'idle', frame: 0, timer: 0, oneShot: false }
+      } else if (job.kind === 'enemy') {
+        const sheet = await loadImage(ASSET_BASE + job.sheet)
+        enemySheets[job.id] = chromaKeyToCanvas(sheet, job.chroma || enemyChroma)
+        bumpLoad()
+      } else if (job.kind === 'bg') {
+        if (!battleBgs[job.file]) battleBgs[job.file] = await loadImage(ASSET_BASE + job.file)
+        bumpLoad()
+      }
+    }
     spritesReady = true
+    loadState.ready = true
   } catch (err) {
     console.warn('rpg2 assets:', err)
     spritesReady = false
+    loadState.failed = true
+    loadState.ready = true
   }
+}
+
+function drawLoadingScreen(dt) {
+  loadState.t += dt
+  const t = loadState.t
+  const compact = isCompactUi()
+
+  // Void
+  ctx.fillStyle = '#07071a'
+  ctx.fillRect(0, 0, W, H)
+
+  // Soft vignette glow
+  const glow = ctx.createRadialGradient(W * 0.5, H * 0.42, 20, W * 0.5, H * 0.42, W * 0.55)
+  glow.addColorStop(0, 'rgba(184,79,255,0.18)')
+  glow.addColorStop(0.45, 'rgba(0,229,255,0.06)')
+  glow.addColorStop(1, 'rgba(7,7,26,0)')
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, W, H)
+
+  // Perspective grid floor
+  const horizon = compact ? H * 0.38 : H * 0.42
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(0, horizon, W, H - horizon)
+  ctx.clip()
+  ctx.strokeStyle = 'rgba(0,229,255,0.22)'
+  ctx.lineWidth = 1
+  const scroll = (t * 48) % 36
+  for (let i = 0; i < 18; i++) {
+    const y = horizon + 8 + i * 28 + scroll * 0.35
+    if (y > H) continue
+    const depth = (y - horizon) / (H - horizon)
+    ctx.globalAlpha = 0.12 + depth * 0.45
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(W, y)
+    ctx.stroke()
+  }
+  ctx.globalAlpha = 1
+  const vanishX = W * 0.5
+  for (let i = -10; i <= 10; i++) {
+    const x0 = vanishX + i * 18
+    const x1 = vanishX + i * 70
+    ctx.globalAlpha = 0.08 + Math.abs(i) * 0.01
+    ctx.beginPath()
+    ctx.moveTo(vanishX, horizon)
+    ctx.lineTo(x1, H + 20)
+    ctx.stroke()
+  }
+  ctx.restore()
+  ctx.globalAlpha = 1
+
+  // Horizon line
+  ctx.strokeStyle = 'rgba(255,45,120,0.45)'
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(40, horizon)
+  ctx.lineTo(W - 40, horizon)
+  ctx.stroke()
+
+  // Floating motes
+  for (let i = 0; i < 14; i++) {
+    const px = ((i * 97 + t * (18 + (i % 5) * 7)) % (W + 40)) - 20
+    const py = horizon - 30 - ((i * 53 + t * 22) % (horizon - 40))
+    const a = 0.25 + 0.35 * Math.sin(t * 2.2 + i)
+    ctx.fillStyle = i % 2 ? `rgba(0,229,255,${a})` : `rgba(255,209,102,${a})`
+    ctx.fillRect(px, py, 2 + (i % 3), 2 + (i % 3))
+  }
+
+  // Title
+  ctx.textAlign = 'center'
+  ctx.fillStyle = '#ffd166'
+  ctx.font = 'bold ' + (compact ? 34 : 40) + 'px Courier New'
+  ctx.shadowColor = '#ffd166'
+  ctx.shadowBlur = 16 + Math.sin(t * 2.5) * 6
+  ctx.fillText('SYNTH FANTASY', W / 2, horizon - (compact ? 70 : 78))
+  ctx.shadowBlur = 0
+
+  ctx.fillStyle = '#e8e0ff'
+  ctx.font = (compact ? 14 : 13) + 'px Courier New'
+  ctx.fillText(loadState.failed ? 'Asset load failed — continuing anyway' : 'Summoning the party…', W / 2, horizon - (compact ? 36 : 42))
+
+  // Progress bar
+  const barW = compact ? 320 : 360
+  const barH = compact ? 14 : 12
+  const barX = (W - barW) / 2
+  const barY = horizon + (compact ? 36 : 28)
+  const p = loadState.failed ? 1 : loadProgress()
+  ctx.fillStyle = 'rgba(16,16,40,0.95)'
+  roundRect(barX, barY, barW, barH, 4)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(0,229,255,0.45)'
+  ctx.lineWidth = 1.5
+  roundRect(barX, barY, barW, barH, 4)
+  ctx.stroke()
+  if (p > 0) {
+    const fill = ctx.createLinearGradient(barX, 0, barX + barW, 0)
+    fill.addColorStop(0, '#b84fff')
+    fill.addColorStop(0.55, '#00e5ff')
+    fill.addColorStop(1, '#ff2d78')
+    ctx.fillStyle = fill
+    const inner = Math.max(4, (barW - 4) * p)
+    roundRect(barX + 2, barY + 2, inner, barH - 4, 3)
+    ctx.fill()
+  }
+
+  // Pulse tip
+  const pulse = 0.55 + Math.sin(t * 3.2) * 0.45
+  ctx.globalAlpha = pulse
+  ctx.fillStyle = '#00e5ff'
+  ctx.font = (compact ? 13 : 12) + 'px Courier New'
+  ctx.fillText(loadState.ready ? 'Ready' : Math.round(p * 100) + '%', W / 2, barY + (compact ? 36 : 32))
+  ctx.globalAlpha = 1
 }
 
 function heroSpriteId(h) {
@@ -1462,24 +1614,39 @@ function dipAlpha() {
 
 function draw(dt) {
   syncCanvasSize()
+  if (!loadState.ready) {
+    drawLoadingScreen(dt)
+    return
+  }
+  if (loadState.fade > 0) {
+    loadState.fade = Math.max(0, loadState.fade - dt * 1.5)
+  }
   const live = get_view()
   updateDip(dt, live)
   const under = (dip.phase === 'out' && dip.holdView) ? dip.holdView : live
   drawScene(under, dt)
   drawDipOverlay(dipAlpha())
+  if (loadState.fade > 0.001) {
+    ctx.fillStyle = `rgba(7,7,26,${Math.min(1, loadState.fade)})`
+    ctx.fillRect(0, 0, W, H)
+  }
 }
 
 let flashIdx = -1
 let flashUntil = 0
 let confirmAt = 0
 
-function onConfirm() { if (!dipBlocking()) menu_confirm() }
-function onCancel() { if (!dipBlocking()) menu_cancel() }
-function onUp() { if (!dipBlocking()) menu_move(-1) }
-function onDown() { if (!dipBlocking()) menu_move(1) }
+function assetsBlocking() {
+  return !loadState.ready || loadState.fade > 0.55
+}
+
+function onConfirm() { if (!assetsBlocking() && !dipBlocking()) menu_confirm() }
+function onCancel() { if (!assetsBlocking() && !dipBlocking()) menu_cancel() }
+function onUp() { if (!assetsBlocking() && !dipBlocking()) menu_move(-1) }
+function onDown() { if (!assetsBlocking() && !dipBlocking()) menu_move(1) }
 
 document.addEventListener('keydown', e => {
-  if (confirmAt || dipBlocking()) return
+  if (assetsBlocking() || confirmAt || dipBlocking()) return
   if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); onUp() }
   else if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); onDown() }
   else if (e.code === 'Enter' || e.code === 'KeyZ' || e.code === 'Space') { e.preventDefault(); onConfirm() }
@@ -1487,7 +1654,7 @@ document.addEventListener('keydown', e => {
 })
 
 canvas.addEventListener('click', e => {
-  if (confirmAt || dipBlocking()) return
+  if (assetsBlocking() || confirmAt || dipBlocking()) return
   const view = get_view()
   if (view.scene !== 'battle') { onConfirm(); return }
   if (view.phase === 'battle_clear') { onConfirm(); return }
@@ -1514,22 +1681,21 @@ function loop(now) {
   const dt = Math.min((now - prev) / 1000, 0.05)
   prev = now
   if (confirmAt && now >= confirmAt) {
-    if (dipBlocking()) {
-      // Wait until the dip finishes before confirming
+    if (assetsBlocking() || dipBlocking()) {
+      // Wait until loading / dip finishes before confirming
     } else {
       confirmAt = 0
       menu_confirm()
     }
   }
-  if (!dipBlocking()) tick(dt)
+  if (loadState.ready && !dipBlocking()) tick(dt)
   draw(dt)
   requestAnimationFrame(loop)
 }
-loadPartyAssets().finally(() => {
-  syncCanvasSize()
-  window.addEventListener('resize', syncCanvasSize)
-  requestAnimationFrame(loop)
-})
+syncCanvasSize()
+window.addEventListener('resize', syncCanvasSize)
+loadPartyAssets()
+requestAnimationFrame(loop)
 </script>
 </body>
 </html>
