@@ -225,12 +225,14 @@ function drawBar(x, y, w, h, ratio, color) {
 
 // ── Party sprites / portraits / battle backgrounds ───────────────────────────
 const ASSET_BASE = 'assets/rpg2/'
+const TITLE_BG = 'plains.jpg'
 let partyMeta = null
 let enemyMeta = null
 let spritesReady = false
 let loadState = {
   ready: false,
   failed: false,
+  plainsReady: false,
   done: 0,
   total: 1,
   t: 0,
@@ -316,8 +318,40 @@ function chromaKeyToCanvas(img, chroma) {
   return c
 }
 
+let titleBgPromise = null
+
+function drawCoverImage(img) {
+  if (!img) return false
+  const iw = img.naturalWidth || img.width
+  const ih = img.naturalHeight || img.height
+  if (!iw || !ih) return false
+  const scale = Math.max(W / iw, H / ih)
+  const dw = iw * scale
+  const dh = ih * scale
+  ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh)
+  return true
+}
+
+function preloadTitleBackground() {
+  if (battleBgs[TITLE_BG]) {
+    loadState.plainsReady = true
+    return Promise.resolve(battleBgs[TITLE_BG])
+  }
+  if (titleBgPromise) return titleBgPromise
+  titleBgPromise = loadImage(ASSET_BASE + TITLE_BG).then(img => {
+    battleBgs[TITLE_BG] = img
+    loadState.plainsReady = true
+    return img
+  })
+  return titleBgPromise
+}
+
 async function loadPartyAssets() {
   try {
+    // Title plains first — loading screen can show the real scene immediately
+    await preloadTitleBackground()
+    bumpLoad()
+
     const [partyRes, enemyRes] = await Promise.all([
       fetch(ASSET_BASE + 'party.json'),
       fetch(ASSET_BASE + 'enemies.json')
@@ -341,11 +375,14 @@ async function loadPartyAssets() {
       jobs.push({ kind: 'enemy', id, sheet: e.sheet, chroma: e.chroma || null })
     })
     Object.keys(bgs).forEach(k => {
-      jobs.push({ kind: 'bg', file: bgs[k] })
+      const file = bgs[k]
+      // plains already preloaded for the opening
+      if (file === TITLE_BG && battleBgs[file]) return
+      jobs.push({ kind: 'bg', file })
     })
-    // json pair already counted as 1; each job is one (sheet) or two (sheet+portrait) units
-    loadState.total = 1 + jobs.reduce((n, j) => n + (j.kind === 'hero' && j.portrait ? 2 : 1), 0)
-    loadState.done = 1
+    // plains + json pair counted; remaining jobs follow
+    loadState.total = 2 + jobs.reduce((n, j) => n + (j.kind === 'hero' && j.portrait ? 2 : 1), 0)
+    loadState.done = 2
 
     const enemyChroma = enemyMeta.chroma || chroma
     for (const job of jobs) {
@@ -381,116 +418,65 @@ function drawLoadingScreen(dt) {
   loadState.t += dt
   const t = loadState.t
   const compact = isCompactUi()
-  const horizon = compact ? H * 0.52 : H * 0.55
 
-  // Dusk sky — deep indigo into soft violet-grey
-  const sky = ctx.createLinearGradient(0, 0, 0, H)
-  sky.addColorStop(0, '#0c1024')
-  sky.addColorStop(0.35, '#1a1a38')
-  sky.addColorStop(0.62, '#2a2438')
-  sky.addColorStop(1, '#121018')
-  ctx.fillStyle = sky
+  // Real plains as soon as it arrives; dusk fallback before that
+  if (!drawCoverImage(battleBgs[TITLE_BG])) {
+    const sky = ctx.createLinearGradient(0, 0, 0, H)
+    sky.addColorStop(0, '#0c1024')
+    sky.addColorStop(0.45, '#1a1a38')
+    sky.addColorStop(1, '#121018')
+    ctx.fillStyle = sky
+    ctx.fillRect(0, 0, W, H)
+  }
+
+  // Soft mist wash over the plains
+  const mist = ctx.createLinearGradient(0, 0, 0, H)
+  mist.addColorStop(0, 'rgba(18,20,32,0.5)')
+  mist.addColorStop(0.4, 'rgba(24,26,36,0.28)')
+  mist.addColorStop(1, 'rgba(12,14,22,0.62)')
+  ctx.fillStyle = mist
   ctx.fillRect(0, 0, W, H)
 
-  // Soft moon glow
-  const moonX = W * 0.72
-  const moonY = H * 0.18
-  const moonGlow = ctx.createRadialGradient(moonX, moonY, 4, moonX, moonY, 90)
-  moonGlow.addColorStop(0, 'rgba(232,224,210,0.55)')
-  moonGlow.addColorStop(0.25, 'rgba(200,210,230,0.18)')
-  moonGlow.addColorStop(1, 'rgba(12,16,36,0)')
-  ctx.fillStyle = moonGlow
-  ctx.fillRect(0, 0, W, H)
-  ctx.fillStyle = 'rgba(236,230,220,0.85)'
-  ctx.beginPath()
-  ctx.arc(moonX, moonY, 14, 0, Math.PI * 2)
-  ctx.fill()
-
-  // Distant tree silhouettes along the horizon
-  ctx.fillStyle = '#0a0c14'
-  const trees = [
-    [40, 52], [90, 70], [140, 44], [200, 80], [260, 58], [330, 90],
-    [400, 64], [470, 86], [540, 50], [600, 78], [670, 56], [730, 72], [780, 48]
-  ]
-  for (let i = 0; i < trees.length; i++) {
-    const [tx, th] = trees[i]
-    const sway = Math.sin(t * 0.6 + i * 0.7) * 2
-    const baseX = tx + sway
-    const top = horizon - th
+  // Drifting haze
+  for (let i = 0; i < 4; i++) {
+    const y = H * (0.25 + i * 0.14) + Math.sin(t * 0.45 + i) * 8
+    const drift = ((t * (10 + i * 4)) % (W + 180)) - 90
+    ctx.fillStyle = `rgba(210,220,230,${0.045 + i * 0.02})`
     ctx.beginPath()
-    ctx.moveTo(baseX, horizon + 4)
-    ctx.lineTo(baseX - th * 0.28, horizon + 4)
-    ctx.lineTo(baseX - 2, top)
-    ctx.lineTo(baseX + 2, top)
-    ctx.lineTo(baseX + th * 0.28, horizon + 4)
-    ctx.closePath()
+    ctx.ellipse(drift, y, 170 + i * 20, 20 + i * 3, 0, 0, Math.PI * 2)
     ctx.fill()
-    // trunk hint
-    ctx.fillRect(baseX - 3, horizon - th * 0.22, 6, th * 0.22 + 4)
+    ctx.beginPath()
+    ctx.ellipse(drift + 110, y + 10, 130, 15, 0, 0, Math.PI * 2)
+    ctx.fill()
   }
 
-  // Ground wash under trees
-  const ground = ctx.createLinearGradient(0, horizon, 0, H)
-  ground.addColorStop(0, 'rgba(10,12,20,0.55)')
-  ground.addColorStop(1, '#0a0c12')
-  ctx.fillStyle = ground
-  ctx.fillRect(0, horizon, W, H - horizon)
-
-  // Layered drifting mist bands
-  for (let layer = 0; layer < 4; layer++) {
-    const speed = 12 + layer * 7
-    const y = horizon - 20 - layer * 28 + Math.sin(t * 0.4 + layer) * 6
-    const alpha = 0.08 + layer * 0.05
-    const drift = ((t * speed) + layer * 90) % (W + 200)
-    ctx.fillStyle = `rgba(210,220,230,${alpha})`
-    for (let k = -1; k <= 1; k++) {
-      const cx = drift + k * (W + 200) - 100
-      ctx.beginPath()
-      ctx.ellipse(cx, y, 160 + layer * 30, 18 + layer * 4, 0, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.beginPath()
-      ctx.ellipse(cx + 90, y + 8, 120 + layer * 20, 14 + layer * 3, 0, 0, Math.PI * 2)
-      ctx.fill()
-    }
-  }
-
-  // Soft foreground mist
-  const fog = ctx.createLinearGradient(0, H * 0.55, 0, H)
-  fog.addColorStop(0, 'rgba(180,190,205,0)')
-  fog.addColorStop(0.45, 'rgba(180,190,205,0.08)')
-  fog.addColorStop(1, 'rgba(160,170,185,0.22)')
-  ctx.fillStyle = fog
-  ctx.fillRect(0, H * 0.5, W, H * 0.5)
-
-  // Floating mote dust in the mist
-  for (let i = 0; i < 16; i++) {
+  // Gold mote dust
+  for (let i = 0; i < 14; i++) {
     const px = ((i * 83 + t * (10 + (i % 4) * 4)) % (W + 30)) - 15
-    const py = horizon - 40 - ((i * 47 + t * 14) % (horizon * 0.55))
-    const a = 0.15 + 0.25 * Math.sin(t * 1.6 + i)
+    const py = 40 + ((i * 47 + t * 14) % (H * 0.55))
+    const a = 0.12 + 0.22 * Math.sin(t * 1.6 + i)
     ctx.fillStyle = `rgba(255,230,180,${a})`
     ctx.beginPath()
     ctx.arc(px, py, 1 + (i % 2), 0, Math.PI * 2)
     ctx.fill()
   }
 
-  // Wordmark
   ctx.textAlign = 'center'
   ctx.fillStyle = '#e8d5a3'
   ctx.font = 'bold ' + (compact ? 36 : 44) + 'px Courier New'
   ctx.shadowColor = 'rgba(232,213,163,0.55)'
   ctx.shadowBlur = 10 + Math.sin(t * 1.8) * 3
-  ctx.fillText('MISTWOOD', W / 2, compact ? 120 : 130)
+  ctx.fillText('MISTWOOD', W / 2, compact ? 150 : 160)
   ctx.shadowBlur = 0
 
-  ctx.fillStyle = 'rgba(220,210,195,0.85)'
+  ctx.fillStyle = 'rgba(220,210,195,0.88)'
   ctx.font = (compact ? 14 : 13) + 'px Courier New'
   ctx.fillText(
     loadState.failed ? 'The path is unclear — continuing anyway' : 'The mist gathers…',
     W / 2,
-    compact ? 152 : 164
+    compact ? 182 : 194
   )
 
-  // Gold / ivory progress track
   const barW = compact ? 300 : 340
   const barH = compact ? 10 : 8
   const barX = (W - barW) / 2
@@ -1240,15 +1226,7 @@ function foeKind(id) {
 }
 
 function drawTitle(view) {
-  const img = battleBgs['plains.jpg']
-  if (img) {
-    const iw = img.naturalWidth || img.width
-    const ih = img.naturalHeight || img.height
-    const scale = Math.max(W / iw, H / ih)
-    const dw = iw * scale
-    const dh = ih * scale
-    ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh)
-  } else {
+  if (!drawCoverImage(battleBgs[TITLE_BG])) {
     ctx.fillStyle = '#121018'
     ctx.fillRect(0, 0, W, H)
   }
@@ -1748,6 +1726,7 @@ function loop(now) {
 }
 syncCanvasSize()
 window.addEventListener('resize', syncCanvasSize)
+preloadTitleBackground().catch(err => console.warn('rpg2 title bg:', err))
 loadPartyAssets()
 requestAnimationFrame(loop)
 </script>
