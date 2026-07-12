@@ -26,6 +26,7 @@
     background: var(--panel2); border: 1px solid var(--border); border-radius: 4px; }
   button { cursor: pointer; padding: 5px 10px; }
   button:hover { border-color: var(--accent); }
+  button:disabled { opacity: 0.4; cursor: default; border-color: var(--border); }
   button.primary { background: #2a3d5c; border-color: var(--accent); }
   button.danger { border-color: var(--danger); color: #ffc0cb; }
   input[type="number"], input[type="text"] { padding: 4px 6px; width: 72px; }
@@ -134,6 +135,8 @@
       </label>
       <label>Id <input class="wide" id="charId" type="text" value="theron" spellcheck="false"></label>
       <label>Portrait <input class="wide" id="portrait" type="text" value="theron-portrait.jpg" spellcheck="false"></label>
+      <button type="button" id="btnUndo" title="Undo (Z)">Undo</button>
+      <button type="button" id="btnRedo" title="Redo (R)">Redo</button>
       <button type="button" id="btnSaveSession">Save session</button>
       <button type="button" id="btnLoadSession">Load session</button>
       <button type="button" id="btnImport">Import JSON…</button>
@@ -164,6 +167,8 @@
         <div class="row" style="justify-content:space-between;margin-bottom:4px">
           <h2>Timeline (playback order)</h2>
           <div class="row">
+            <button type="button" id="btnUndo2" title="Undo (Z)">Undo</button>
+            <button type="button" id="btnRedo2" title="Redo (R)">Redo</button>
             <button type="button" id="btnAddAll">Add all →</button>
             <button type="button" id="btnClearTl">Clear</button>
             <button type="button" id="btnDup">Duplicate</button>
@@ -227,7 +232,7 @@
   </div>
 
   <footer>
-    <span>Click box to select · Add selected → timeline · drag handles · Snap (S) · Shift-drag new box · Space play</span>
+    <span>Z undo · R redo · click select · Enter add · Snap (S) · drag handles · Space play</span>
     <span id="footerStatus"></span>
   </footer>
 </div>
@@ -268,6 +273,11 @@
   let boxDrag = null
   const MIN_BOX = 4
   const HANDLE_MODES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
+  /** @type {Record<string, { past: any[], future: any[] }>} */
+  const historyByAnim = Object.create(null)
+  let historyLocked = false
+  let nudgeNeedsHistory = true
+  const HISTORY_MAX = 100
 
   /**
    * @typedef {{
@@ -340,6 +350,103 @@
     detectBoxes[index] = makeDetectBox(rect, id)
     syncTimelineToDetect(detectBoxes[index])
     return detectBoxes[index]
+  }
+
+  function hist() {
+    if (!historyByAnim[activeAnim]) historyByAnim[activeAnim] = { past: [], future: [] }
+    return historyByAnim[activeAnim]
+  }
+
+  function captureAnimState() {
+    stashUiIntoSlot()
+    return {
+      detectBoxes: detectBoxes.map((b) => ({ ...b })),
+      timeline: active().timeline.map((f) => ({ ...f })),
+      selectedDetect,
+      selectedTl,
+      nextDetectId,
+      sheetName: $('sheetName').value.trim(),
+      fps: +$('animFps').value || 6,
+      loop: !!$('animLoop').checked,
+    }
+  }
+
+  function updateHistoryButtons() {
+    const h = hist()
+    const canUndo = h.past.length > 0
+    const canRedo = h.future.length > 0
+    ;['btnUndo', 'btnUndo2', 'btnRedo', 'btnRedo2'].forEach((id) => {
+      const el = $(id)
+      if (!el) return
+      const isUndo = id.indexOf('Undo') >= 0
+      el.disabled = isUndo ? !canUndo : !canRedo
+    })
+  }
+
+  /** Call before a mutating edit. Stores the pre-change state. */
+  function pushHistory(label) {
+    if (historyLocked) return
+    const h = hist()
+    const snap = captureAnimState()
+    const json = JSON.stringify(snap)
+    if (h.past.length && h.past[h.past.length - 1].json === json) return
+    h.past.push({ snap, json, label: label || '' })
+    if (h.past.length > HISTORY_MAX) h.past.shift()
+    h.future = []
+    updateHistoryButtons()
+  }
+
+  function applyAnimState(snap) {
+    historyLocked = true
+    detectBoxes = (snap.detectBoxes || []).map((b) => ({ ...b }))
+    const s = active()
+    s.timeline = (snap.timeline || []).map((f) => ({ ...f }))
+    s.detectBoxes = detectBoxes.map((b) => ({ ...b }))
+    s.sheetName = snap.sheetName || ''
+    s.fps = snap.fps != null ? snap.fps : s.fps
+    s.loop = !!snap.loop
+    selectedDetect = snap.selectedDetect != null ? snap.selectedDetect : -1
+    selectedTl = snap.selectedTl != null ? snap.selectedTl : -1
+    if (typeof snap.nextDetectId === 'number') {
+      nextDetectId = Math.max(nextDetectId, snap.nextDetectId)
+    }
+    $('sheetName').value = s.sheetName
+    $('animFps').value = String(s.fps)
+    $('animLoop').checked = s.loop
+    if (selectedDetect >= detectBoxes.length) selectedDetect = detectBoxes.length - 1
+    if (selectedTl >= s.timeline.length) selectedTl = s.timeline.length - 1
+    playFrame = Math.max(0, Math.min(playFrame, Math.max(0, s.timeline.length - 1)))
+    updateDetectStatus()
+    renderTabs()
+    redrawAll()
+    historyLocked = false
+    updateHistoryButtons()
+  }
+
+  function undoEdit() {
+    const h = hist()
+    if (!h.past.length) {
+      setFooter('Nothing to undo')
+      return
+    }
+    const current = captureAnimState()
+    const prev = h.past.pop()
+    h.future.push({ snap: current, json: JSON.stringify(current), label: prev.label || '' })
+    applyAnimState(prev.snap)
+    setFooter(prev.label ? `Undo: ${prev.label}` : 'Undo')
+  }
+
+  function redoEdit() {
+    const h = hist()
+    if (!h.future.length) {
+      setFooter('Nothing to redo')
+      return
+    }
+    const current = captureAnimState()
+    const next = h.future.pop()
+    h.past.push({ snap: current, json: JSON.stringify(current), label: next.label || '' })
+    applyAnimState(next.snap)
+    setFooter(next.label ? `Redo: ${next.label}` : 'Redo')
   }
 
   function initSlots() {
@@ -545,6 +652,7 @@
       setFooter('Select a detect box first (click or right-click)')
       return
     }
+    pushHistory('snap')
     const minW = Math.max(4, Math.floor(+$('minW').value * 0.5) || 4)
     const minH = Math.max(4, Math.floor(+$('minH').value * 0.5) || 4)
     // Unmerged islands so side-by-side sprites stay separate
@@ -648,9 +756,11 @@
     selectedTl = -1
     playing = false
     playFrame = 0
+    nudgeNeedsHistory = true
     loadSlotIntoUi()
     renderTabs()
     redrawAll()
+    updateHistoryButtons()
   }
 
   function stashUiIntoSlot() {
@@ -883,6 +993,7 @@
   }
 
   function insertDetectBox(box, afterIndex) {
+    pushHistory('add box')
     const at = afterIndex >= 0 ? afterIndex + 1 : detectBoxes.length
     const added = makeDetectBox(box, box.id)
     detectBoxes.splice(at, 0, added)
@@ -946,6 +1057,7 @@
         cell.classList.remove('drag-over')
         const to = i
         if (dragTlFrom < 0 || dragTlFrom === to) return
+        pushHistory('reorder timeline')
         const item = s.timeline.splice(dragTlFrom, 1)[0]
         s.timeline.splice(to, 0, item)
         selectedTl = to
@@ -1010,6 +1122,10 @@
     const w = +$('boxW').value
     const h = +$('boxH').value
     if (![x, y, w, h].every((n) => Number.isFinite(n))) return
+    if (nudgeNeedsHistory) {
+      pushHistory('nudge box')
+      nudgeNeedsHistory = false
+    }
     setDetectBoxAt(selectedDetect, {
       x,
       y,
@@ -1042,6 +1158,7 @@
   }
 
   function appendTimelineBox(box) {
+    pushHistory('add to timeline')
     active().timeline.push({
       x: box.x,
       y: box.y,
@@ -1061,6 +1178,7 @@
       const img = new Image()
       img.onload = () => {
         const s = active()
+        pushHistory('load sheet')
         s.dataUrl = dataUrl
         if (!s.sheetName) s.sheetName = file.name
         $('sheetName').value = s.sheetName
@@ -1073,6 +1191,7 @@
         updateDetectStatus()
         renderTabs()
         redrawAll()
+        updateHistoryButtons()
         setFooter(`Loaded ${file.name}`)
       }
       img.src = dataUrl
@@ -1236,6 +1355,7 @@
       const handle = hitTestHandle(x, y, sel)
       if (handle) {
         ev.preventDefault()
+        pushHistory('resize box')
         boxDrag = {
           mode: handle,
           index: selectedDetect,
@@ -1319,6 +1439,7 @@
       const dy = y - boxDrag.startY
       if (Math.abs(dx) + Math.abs(dy) > 3) {
         // Promote to move once dragged
+        pushHistory('move box')
         boxDrag.mode = 'move'
         boxDrag.moved = true
         setDetectBoxAt(boxDrag.index, clampBox({
@@ -1410,12 +1531,14 @@
 
   $('btnDetect').addEventListener('click', () => {
     if (!sheetImg) return
+    pushHistory('re-detect')
     detectBoxes = adoptDetectBoxes(detectFrames(sheetImg))
     active().detectBoxes = detectBoxes.map((b) => ({ ...b }))
     selectedDetect = detectBoxes.length ? 0 : -1
     // New detect pass breaks old src links; leave timeline rects baked in
     updateDetectStatus()
     redrawAll()
+    updateHistoryButtons()
   })
 
   ;['chromaR', 'chromaG', 'chromaB', 'chromaTol', 'minW', 'minH', 'mergeGap', 'boxPad'].forEach((id) => {
@@ -1430,10 +1553,12 @@
         redrawAll()
         return
       }
+      pushHistory('detect settings')
       detectBoxes = adoptDetectBoxes(detectFrames(sheetImg))
       active().detectBoxes = detectBoxes.map((b) => ({ ...b }))
       updateDetectStatus()
       redrawAll()
+      updateHistoryButtons()
     })
   })
   $('hideChroma').addEventListener('change', () => {
@@ -1459,6 +1584,7 @@
   })
 
   $('btnAddAll').addEventListener('click', () => {
+    pushHistory('add all frames')
     detectBoxes.forEach((b) => {
       active().timeline.push({
         x: b.x,
@@ -1472,6 +1598,7 @@
     reindexFrames()
   })
   $('btnClearTl').addEventListener('click', () => {
+    pushHistory('clear timeline')
     active().timeline = []
     selectedTl = -1
     playFrame = 0
@@ -1480,6 +1607,7 @@
   $('btnDup').addEventListener('click', () => {
     const s = active()
     if (selectedTl < 0 || !s.timeline[selectedTl]) return
+    pushHistory('duplicate timeline frame')
     const box = { ...s.timeline[selectedTl] }
     s.timeline.splice(selectedTl + 1, 0, box)
     selectedTl++
@@ -1488,6 +1616,7 @@
   $('btnDel').addEventListener('click', () => {
     const s = active()
     if (selectedTl < 0) return
+    pushHistory('delete timeline frame')
     s.timeline.splice(selectedTl, 1)
     if (selectedTl >= s.timeline.length) selectedTl = s.timeline.length - 1
     reindexFrames()
@@ -1496,12 +1625,20 @@
   ;['boxX', 'boxY', 'boxW', 'boxH'].forEach((id) => {
     $(id).addEventListener('input', applyBoxFromInputs)
     $(id).addEventListener('change', applyBoxFromInputs)
+    $(id).addEventListener('focus', () => { nudgeNeedsHistory = true })
+    $(id).addEventListener('blur', () => { nudgeNeedsHistory = true })
   })
   $('btnAddSelected').addEventListener('click', () => {
     if (selectedDetect < 0 || !detectBoxes[selectedDetect]) return
     appendTimelineBox(detectBoxes[selectedDetect])
   })
   $('btnSnapDetect').addEventListener('click', snapSelectedToNearest)
+  ;['btnUndo', 'btnUndo2'].forEach((id) => {
+    $(id).addEventListener('click', undoEdit)
+  })
+  ;['btnRedo', 'btnRedo2'].forEach((id) => {
+    $(id).addEventListener('click', redoEdit)
+  })
   $('btnDupDetect').addEventListener('click', () => {
     if (selectedDetect < 0 || !detectBoxes[selectedDetect]) {
       setFooter('Select a detect box first')
@@ -1526,10 +1663,16 @@
       setFooter('Box too narrow to split')
       return
     }
+    pushHistory('split box')
     const leftW = Math.floor(src.w / 2)
     const rightW = src.w - leftW
     setDetectBoxAt(selectedDetect, { x: src.x, y: src.y, w: leftW, h: src.h }, { keepId: src.id })
-    insertDetectBox({ x: src.x + leftW, y: src.y, w: rightW, h: src.h }, selectedDetect)
+    // insertDetectBox also pushes — avoid double entry by inserting manually
+    const added = makeDetectBox({ x: src.x + leftW, y: src.y, w: rightW, h: src.h })
+    detectBoxes.splice(selectedDetect + 1, 0, added)
+    selectedDetect = selectedDetect + 1
+    reindexFrames(added)
+    setFooter(`Detect box ${selectedDetect} added — nudge or Snap to nearest`)
   })
   $('btnNewDetect').addEventListener('click', () => {
     if (!sheetImg) {
@@ -1548,6 +1691,7 @@
   })
   $('btnDelDetect').addEventListener('click', () => {
     if (selectedDetect < 0 || !detectBoxes[selectedDetect]) return
+    pushHistory('delete box')
     const removedId = detectBoxes[selectedDetect].id
     detectBoxes.splice(selectedDetect, 1)
     for (const f of active().timeline) {
@@ -1640,6 +1784,12 @@
       } else {
         $('btnDel').click()
       }
+    } else if (ev.key === 'z' || ev.key === 'Z') {
+      ev.preventDefault()
+      undoEdit()
+    } else if (ev.key === 'r' || ev.key === 'R') {
+      ev.preventDefault()
+      redoEdit()
     } else if (ev.key === 's' || ev.key === 'S') {
       ev.preventDefault()
       snapSelectedToNearest()
@@ -1680,6 +1830,7 @@
   renderTabs()
   loadSlotIntoUi()
   refreshExport()
+  updateHistoryButtons()
   requestAnimationFrame(tick)
 
   try {
