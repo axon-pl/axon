@@ -187,7 +187,6 @@
           <label>w <input id="boxW" type="number" min="1"></label>
           <label>h <input id="boxH" type="number" min="1"></label>
         </div>
-        <button type="button" id="btnApplyBox">Apply to selected detect box</button>
         <button type="button" id="btnAddSelected">Add selected → timeline</button>
         <div class="row" style="margin-top:4px">
           <button type="button" id="btnDupDetect" title="Clone selected box to the right">Duplicate →</button>
@@ -670,6 +669,25 @@
     $('boxH').value = String(b.h)
   }
 
+  function applyBoxFromInputs() {
+    if (selectedDetect < 0 || !detectBoxes[selectedDetect]) return
+    const x = +$('boxX').value
+    const y = +$('boxY').value
+    const w = +$('boxW').value
+    const h = +$('boxH').value
+    if (![x, y, w, h].every((n) => Number.isFinite(n))) return
+    detectBoxes[selectedDetect] = {
+      x,
+      y,
+      w: Math.max(1, w),
+      h: Math.max(1, h),
+    }
+    active().detectBoxes = detectBoxes.map((b) => ({ ...b }))
+    drawSheet()
+    // Timeline thumbs that came from this box aren't auto-linked; preview uses timeline.
+    // Keep nudge responsive without full timeline rebuild.
+  }
+
   function hitTestBox(mx, my) {
     for (let i = detectBoxes.length - 1; i >= 0; i--) {
       const b = detectBoxes[i]
@@ -983,15 +1001,9 @@
     redrawAll()
   })
 
-  $('btnApplyBox').addEventListener('click', () => {
-    if (selectedDetect < 0 || !detectBoxes[selectedDetect]) return
-    detectBoxes[selectedDetect] = {
-      x: +$('boxX').value,
-      y: +$('boxY').value,
-      w: Math.max(1, +$('boxW').value),
-      h: Math.max(1, +$('boxH').value),
-    }
-    commitDetectBoxes()
+  ;['boxX', 'boxY', 'boxW', 'boxH'].forEach((id) => {
+    $(id).addEventListener('input', applyBoxFromInputs)
+    $(id).addEventListener('change', applyBoxFromInputs)
   })
   $('btnAddSelected').addEventListener('click', () => {
     if (selectedDetect < 0 || !detectBoxes[selectedDetect]) return
