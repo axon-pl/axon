@@ -1,0 +1,45 @@
+// Intent Router — Synth v1.1 demo
+// Showcases: likely match arms · host embedding API · exact arms first
+
+fn route_intent(msg: string) -> string {
+  match msg {
+    | "quit" => "exit"
+    | "exit" => "exit"
+    | "bye"  => "exit"
+    | likely "greeting hello hi hey" => "greet"
+    | likely "help how do I docs documentation" => "help"
+    | likely "refund billing charge money back payment" => "billing"
+    | likely "bug crash error broken not working" => "bug"
+    | likely "pricing cost plan subscribe upgrade" => "pricing"
+    | _ => "unknown"
+  }
+}
+
+fn route_label(intent: string) -> string {
+  match intent {
+    | "exit"    => "Exit"
+    | "greet"   => "Greeting"
+    | "help"    => "Help / Docs"
+    | "billing" => "Billing / Refund"
+    | "bug"     => "Bug Report"
+    | "pricing" => "Pricing"
+    | _         => "Unknown"
+  }
+}
+
+fn route_reply(intent: string) -> string {
+  match intent {
+    | "exit"    => "Goodbye — session closed."
+    | "greet"   => "Hey! What can I help you with today?"
+    | "help"    => "Opening the docs — try the Quick Start section."
+    | "billing" => "Routing you to billing support for refunds and charges."
+    | "bug"     => "Thanks for the report — filing a bug ticket."
+    | "pricing" => "Here are the current plans and upgrade options."
+    | _         => "I am not sure — try rephrasing, or say help."
+  }
+}
+
+fn handle_message(msg: string) -> { intent: string, label: string, reply: string } {
+  let intent = route_intent(msg)
+  { intent, label: route_label(intent), reply: route_reply(intent) }
+}

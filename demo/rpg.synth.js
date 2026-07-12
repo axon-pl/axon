@@ -43,13 +43,15 @@ const xp_bar = (xp, xpNext) => {
   return bar.join("");
 };
 
+let XP_TABLE = [0, 150, 340, 600, 950, 1400, 2000, 2750, 3700, 4900, 6400, 8200, 10500, 13200, 16500];
+
 const xp_to_next = (() => {
   const __cache = new Map();
   return (level) => {
     const __key = JSON.stringify([level]);
     if (__cache.has(__key)) return __cache.get(__key);
     const __result = (() => {
-      return ((_m) => (_m === 1) ? 150 : (_m === 2) ? 340 : (_m === 3) ? 600 : (_m === 4) ? 950 : (_m === 5) ? 1400 : (_m === "6") ? 2000 : (_m === "7") ? 2750 : (_m === "8") ? 3700 : (_m === "9") ? 4900 : (_m === "10") ? 6400 : (_m === "11") ? 8200 : (_m === "12") ? 10500 : (_m === "13") ? 13200 : (_m === "14") ? 16500 : 99999)(level);
+      return level >= 1 && level <= 14 ? XP_TABLE[level] : 99999;
     })();
     __cache.set(__key, __result);
     return __result;
@@ -813,9 +815,9 @@ const render_game = (rootId) => {
 })();
   let render_intro = () => (() => {
     let slide = state.introSlide;
-    let s0 = {title: "A LAND IN PERIL", text: "In the realm of ALDENMOOR, a great evil has awakened.\n\nCrops wilt.  Rivers run backwards.\nA cow in the village of Fenwick produced no milk for a week.\nThe cow was later found to be fine.  She was just having a moment.\n\nThe ANCIENT LICH, known as MALVRAK THE UNDYING,\nhas sealed himself inside a dungeon and dispatched\nan army of monsters to terrorize the land.\n\nEyewitnesses describe the monsters as:\n  - quite unpleasant\n  - surprisingly chatty before attacking\n  - smelled strongly of brimstone\n\nSomething must be done.\nTavern prices alone have risen 40% since the siege began."};
-    let s1 = {title: "THE CALL TO ARMS", text: "A notice was posted on the town board at first light.\n\n   +------------------------------------------+\n   |                                          |\n   |  HEROES WANTED — URGENT                  |\n   |                                          |\n   |  Must be willing to enter a dungeon.     |\n   |  Dungeon is large.  Monsters numerous.   |\n   |  Ancient Lich described as immortal.     |\n   |                                          |\n   |  Compensation: gold, glory, and our      |\n   |  sincere and heartfelt gratitude.        |\n   |  (Mostly gratitude.  Some gold.)         |\n   |                                          |\n   +------------------------------------------+\n\nBy midday, three heroes had replied.\n\nThe town council described this as  acceptable\nand  considerably better than the zero we expected."};
-    let s2 = {title: "YOUR BRAVE PARTY", text: "ARIA  — Mage.  Studied at the Academy for nine years.\n         Specializes in arcane destruction.\n         Once accidentally turned a cow into a hat.\n         Has not yet lived this down.  The cow was fine.\n\nTHERON — Knight.  Valiant.  Honorable.  Extremely tall.\n         Carries a shield, a sword, and the party frying pan.\n         Considers the frying pan a secondary weapon.\n         (Statistically, he has been right about this.)\n\nLYRA  — Ranger.  Can speak to animals.\n         The animals mostly complain about the weather.\n         She passes along the parts that seem tactically useful.\n         They have been mostly wrong.\n\nTogether they have 50 gold and immense self-belief.\nThe lich has centuries of evil, an army, and a dungeon.\n50 battles. 5 chapters. 4 tiers of gear. 1 ancient evil.\n\nWe are rooting for the party.\nStatistically, it could go either way."};
+    let s0 = {title: "A LAND IN PERIL", text: "\r\nIn the realm of ALDENMOOR, a great evil has awakened.\r\n\r\nCrops wilt.  Rivers run backwards.\r\nA cow in the village of Fenwick produced no milk for a week.\r\nThe cow was later found to be fine.  She was just having a moment.\r\n\r\nThe ANCIENT LICH, known as MALVRAK THE UNDYING,\r\nhas sealed himself inside a dungeon and dispatched\r\nan army of monsters to terrorize the land.\r\n\r\nEyewitnesses describe the monsters as:\r\n  - quite unpleasant\r\n  - surprisingly chatty before attacking\r\n  - smelled strongly of brimstone\r\n\r\nSomething must be done.\r\nTavern prices alone have risen 40% since the siege began."};
+    let s1 = {title: "THE CALL TO ARMS", text: "\r\nA notice was posted on the town board at first light.\r\n\r\n   +------------------------------------------+\r\n   |                                          |\r\n   |  HEROES WANTED — URGENT                  |\r\n   |                                          |\r\n   |  Must be willing to enter a dungeon.     |\r\n   |  Dungeon is large.  Monsters numerous.   |\r\n   |  Ancient Lich described as immortal.     |\r\n   |                                          |\r\n   |  Compensation: gold, glory, and our      |\r\n   |  sincere and heartfelt gratitude.        |\r\n   |  (Mostly gratitude.  Some gold.)         |\r\n   |                                          |\r\n   +------------------------------------------+\r\n\r\nBy midday, three heroes had replied.\r\n\r\nThe town council described this as  acceptable\r\nand  considerably better than the zero we expected."};
+    let s2 = {title: "YOUR BRAVE PARTY", text: "\r\nARIA  — Mage.  Studied at the Academy for nine years.\r\n         Specializes in arcane destruction.\r\n         Once accidentally turned a cow into a hat.\r\n         Has not yet lived this down.  The cow was fine.\r\n\r\nTHERON — Knight.  Valiant.  Honorable.  Extremely tall.\r\n         Carries a shield, a sword, and the party frying pan.\r\n         Considers the frying pan a secondary weapon.\r\n         (Statistically, he has been right about this.)\r\n\r\nLYRA  — Ranger.  Can speak to animals.\r\n         The animals mostly complain about the weather.\r\n         She passes along the parts that seem tactically useful.\r\n         They have been mostly wrong.\r\n\r\nTogether they have 50 gold and immense self-belief.\r\nThe lich has centuries of evil, an army, and a dungeon.\r\n50 battles. 5 chapters. 4 tiers of gear. 1 ancient evil.\r\n\r\nWe are rooting for the party.\r\nStatistically, it could go either way."};
     let slides = [s0, s1, s2];
     let current = slides[slide];
     let isLast = slide >= slides.length - 1;
@@ -849,7 +851,7 @@ const render_game = (rootId) => {
     root.appendChild(el("div", {class: "intro-btn-row"}, advBtn, skipBtn));
 })();
   let render_title = () => (() => {
-    let logo = "+=========================================+\n|                                         |\n|    A  X  O  N      R  P  G              |\n|                                         |\n|  An AI-native language demo             |\n|  50 battles. 5 chapters. 1 Ancient Lich.|\n|  Buy gear. Level up. Survive.           |\n|                                         |\n+=========================================+";
+    let logo = "\r\n+=========================================+\r\n|                                         |\r\n|    A  X  O  N      R  P  G              |\r\n|                                         |\r\n|  An AI-native language demo             |\r\n|  50 battles. 5 chapters. 1 Ancient Lich.|\r\n|  Buy gear. Level up. Survive.           |\r\n|                                         |\r\n+=========================================+";
     let pre = document.createElement("pre");
     pre.className = "ascii-logo";
     pre.textContent = logo;
@@ -1085,7 +1087,7 @@ const render_game = (rootId) => {
     }
 })();
   let render_gameover = () => (() => {
-    let skull = "     _____     \n    /     \\    \n   | () () |   \n    \\  ^  /    \n     |||||     \n     |||||     ";
+    let skull = "\r\n     _____     \r\n    /     \\    \r\n   | () () |   \r\n    \\  ^  /    \r\n     |||||     \r\n     |||||     ";
     let pre = document.createElement("pre");
     pre.className = "ascii-logo death";
     pre.textContent = skull;
@@ -1100,7 +1102,7 @@ const render_game = (rootId) => {
     root.appendChild(el("div", {class: "btn-row"}, restartBtn));
 })();
   let render_victory = () => (() => {
-    let banner = "+========================================+\n|                                        |\n|   V  I  C  T  O  R  Y  !               |\n|                                        |\n|   The Ancient Lich has been slain.     |\n|   The dungeon is free.                 |\n|                                        |\n+========================================+";
+    let banner = "\r\n+========================================+\r\n|                                        |\r\n|   V  I  C  T  O  R  Y  !               |\r\n|                                        |\r\n|   The Ancient Lich has been slain.     |\r\n|   The dungeon is free.                 |\r\n|                                        |\r\n+========================================+";
     let pre = document.createElement("pre");
     pre.className = "ascii-logo victory";
     pre.textContent = banner;

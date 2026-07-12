@@ -1,5 +1,7 @@
-// ── Neon Kanban — light structural rewrite ───────────────────────────────────
-// Host: Board store · add_card · add_col · remove_card · set_filter · render
+// ── Neon Kanban — Synth v1.0 Demo ─────────────────────────────────────────────
+// Showcases: record · store · templates · @memo · spread · type as param name
+
+// ── Data types ─────────────────────────────────────────────────────────────────
 
 record Card {
   id:       int
@@ -15,25 +17,14 @@ record Column {
   label: string
 }
 
-record TypeMeta {
-  id:   string
-  icon: string
-}
-
-record PriorityMeta {
-  id:    string
-  cls:   string
-  label: string
-}
-
-let COLUMNS = [
+let initial_cols = [
   { id: "backlog",  label: "Backlog" },
   { id: "progress", label: "In Progress" },
   { id: "review",   label: "Review" },
   { id: "done",     label: "Done" },
 ]
 
-let CARDS = [
+let initial_cards = [
   { id: 1,  title: "Procedural dungeon gen",  col: "backlog",  type: "code",   priority: "high",     pts: 8 },
   { id: 2,  title: "Boss battle cutscene",    col: "backlog",  type: "art",    priority: "medium",   pts: 5 },
   { id: 3,  title: "Leaderboard system",      col: "backlog",  type: "code",   priority: "medium",   pts: 4 },
@@ -52,44 +43,44 @@ let CARDS = [
   { id: 16, title: "World map layout",        col: "done",     type: "design", priority: "high",     pts: 6 },
 ]
 
-let TYPE_META = [
-  { id: "code",   icon: "⚡" },
-  { id: "art",    icon: "🎨" },
-  { id: "design", icon: "📐" },
-  { id: "audio",  icon: "🎵" },
-]
-
-let PRIORITY_META = [
-  { id: "critical", cls: "crit", label: "Critical" },
-  { id: "high",     cls: "high", label: "High" },
-  { id: "medium",   cls: "med",  label: "Medium" },
-  { id: "low",      cls: "low",  label: "Low" },
-]
-
 store Board {
-  cards:   Card[]   = CARDS
-  cols:    Column[] = COLUMNS
+  cards:   Card[]   = initial_cards
+  cols:    Column[] = initial_cols
   filter:  string   = "All"
   next_id: int      = 17
 }
 
-@memo
-fn type_icon(t: string) -> string {
-  let hit = TYPE_META.find(m => m.id == t)
-  hit ? hit.icon : "📋"
-}
+// ── Card label helpers ─────────────────────────────────────────────────────────
 
 @memo
-fn priority_cls(p: string) -> string {
-  let hit = PRIORITY_META.find(m => m.id == p)
-  hit ? hit.cls : "low"
-}
+fn type_icon(t: string) -> string =
+  match t {
+    | "code"   => "⚡"
+    | "art"    => "🎨"
+    | "design" => "📐"
+    | "audio"  => "🎵"
+    | _        => "📋"
+  }
 
 @memo
-fn priority_label(p: string) -> string {
-  let hit = PRIORITY_META.find(m => m.id == p)
-  hit ? hit.label : "Low"
-}
+fn priority_cls(p: string) -> string =
+  match p {
+    | "critical" => "crit"
+    | "high"     => "high"
+    | "medium"   => "med"
+    | _          => "low"
+  }
+
+@memo
+fn priority_label(p: string) -> string =
+  match p {
+    | "critical" => "Critical"
+    | "high"     => "High"
+    | "medium"   => "Medium"
+    | _          => "Low"
+  }
+
+// ── Mutations (called directly from HTML JS) ───────────────────────────────────
 
 fn add_card(col: string, title: string, type: string, priority: string, pts: int) {
   let new_card = { id: Board.next_id, title, col, type, priority, pts }
@@ -97,7 +88,8 @@ fn add_card(col: string, title: string, type: string, priority: string, pts: int
 }
 
 fn add_col(id: string, label: string) {
-  Board.set({ cols: [...Board.cols, { id, label }] })
+  let new_col = { id, label }
+  Board.set({ cols: [...Board.cols, new_col] })
 }
 
 fn remove_card(id: int) {
@@ -108,9 +100,14 @@ fn set_filter(f: string) {
   Board.set({ filter: f })
 }
 
+// ── Views ──────────────────────────────────────────────────────────────────────
+
 fn col_cards(col: string) -> Card[] =
   Board.cards.filter(c => c.col == col and (Board.filter == "All" or c.type == Board.filter))
 
+// ── HTML renderers ─────────────────────────────────────────────────────────────
+
+// Template literals (v1.0) — full expression interpolation, no string concatenation
 fn render_card(c: Card) -> string {
   let icon = type_icon(c.type)
   let pcls = priority_cls(c.priority)
@@ -138,7 +135,8 @@ fn render_lane(col_obj: Column) -> string {
   let cards = col_cards(col)
   let n     = cards.count()
   let pts   = cards.sum_by(c => c.pts)
-  let html  = cards.map(c => render_card(c)).join("")
+  let parts = cards.map(c => render_card(c))
+  let html  = parts.join("")
   let body  = html == "" ? "<div class=\"empty-col\">— empty —</div>" : html
   `<div class="lane" data-col="${col}">
     <div class="lane-header">
@@ -152,16 +150,14 @@ fn render_lane(col_obj: Column) -> string {
   </div>`
 }
 
-fn done_pct() -> int {
-  let done_n  = Board.cards.filter(c => c.col == "done").count()
-  let total_n = Board.cards.count()
-  total_n > 0 ? floor(done_n * 100 / total_n) : 0
-}
-
 fn render() {
-  document.getElementById("board").innerHTML =
-    Board.cols.map(c => render_lane(c)).join("")
-  let pct = done_pct()
+  let lane_parts = Board.cols.map(c => render_lane(c))
+  let lanes_html = lane_parts.join("")
+  document.getElementById("board").innerHTML = lanes_html
+  let done_cards = Board.cards.filter(c => c.col == "done")
+  let done_n  = done_cards.count()
+  let total_n = Board.cards.count()
+  let pct     = total_n > 0 ? floor(done_n * 100 / total_n) : 0
   document.getElementById("done-pct").textContent = `${pct}%`
   document.getElementById("prog-bar-fill").style.width = `${pct}%`
 }

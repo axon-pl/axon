@@ -6,8 +6,24 @@
       "file": "examples/intent_router/main.syn",
       "functions": [
         {
+          "name": "find_copy",
+          "line": 19,
+          "intent": null,
+          "annotations": [],
+          "params": [
+            {
+              "name": "intent",
+              "type": "string",
+              "spread": false
+            }
+          ],
+          "returnType": "RouteCopy?",
+          "likely": [],
+          "exactMatchArms": []
+        },
+        {
           "name": "route_intent",
-          "line": 4,
+          "line": 22,
           "intent": null,
           "annotations": [],
           "params": [
@@ -57,7 +73,7 @@
         },
         {
           "name": "route_label",
-          "line": 18,
+          "line": 36,
           "intent": null,
           "annotations": [],
           "params": [
@@ -69,36 +85,11 @@
           ],
           "returnType": "string",
           "likely": [],
-          "exactMatchArms": [
-            {
-              "value": "exit",
-              "result": "\"Exit\""
-            },
-            {
-              "value": "greet",
-              "result": "\"Greeting\""
-            },
-            {
-              "value": "help",
-              "result": "\"Help / Docs\""
-            },
-            {
-              "value": "billing",
-              "result": "\"Billing / Refund\""
-            },
-            {
-              "value": "bug",
-              "result": "\"Bug Report\""
-            },
-            {
-              "value": "pricing",
-              "result": "\"Pricing\""
-            }
-          ]
+          "exactMatchArms": []
         },
         {
           "name": "route_reply",
-          "line": 30,
+          "line": 41,
           "intent": null,
           "annotations": [],
           "params": [
@@ -110,36 +101,11 @@
           ],
           "returnType": "string",
           "likely": [],
-          "exactMatchArms": [
-            {
-              "value": "exit",
-              "result": "\"Goodbye — session closed.\""
-            },
-            {
-              "value": "greet",
-              "result": "\"Hey! What can I help you with today?\""
-            },
-            {
-              "value": "help",
-              "result": "\"Opening the docs — try the Quick Start section.\""
-            },
-            {
-              "value": "billing",
-              "result": "\"Routing you to billing support for refunds and charges.\""
-            },
-            {
-              "value": "bug",
-              "result": "\"Thanks for the report — filing a bug ticket.\""
-            },
-            {
-              "value": "pricing",
-              "result": "\"Here are the current plans and upgrade options.\""
-            }
-          ]
+          "exactMatchArms": []
         },
         {
           "name": "handle_message",
-          "line": 42,
+          "line": 46,
           "intent": null,
           "annotations": [],
           "params": [

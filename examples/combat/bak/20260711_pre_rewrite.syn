@@ -64,8 +64,8 @@ fn format_hero_label(hero) = "{hero.name} Lv.{hero.level} {hero.heroClass}"
 // ══════════════════════════════════════════════════════════════════════════════
 
 // HP bar: "████░░░░ 45/80 (56%)" built entirely from pure Synth functions
-@intent "Generate a visual HP bar string with percentage"
 @pure @total
+@intent "Generate a visual HP bar string with percentage"
 fn hp_bar_text :: (hp: int, maxHp: int) -> string {
   let filled = maxHp > 0 ? Math.max(0, Math.round(hp / maxHp * 8)) : 0
   let bar    = range(0, 8) |> map(i => i < filled ? "#" : ".") 
@@ -74,16 +74,16 @@ fn hp_bar_text :: (hp: int, maxHp: int) -> string {
   "{barStr} {hp}/{maxHp} ({pct}%)"
 }
 
-@intent "One-line hero status for the combat panel"
 @pure @total
+@intent "One-line hero status for the combat panel"
 fn format_hero_card_line :: (hero: Hero) -> string {
   let bar = hp_bar_text(hero.hp, hero.maxHp)
   let title = level_title(hero.level)
   "{hero.name} the {title}  {bar}"
 }
 
-@intent "One-line enemy status for the combat panel"
 @pure @total
+@intent "One-line enemy status for the combat panel"
 fn format_enemy_card_line :: (enemy: Enemy) -> string {
   let bar = hp_bar_text(enemy.hp, enemy.maxHp)
   "{enemy.name}  {bar}"
@@ -93,8 +93,8 @@ fn format_enemy_card_line :: (enemy: Enemy) -> string {
 // v0.1: PATTERN MATCHING
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Rank title based on level range"
 @pure @total
+@intent "Rank title based on level range"
 fn level_title :: (level: int) -> string {
   match level {
     | < 4  => "Novice"
@@ -104,8 +104,8 @@ fn level_title :: (level: int) -> string {
   }
 }
 
-@intent "Narrative label for a d20 attack roll"
 @pure @total
+@intent "Narrative label for a d20 attack roll"
 fn combat_outcome_label :: (roll: int) -> string {
   match roll {
     | >= 20 => "lands a perfect strike on"
@@ -117,8 +117,8 @@ fn combat_outcome_label :: (roll: int) -> string {
 }
 
 // Nested match: class vs weakness — only possible because match is an expression
-@intent "Extra damage when class targets enemy weakness — nested match on two axes"
 @pure @total
+@intent "Extra damage when class targets enemy weakness — nested match on two axes"
 fn element_bonus :: (heroClass: string, weakness: string) -> int {
   match heroClass {
     | "mage"   => match weakness { | "arcane"   => 8 | "fire" => 5 | _ => 0 }
@@ -128,42 +128,28 @@ fn element_bonus :: (heroClass: string, weakness: string) -> int {
   }
 }
 
-record ClassMark {
-  id:     string
-  symbol: string
-}
-
-record WeaknessHint {
-  id:   string
-  hint: string
-}
-
-let CLASS_MARKS = [
-  { id: "mage",   symbol: "[M]" },
-  { id: "knight", symbol: "[K]" },
-  { id: "ranger", symbol: "[R]" },
-]
-
-let WEAKNESS_HINTS = [
-  { id: "arcane",   hint: "weak to ARCANE (mage bonus)" },
-  { id: "fire",     hint: "weak to FIRE (mage bonus)" },
-  { id: "nature",   hint: "weak to NATURE (ranger bonus)" },
-  { id: "cold",     hint: "weak to COLD (ranger bonus)" },
-  { id: "physical", hint: "weak to PHYSICAL (knight bonus)" },
-]
-
+@pure @total
 @intent "Single-char symbol for each hero class"
-@pure @total
 fn class_symbol :: (heroClass: string) -> string {
-  let hit = CLASS_MARKS.find(m => m.id == heroClass)
-  hit ? hit.symbol : "[?]"
+  match heroClass {
+    | "mage"   => "[M]"
+    | "knight" => "[K]"
+    | "ranger" => "[R]"
+    | _        => "[?]"
+  }
 }
 
-@intent "Display label for enemy weakness"
 @pure @total
+@intent "Display label for enemy weakness"
 fn class_weakness_hint :: (weakness: string) -> string {
-  let hit = WEAKNESS_HINTS.find(w => w.id == weakness)
-  hit ? hit.hint : "no known weakness"
+  match weakness {
+    | "arcane"   => "weak to ARCANE (mage bonus)"
+    | "fire"     => "weak to FIRE (mage bonus)"
+    | "nature"   => "weak to NATURE (ranger bonus)"
+    | "cold"     => "weak to COLD (ranger bonus)"
+    | "physical" => "weak to PHYSICAL (knight bonus)"
+    | _          => "no known weakness"
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -174,16 +160,16 @@ fn class_weakness_hint :: (weakness: string) -> string {
 // result is cached and the formula runs only once ever.
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Core damage formula — memoized, same inputs always produce same damage"
 @pure @total @memo
+@intent "Core damage formula — memoized, same inputs always produce same damage"
 fn compute_damage :: (atk: int, def: int, bonus: int, roll: int) -> int {
   let base = Math.max(1, atk + bonus - Math.floor(def / 2))
   let mult = roll >= 18 ? 2 : 1
   Math.max(1, base * mult)
 }
 
-@intent "Composite strength rating — memoized per unique hero state"
 @pure @total @memo
+@intent "Composite strength rating — memoized per unique hero state"
 fn hero_power :: (hero: Hero) -> int {
   hero.strength * hero.level + Math.floor(hero.maxHp / 10)
 }
@@ -195,8 +181,8 @@ fn hero_power :: (hero: Hero) -> int {
 // clauses at function entry — no manual validation code needed.
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Construct a Hero — all 5 typed params auto-validated at entry"
 @pure @total
+@intent "Construct a Hero — all 5 typed params auto-validated at entry"
 fn create_hero :: (name: HeroName, heroClass: ClassName, hp: HP, strength: StatValue, defense: StatValue, level: Level) -> Hero {
   { name, heroClass, hp, maxHp: hp, strength, defense, level, alive: true }
 }
@@ -205,26 +191,26 @@ fn create_hero :: (name: HeroName, heroClass: ClassName, hp: HP, strength: StatV
 // v0.3: .FIELD ACCESSOR SHORTHAND
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Living party members via .alive shorthand"
 @pure @total
+@intent "Living party members via .alive shorthand"
 fn alive_heroes :: (party: Hero[]) -> Hero[] {
   party |> filter(.alive)
 }
 
-@intent "Names of all living heroes — chain of .field shorthands"
 @pure @total
+@intent "Names of all living heroes — chain of .field shorthands"
 fn party_names :: (party: Hero[]) -> string[] {
   party |> filter(.alive) |> map(.name)
 }
 
-@intent "Sum of living HP — .hp shorthand after .alive filter"
 @pure @total @memo
+@intent "Sum of living HP — .hp shorthand after .alive filter"
 fn total_party_hp :: (party: Hero[]) -> int {
   party |> filter(.alive) |> map(.hp) |> sum
 }
 
-@intent "Sum of hero_power across all party members"
 @pure @total @memo
+@intent "Sum of hero_power across all party members"
 fn party_power_rating :: (party: Hero[]) -> int {
   party |> map(hero_power) |> sum
 }
@@ -233,22 +219,22 @@ fn party_power_rating :: (party: Hero[]) -> int {
 // v0.2: STDLIB SHOWCASE
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Count surviving heroes"
 @pure @total
+@intent "Count surviving heroes"
 fn count_alive :: (party: Hero[]) -> int {
   party |> filter(.alive) |> count
 }
 
-@intent "The hero with the highest power rating"
 @pure @total
+@intent "The hero with the highest power rating"
 fn strongest_hero :: (party: Hero[]) -> Hero {
   // v1.0: max_by replaces sort-then-first — no mutation, no checker warning
   party |> max_by(hero_power)
 }
 
 // Intentionally impure — demonstrates @pure checker warning
-@intent "Debug party state — @pure is false, checker will warn"
 @pure @total
+@intent "Debug party state — @pure is false, checker will warn"
 fn debug_party :: (party: Hero[]) -> bool {
   let _ = console.log("debug_party:", party |> map(.name))
   true
@@ -258,8 +244,8 @@ fn debug_party :: (party: Hero[]) -> bool {
 // PURE UTILITIES
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Return entity with updated hp and alive flag — no mutation"
 @pure @total
+@intent "Return entity with updated hp and alive flag — no mutation"
 fn apply_damage :: (entity: any, dmg: int) -> any {
   let newHp = Math.max(0, entity.hp - dmg)
   { ...entity, hp: newHp, alive: newHp > 0 }
@@ -269,8 +255,8 @@ fn apply_damage :: (entity: any, dmg: int) -> any {
 // DOM BUILDER
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Create a DOM element with attributes and children"
 @effects [dom.create, dom.attrs, dom.children]
+@intent "Create a DOM element with attributes and children"
 fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
   let e = document.createElement(tag)
   let _ = Object.entries(attrs).forEach(([k, v]) => {
@@ -292,8 +278,8 @@ fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
 // RENDERERS — pure element builders
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Render one hero row with HP bar and stats"
 @effects [dom.create]
+@intent "Render one hero row with HP bar and stats"
 fn render_hero_row :: (hero: Hero) -> Element {
   let sym   = class_symbol(hero.heroClass)
   let label = format_hero_card_line(hero)
@@ -306,8 +292,8 @@ fn render_hero_row :: (hero: Hero) -> Element {
   )
 }
 
-@intent "Render the enemy status panel"
 @effects [dom.create]
+@intent "Render the enemy status panel"
 fn render_enemy_panel :: (enemy: Enemy) -> Element {
   let label   = format_enemy_card_line(enemy)
   let hint    = class_weakness_hint(enemy.weakness)
@@ -319,8 +305,8 @@ fn render_enemy_panel :: (enemy: Enemy) -> Element {
   )
 }
 
-@intent "Render all hero rows with party-level stats"
 @effects [dom.create]
+@intent "Render all hero rows with party-level stats"
 fn render_party_panel :: (party: Hero[]) -> Element {
   let aliveCount  = count_alive(party)
   let totalHp     = total_party_hp(party)
@@ -337,8 +323,8 @@ fn render_party_panel :: (party: Hero[]) -> Element {
 // MAIN ENTRY — orchestrates state, events, re-renders
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Bootstrap the combat engine — pure logic, thin DOM layer"
 @effects [dom.write, dom.events, state.mutable, rng]
+@intent "Bootstrap the combat engine — pure logic, thin DOM layer"
 fn render_combat :: (rootId: string) -> void {
 
   let make_party = () => [

@@ -1,3 +1,9 @@
+const RouteCopy = (intent, label, reply) => ({ intent, label, reply });
+
+let ROUTE_COPY = [{intent: "exit", label: "Exit", reply: "Goodbye — session closed."}, {intent: "greet", label: "Greeting", reply: "Hey! What can I help you with today?"}, {intent: "help", label: "Help / Docs", reply: "Opening the docs — try the Quick Start section."}, {intent: "billing", label: "Billing / Refund", reply: "Routing you to billing support for refunds and charges."}, {intent: "bug", label: "Bug Report", reply: "Thanks for the report — filing a bug ticket."}, {intent: "pricing", label: "Pricing", reply: "Here are the current plans and upgrade options."}];
+
+const find_copy = (intent) => $find(ROUTE_COPY, (r) => r.intent == intent);
+
 /**
  * @param {string} msg
  * @returns {string}
@@ -19,13 +25,19 @@ const route_intent = (msg) => ((_m) => {
  * @param {string} intent
  * @returns {string}
  */
-const route_label = (intent) => ((_m) => (_m === "exit") ? "Exit" : (_m === "greet") ? "Greeting" : (_m === "help") ? "Help / Docs" : (_m === "billing") ? "Billing / Refund" : (_m === "bug") ? "Bug Report" : (_m === "pricing") ? "Pricing" : "Unknown")(intent);
+const route_label = (intent) => {
+  let hit = find_copy(intent);
+  return hit ? hit.label : "Unknown";
+};
 
 /**
  * @param {string} intent
  * @returns {string}
  */
-const route_reply = (intent) => ((_m) => (_m === "exit") ? "Goodbye — session closed." : (_m === "greet") ? "Hey! What can I help you with today?" : (_m === "help") ? "Opening the docs — try the Quick Start section." : (_m === "billing") ? "Routing you to billing support for refunds and charges." : (_m === "bug") ? "Thanks for the report — filing a bug ticket." : (_m === "pricing") ? "Here are the current plans and upgrade options." : "I am not sure — try rephrasing, or say help.")(intent);
+const route_reply = (intent) => {
+  let hit = find_copy(intent);
+  return hit ? hit.reply : "I am not sure — try rephrasing, or say help.";
+};
 
 /**
  * @param {string} msg

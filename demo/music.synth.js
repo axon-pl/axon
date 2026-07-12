@@ -87,17 +87,27 @@ const validate_track_input = (title, artist, bpm, duration) => title.length === 
  */
 const tempo_label = (bpm) => ((_m) => (_m < "90") ? "Slow" : (_m < "120") ? "Moderate" : (_m < "150") ? "Fast" : "Intense")(bpm);
 
-/**
- * @param {string} genre
- * @returns {string}
- */
-const genre_css_class = (genre) => ((_m) => (_m === "synthwave") ? "g-sw" : (_m === "darksynth") ? "g-ds" : (_m === "ambient") ? "g-amb" : (_m === "retrowave") ? "g-rw" : (_m === "cyberpunk") ? "g-cp" : "g-default")(genre);
+const GenreMeta = (id, css, short) => ({ id, css, short });
+
+let GENRE_META = [{id: "synthwave", css: "g-sw", short: "SW"}, {id: "darksynth", css: "g-ds", short: "DS"}, {id: "ambient", css: "g-amb", short: "AMB"}, {id: "retrowave", css: "g-rw", short: "RW"}, {id: "cyberpunk", css: "g-cp", short: "CP"}];
 
 /**
  * @param {string} genre
  * @returns {string}
  */
-const genre_short = (genre) => ((_m) => (_m === "synthwave") ? "SW" : (_m === "darksynth") ? "DS" : (_m === "ambient") ? "AMB" : (_m === "retrowave") ? "RW" : (_m === "cyberpunk") ? "CP" : genre)(genre);
+const genre_css_class = (genre) => {
+  let hit = $find(GENRE_META, (g) => g.id == genre);
+  return hit ? hit.css : "g-default";
+};
+
+/**
+ * @param {string} genre
+ * @returns {string}
+ */
+const genre_short = (genre) => {
+  let hit = $find(GENRE_META, (g) => g.id == genre);
+  return hit ? hit.short : genre;
+};
 
 const library_stats = (() => {
   const __cache = new Map();

@@ -74,17 +74,30 @@ const combat_outcome_label = (roll) => ((_m) => (_m >= "20") ? "lands a perfect 
  */
 const element_bonus = (heroClass, weakness) => ((_m) => (_m === "mage") ? ((_m) => (_m === "arcane") ? 8 : (_m === "fire") ? 5 : 0)(weakness) : (_m === "ranger") ? ((_m) => (_m === "nature") ? 6 : (_m === "cold") ? 4 : 0)(weakness) : (_m === "knight") ? ((_m) => (_m === "physical") ? 5 : 0)(weakness) : 0)(heroClass);
 
+const ClassMark = (id, symbol) => ({ id, symbol });
+
+const WeaknessHint = (id, hint) => ({ id, hint });
+
+let CLASS_MARKS = [{id: "mage", symbol: "[M]"}, {id: "knight", symbol: "[K]"}, {id: "ranger", symbol: "[R]"}];
+let WEAKNESS_HINTS = [{id: "arcane", hint: "weak to ARCANE (mage bonus)"}, {id: "fire", hint: "weak to FIRE (mage bonus)"}, {id: "nature", hint: "weak to NATURE (ranger bonus)"}, {id: "cold", hint: "weak to COLD (ranger bonus)"}, {id: "physical", hint: "weak to PHYSICAL (knight bonus)"}];
+
 /**
  * @param {string} heroClass
  * @returns {string}
  */
-const class_symbol = (heroClass) => ((_m) => (_m === "mage") ? "[M]" : (_m === "knight") ? "[K]" : (_m === "ranger") ? "[R]" : "[?]")(heroClass);
+const class_symbol = (heroClass) => {
+  let hit = $find(CLASS_MARKS, (m) => m.id == heroClass);
+  return hit ? hit.symbol : "[?]";
+};
 
 /**
  * @param {string} weakness
  * @returns {string}
  */
-const class_weakness_hint = (weakness) => ((_m) => (_m === "arcane") ? "weak to ARCANE (mage bonus)" : (_m === "fire") ? "weak to FIRE (mage bonus)" : (_m === "nature") ? "weak to NATURE (ranger bonus)" : (_m === "cold") ? "weak to COLD (ranger bonus)" : (_m === "physical") ? "weak to PHYSICAL (knight bonus)" : "no known weakness")(weakness);
+const class_weakness_hint = (weakness) => {
+  let hit = $find(WEAKNESS_HINTS, (w) => w.id == weakness);
+  return hit ? hit.hint : "no known weakness";
+};
 
 const compute_damage = (() => {
   const __cache = new Map();

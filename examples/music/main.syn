@@ -64,16 +64,16 @@ fn format_fibonacci_result(n, result) = "fib({n}) = {result}"
 // Local let bindings are used as interpolation targets.
 // ══════════════════════════════════════════════════════════════════════════════
 
-@pure @total
 @intent "Format seconds as M:SS display string"
+@pure @total
 fn format_duration :: (secs: Duration) -> string {
   let m = Math.floor(secs / 60)
   let s = pad2(secs % 60)
   "{m}:{s}"
 }
 
-@pure @total
 @intent "Render a compact one-line summary of library state"
+@pure @total
 fn format_stats_line :: (stats: LibraryStats) -> string {
   let n    = stats.count
   let mins = Math.floor(stats.totalDuration / 60)
@@ -88,21 +88,21 @@ fn format_stats_line :: (stats: LibraryStats) -> string {
 // No manual validation calls — these guards appear in the transpiled output.
 // ══════════════════════════════════════════════════════════════════════════════
 
-@pure @total
 @intent "Construct a Track — BPM/Duration/TrackTitle/ArtistName guards injected at entry"
+@pure @total
 fn create_track :: (id: int, title: TrackTitle, artist: ArtistName, bpm: BPM, duration: Duration, genre: string) -> Track {
   { id, title, artist, bpm, duration, genre, featured: false }
 }
 
-@pure @total
 @intent "Format a volume level string — Volume must be 0-100 or auto-guard throws"
+@pure @total
 fn set_volume :: (vol: Volume) -> string {
   "Volume set to {vol}%"
 }
 
 // Pre-validation helper for the add-track form (user-facing errors)
-@pure @total
 @intent "Return the first validation error for new track fields, or empty string if valid"
+@pure @total
 fn validate_track_input :: (title: string, artist: string, bpm: int, duration: int) -> string {
   title.length === 0   ? "Title cannot be empty" :
   artist.length === 0  ? "Artist cannot be empty" :
@@ -116,8 +116,8 @@ fn validate_track_input :: (title: string, artist: string, bpm: int, duration: i
 // v0.1: PATTERN MATCHING
 // ══════════════════════════════════════════════════════════════════════════════
 
-@pure @total
 @intent "Classify BPM range as a human-readable tempo label"
+@pure @total
 fn tempo_label :: (bpm: int) -> string {
   match bpm {
     | < 90  => "Slow"
@@ -127,30 +127,32 @@ fn tempo_label :: (bpm: int) -> string {
   }
 }
 
-@pure @total
-@intent "Map genre identifier to its accent color CSS class"
-fn genre_css_class :: (genre: string) -> string {
-  match genre {
-    | "synthwave"  => "g-sw"
-    | "darksynth"  => "g-ds"
-    | "ambient"    => "g-amb"
-    | "retrowave"  => "g-rw"
-    | "cyberpunk"  => "g-cp"
-    | _            => "g-default"
-  }
+record GenreMeta {
+  id:    string
+  css:   string
+  short: string
 }
 
+let GENRE_META = [
+  { id: "synthwave",  css: "g-sw",  short: "SW" },
+  { id: "darksynth",  css: "g-ds",  short: "DS" },
+  { id: "ambient",    css: "g-amb", short: "AMB" },
+  { id: "retrowave",  css: "g-rw",  short: "RW" },
+  { id: "cyberpunk",  css: "g-cp",  short: "CP" },
+]
+
+@intent "Map genre identifier to its accent color CSS class"
 @pure @total
+fn genre_css_class :: (genre: string) -> string {
+  let hit = GENRE_META.find(g => g.id == genre)
+  hit ? hit.css : "g-default"
+}
+
 @intent "Abbreviated tag for a genre badge"
+@pure @total
 fn genre_short :: (genre: string) -> string {
-  match genre {
-    | "synthwave"  => "SW"
-    | "darksynth"  => "DS"
-    | "ambient"    => "AMB"
-    | "retrowave"  => "RW"
-    | "cyberpunk"  => "CP"
-    | _            => genre
-  }
+  let hit = GENRE_META.find(g => g.id == genre)
+  hit ? hit.short : genre
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -159,8 +161,8 @@ fn genre_short :: (genre: string) -> string {
 // The cache key is JSON.stringify([...args]).
 // ══════════════════════════════════════════════════════════════════════════════
 
-@pure @total @memo
 @intent "Aggregate stats across the track collection — memoized, O(1) on repeated calls"
+@pure @total @memo
 fn library_stats :: (tracks: Track[]) -> LibraryStats {
   let total_dur  = tracks |> map(.duration) |> sum
   let total_bpm  = tracks |> map(.bpm) |> sum
@@ -173,8 +175,8 @@ fn library_stats :: (tracks: Track[]) -> LibraryStats {
   }
 }
 
-@pure @total @memo
 @intent "Classic recursive Fibonacci — @memo turns O(2^n) into O(n) via Map cache"
+@pure @total @memo
 fn fibonacci :: (n: int) -> int {
   match n {
     | 0 => 0
@@ -189,26 +191,26 @@ fn fibonacci :: (n: int) -> int {
 // Makes filter/map intent immediately readable — no ceremony.
 // ══════════════════════════════════════════════════════════════════════════════
 
-@pure @total
 @intent "Return only featured tracks using .featured shorthand"
+@pure @total
 fn featured_tracks :: (tracks: Track[]) -> Track[] {
   tracks |> filter(.featured)
 }
 
-@pure @total
 @intent "Extract all track titles using .title shorthand"
+@pure @total
 fn all_titles :: (tracks: Track[]) -> string[] {
   tracks |> map(.title)
 }
 
-@pure @total
 @intent "Extract all artist names using .artist shorthand"
+@pure @total
 fn all_artists :: (tracks: Track[]) -> string[] {
   tracks |> map(.artist)
 }
 
-@pure @total
 @intent "Sum all durations using .duration shorthand"
+@pure @total
 fn total_playtime :: (tracks: Track[]) -> int {
   tracks |> map(.duration) |> sum
 }
@@ -217,28 +219,28 @@ fn total_playtime :: (tracks: Track[]) -> int {
 // v0.2: STDLIB SHOWCASE
 // ══════════════════════════════════════════════════════════════════════════════
 
-@pure @total
 @intent "Filter tracks to a specific genre"
+@pure @total
 fn tracks_in_genre :: (tracks: Track[], genre: string) -> Track[] {
   tracks |> filter(t => t.genre === genre)
 }
 
-@pure @total
 @intent "True if the collection has at least one featured track"
+@pure @total
 fn any_featured :: (tracks: Track[]) -> bool {
   tracks |> any(.featured)
 }
 
-@pure @total
 @intent "Return the top n tracks by BPM descending"
+@pure @total
 fn top_by_bpm :: (tracks: Track[], n: int) -> Track[] {
   // v1.0: sort_by_desc + take — copies instead of mutating, no checker warning
   tracks |> sort_by_desc(.bpm) |> take(n)
 }
 
 // @pure checker demo: intentionally impure function warns at compile time
-@pure @total
 @intent "Debug-log a track — @pure is a lie, checker will warn"
+@pure @total
 fn debug_track :: (track: Track) -> bool {
   let _ = console.log("debug_track:", track.title)
   true
@@ -248,8 +250,8 @@ fn debug_track :: (track: Track) -> bool {
 // DOM BUILDER — thin imperative layer, @effects declared explicitly
 // ══════════════════════════════════════════════════════════════════════════════
 
-@effects [dom.create, dom.attrs, dom.children]
 @intent "Create a DOM element, set attributes, and append children"
+@effects [dom.create, dom.attrs, dom.children]
 fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
   let e = document.createElement(tag)
   let _ = Object.entries(attrs).forEach(([k, v]) => {
@@ -270,16 +272,16 @@ fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
   e
 }
 
-@effects [dom.write]
 @intent "Append a child element into a container element directly"
+@effects [dom.write]
 fn mount_into :: (container: Element, child: Element) -> void {
   container.appendChild(child)
 }
 
 // ── Track card ────────────────────────────────────────────────────────────────
 
-@effects [dom.create]
 @intent "Render a single track as a styled card"
+@effects [dom.create]
 fn render_track_card :: (track: Track) -> Element {
   let label  = format_track_label(track)
   let dur    = format_duration(track.duration)
@@ -304,8 +306,8 @@ fn render_track_card :: (track: Track) -> Element {
 
 // ── Stats bar ─────────────────────────────────────────────────────────────────
 
-@effects [dom.create]
 @intent "Render the live library stats and @memo benchmark badge"
+@effects [dom.create]
 fn render_stats_bar :: (tracks: Track[]) -> Element {
   let stats = library_stats(tracks)
   let line  = format_stats_line(stats)
@@ -319,8 +321,8 @@ fn render_stats_bar :: (tracks: Track[]) -> Element {
 
 // ── Genre filter row ──────────────────────────────────────────────────────────
 
-@effects [dom.create]
 @intent "Render genre filter pills — active genre is highlighted"
+@effects [dom.create]
 fn render_genre_filters :: (genres: string[], activeGenre: string, onFilter: any) -> Element {
   let buttons = genres |> map(g =>
     el("button", { class: g === activeGenre ? "filter-btn filter-btn--active" : "filter-btn" },
@@ -336,8 +338,8 @@ fn render_genre_filters :: (genres: string[], activeGenre: string, onFilter: any
 
 // ── Add track form ────────────────────────────────────────────────────────────
 
-@effects [dom.write, dom.create, dom.events]
 @intent "Render an add-track form that demonstrates param validation injection"
+@effects [dom.write, dom.create, dom.events]
 fn render_add_form :: (container: Element, onAdd: any) -> void {
   let titleIn  = el("input", { type: "text",   class: "form-inp", placeholder: "Title (required)" })
   let artistIn = el("input", { type: "text",   class: "form-inp", placeholder: "Artist (required)" })
@@ -389,8 +391,8 @@ fn render_add_form :: (container: Element, onAdd: any) -> void {
 
 // ── Main library renderer ─────────────────────────────────────────────────────
 
-@effects [dom.write, dom.events, state.mutable]
 @intent "Bootstrap and mount the full music library UI into a root container"
+@effects [dom.write, dom.events, state.mutable]
 fn render_library :: (rootId: string, initialTracks: Track[]) -> void {
   let tracks      = initialTracks.slice()
   let activeGenre = "all"

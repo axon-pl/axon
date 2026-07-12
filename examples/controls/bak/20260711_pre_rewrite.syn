@@ -1,6 +1,14 @@
-// ── Web Controls — light structural rewrite ───────────────────────────────────
-// Host widgets: render_counter · render_email_validator · render_toggle ·
-// render_theme_switcher · render_modal_demo (+ pure helpers)
+// ═══════════════════════════════════════════════════════════════════════════════
+// Synth v1.0 — Web Controls Demo
+//
+// Features exercised below:
+//
+//   • String interpolation — "Hello {name}" compiles to template literals
+//   • .field accessor shorthand — filter(.active), map(.score) in pipelines
+//   • Param validation injection — typed params with `where` get auto-guards
+//   • @memo annotation — @pure @total functions get Map-based cache wrappers
+//   • Spread record updates — { ...state, count: n } (v0.9.9)
+// ═══════════════════════════════════════════════════════════════════════════════
 
 // ── Constrained types ──────────────────────────────────────────────────────────
 // Every `where` clause generates a __validate_T(v) function at compile time.
@@ -57,8 +65,8 @@ fn counter_dec(state) = { ...state, count: Math.max(state.count - 1, state.min) 
 fn counter_can_inc(state) = state.count < state.max
 fn counter_can_dec(state) = state.count > state.min
 
-@intent "Format counter value as a signed display string"
 @pure @total
+@intent "Format counter value as a signed display string"
 fn counter_display :: (state: CounterState) -> string {
   // v0.3: string interpolation — "+{n}" compiles to `+${n}` automatically
   let n = state.count
@@ -75,8 +83,8 @@ fn counter_display :: (state: CounterState) -> string {
 
 fn is_valid_email(email) = __validate_EmailAddress(email)
 
-@intent "Produce a structured validation result with human-readable feedback"
 @pure @total
+@intent "Produce a structured validation result with human-readable feedback"
 fn validate_email :: (email: string) -> ValidationResult {
   match email.length {
     | 0 => { valid: false, message: "Email is required", value: email }
@@ -114,8 +122,8 @@ fn theme_class(name) = "theme-{name}"
 fn theme_next(current, available) =
   available[(available.indexOf(current) + 1) % available.length]
 
-@intent "Human-readable display label for a named theme"
 @pure @total
+@intent "Human-readable display label for a named theme"
 fn theme_label :: (name: ThemeName) -> string {
   match name {
     | "light"     => "Light"
@@ -142,14 +150,14 @@ fn modal_close(state) = { ...state, open: false }
 //   if (!__validate_EmailAddress(email)) throw new Error(...)
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Format a welcome message — params are auto-validated at the boundary"
 @pure @total
+@intent "Format a welcome message — params are auto-validated at the boundary"
 fn send_welcome :: (email: EmailAddress, name: NonEmptyString) -> string {
   "Welcome, {name}! A confirmation has been sent to {email}."
 }
 
-@intent "Format a score label — Score type ensures 0-100, NonEmptyString ensures label exists"
 @pure @total
+@intent "Format a score label — Score type ensures 0-100, NonEmptyString ensures label exists"
 fn format_score :: (label: NonEmptyString, value: Score) -> string {
   "{label}: {value}/100"
 }
@@ -163,22 +171,22 @@ fn format_score :: (label: NonEmptyString, value: Score) -> string {
 // ══════════════════════════════════════════════════════════════════════════════
 
 // v0.3: map(.count) instead of map(s => s.count)
-@intent "Sum the counts from an array of counter states"
 @pure @total
+@intent "Sum the counts from an array of counter states"
 fn counter_history_total :: (states: CounterState[]) -> int {
   states |> map(.count) |> sum
 }
 
 // v0.3: filter(.active) |> map(.name) — intent is immediately readable
-@intent "Get names of all active players"
 @pure @total
+@intent "Get names of all active players"
 fn top_players :: (players: Player[]) -> string[] {
   players |> filter(.active) |> map(.name)
 }
 
 // v0.3: chained accessor .score for a clean extraction pipeline
-@intent "Sum all player scores"
 @pure @total
+@intent "Sum all player scores"
 fn total_score :: (players: Player[]) -> int {
   players |> map(.score) |> sum
 }
@@ -192,8 +200,8 @@ fn total_score :: (players: Player[]) -> int {
 // Combined with @pure @total: if it's pure and total, it's safe to memoize.
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Classic recursive Fibonacci — automatically memoized by @memo"
 @pure @total @memo
+@intent "Classic recursive Fibonacci — automatically memoized by @memo"
 fn fibonacci :: (n: int) -> int {
   match n {
     | 0 => 0
@@ -202,8 +210,8 @@ fn fibonacci :: (n: int) -> int {
   }
 }
 
-@intent "n*(n+1)/2 — memoized for repeated calls with same n"
 @pure @total @memo
+@intent "n*(n+1)/2 — memoized for repeated calls with same n"
 fn triangle_number :: (n: int) -> int {
   n * (n + 1) / 2
 }
@@ -212,33 +220,33 @@ fn triangle_number :: (n: int) -> int {
 // STDLIB SHOWCASE — pipelines with .field shorthand and interpolation
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Validate every email in a list and return all results"
 @pure @total
+@intent "Validate every email in a list and return all results"
 fn validate_email_batch :: (emails: string[]) -> ValidationResult[] {
   emails |> map(validate_email)
 }
 
-@intent "Count how many emails in a list pass validation"
 @pure @total
+@intent "Count how many emails in a list pass validation"
 fn count_valid_emails :: (emails: string[]) -> int {
   emails |> filter(is_valid_email) |> count
 }
 
-@intent "Return the first invalid email, or empty string if all pass"
 @pure @total
+@intent "Return the first invalid email, or empty string if all pass"
 fn first_invalid_email :: (emails: string[]) -> string {
   // v1.0: find + nullish coalescing replaces filter-then-check
   emails.find(e => !is_valid_email(e)) ?? ""
 }
 
-@intent "Map theme names to their display labels"
 @pure @total
+@intent "Map theme names to their display labels"
 fn theme_options :: (themes: string[]) -> string[] {
   themes |> map(theme_label)
 }
 
-@intent "True if any counter state has reached its maximum value"
 @pure @total
+@intent "True if any counter state has reached its maximum value"
 fn any_at_max :: (states: CounterState[]) -> bool {
   states |> any(s => s.count === s.max)
 }
@@ -247,8 +255,8 @@ fn any_at_max :: (states: CounterState[]) -> bool {
 // @PURE CHECKER DEMO — intentional warning to show the checker works
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Validate email with debug logging — intentionally impure to demo checker"
 @pure @total
+@intent "Validate email with debug logging — intentionally impure to demo checker"
 fn debug_validate :: (email: string) -> bool {
   let result = is_valid_email(email)
   let _ = console.log("debug_validate:", email, "->", result)
@@ -259,8 +267,8 @@ fn debug_validate :: (email: string) -> bool {
 // DOM BUILDER — thin imperative layer
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Create a DOM element, apply attributes, and append children"
 @effects [dom.create, dom.attrs, dom.children]
+@intent "Create a DOM element, apply attributes, and append children"
 fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
   let e = document.createElement(tag)
   let _ = Object.entries(attrs).forEach(([k, v]) => {
@@ -282,8 +290,8 @@ fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
   e
 }
 
-@intent "Append a child element into a container by ID"
 @effects [dom.write]
+@intent "Append a child element into a container by ID"
 fn mount :: (containerId: string, child: Element) -> void {
   let container = document.getElementById(containerId)
   container.appendChild(child)
@@ -293,8 +301,8 @@ fn mount :: (containerId: string, child: Element) -> void {
 // COUNTER WIDGET
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Mount a stateful counter widget"
 @effects [dom.write, dom.events, state.mutable]
+@intent "Mount a stateful counter widget"
 fn render_counter :: (containerId: string) -> void {
   let state = counter_make(-10, 10, 0)
   let display = el("span", { class: "counter-value" }, counter_display(state))
@@ -319,8 +327,8 @@ fn render_counter :: (containerId: string) -> void {
 // EMAIL VALIDATOR WIDGET
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Mount an email input widget with live validation feedback"
 @effects [dom.write, dom.events, state.mutable]
+@intent "Mount an email input widget with live validation feedback"
 fn render_email_validator :: (containerId: string) -> void {
   let input    = el("input", { type: "email", class: "input-field", placeholder: "you@example.com", id: "email-input" })
   let feedback = el("span",  { class: "field-empty feedback-msg" }, "Enter your email")
@@ -343,8 +351,8 @@ fn render_email_validator :: (containerId: string) -> void {
 // TOGGLE WIDGET
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Mount a toggle switch that flips between two labelled states"
 @effects [dom.write, dom.events, state.mutable]
+@intent "Mount a toggle switch that flips between two labelled states"
 fn render_toggle :: (containerId: string, onLabel: string, offLabel: string) -> void {
   let state = false
   let track = el("div",  { class: toggle_css_class(state, "toggle-track") })
@@ -364,12 +372,10 @@ fn render_toggle :: (containerId: string, onLabel: string, offLabel: string) -> 
 // THEME SWITCHER WIDGET
 // ══════════════════════════════════════════════════════════════════════════════
 
-let THEMES = ["light", "dark", "synthwave"]
-
-@intent "Mount a button that cycles through available themes"
 @effects [dom.write, dom.events, state.mutable]
+@intent "Mount a button that cycles through available themes"
 fn render_theme_switcher :: (containerId: string) -> void {
-  let themes  = THEMES
+  let themes  = ["light", "dark", "synthwave"]
   let labels  = theme_options(themes)
   let current = 0
   let _ = document.body.className = theme_class(themes[current])
@@ -388,8 +394,8 @@ fn render_theme_switcher :: (containerId: string) -> void {
 // MODAL WIDGET
 // ══════════════════════════════════════════════════════════════════════════════
 
-@intent "Mount a button that opens a modal dialog"
 @effects [dom.write, dom.events, state.mutable]
+@intent "Mount a button that opens a modal dialog"
 fn render_modal_demo :: (containerId: string) -> void {
   let state    = modal_close({ open: false, title: "", body: "" })
   let closeBtn = el("button", { class: "btn btn-primary modal-close-btn" }, "Close")

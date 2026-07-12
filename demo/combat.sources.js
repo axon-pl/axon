@@ -66,9 +66,9 @@ fn format_hero_label(hero) = "{hero.name} Lv.{hero.level} {hero.heroClass}"
 // ══════════════════════════════════════════════════════════════════════════════
 
 // HP bar: "████░░░░ 45/80 (56%)" built entirely from pure Synth functions
+@intent "Generate a visual HP bar string with percentage"
+@pure @total
 fn hp_bar_text :: (hp: int, maxHp: int) -> string {
-  @pure @total
-  @intent "Generate a visual HP bar string with percentage"
   let filled = maxHp > 0 ? Math.max(0, Math.round(hp / maxHp * 8)) : 0
   let bar    = range(0, 8) |> map(i => i < filled ? "#" : ".") 
   let pct    = maxHp > 0 ? Math.floor(hp / maxHp * 100) : 0
@@ -76,17 +76,17 @@ fn hp_bar_text :: (hp: int, maxHp: int) -> string {
   "{barStr} {hp}/{maxHp} ({pct}%)"
 }
 
+@intent "One-line hero status for the combat panel"
+@pure @total
 fn format_hero_card_line :: (hero: Hero) -> string {
-  @pure @total
-  @intent "One-line hero status for the combat panel"
   let bar = hp_bar_text(hero.hp, hero.maxHp)
   let title = level_title(hero.level)
   "{hero.name} the {title}  {bar}"
 }
 
+@intent "One-line enemy status for the combat panel"
+@pure @total
 fn format_enemy_card_line :: (enemy: Enemy) -> string {
-  @pure @total
-  @intent "One-line enemy status for the combat panel"
   let bar = hp_bar_text(enemy.hp, enemy.maxHp)
   "{enemy.name}  {bar}"
 }
@@ -95,9 +95,9 @@ fn format_enemy_card_line :: (enemy: Enemy) -> string {
 // v0.1: PATTERN MATCHING
 // ══════════════════════════════════════════════════════════════════════════════
 
+@intent "Rank title based on level range"
+@pure @total
 fn level_title :: (level: int) -> string {
-  @pure @total
-  @intent "Rank title based on level range"
   match level {
     | < 4  => "Novice"
     | < 7  => "Adept"
@@ -106,9 +106,9 @@ fn level_title :: (level: int) -> string {
   }
 }
 
+@intent "Narrative label for a d20 attack roll"
+@pure @total
 fn combat_outcome_label :: (roll: int) -> string {
-  @pure @total
-  @intent "Narrative label for a d20 attack roll"
   match roll {
     | >= 20 => "lands a perfect strike on"
     | >= 18 => "scores a CRITICAL HIT on"
@@ -119,9 +119,9 @@ fn combat_outcome_label :: (roll: int) -> string {
 }
 
 // Nested match: class vs weakness — only possible because match is an expression
+@intent "Extra damage when class targets enemy weakness — nested match on two axes"
+@pure @total
 fn element_bonus :: (heroClass: string, weakness: string) -> int {
-  @pure @total
-  @intent "Extra damage when class targets enemy weakness — nested match on two axes"
   match heroClass {
     | "mage"   => match weakness { | "arcane"   => 8 | "fire" => 5 | _ => 0 }
     | "ranger" => match weakness { | "nature"   => 6 | "cold" => 4 | _ => 0 }
@@ -130,28 +130,42 @@ fn element_bonus :: (heroClass: string, weakness: string) -> int {
   }
 }
 
-fn class_symbol :: (heroClass: string) -> string {
-  @pure @total
-  @intent "Single-char symbol for each hero class"
-  match heroClass {
-    | "mage"   => "[M]"
-    | "knight" => "[K]"
-    | "ranger" => "[R]"
-    | _        => "[?]"
-  }
+record ClassMark {
+  id:     string
+  symbol: string
 }
 
+record WeaknessHint {
+  id:   string
+  hint: string
+}
+
+let CLASS_MARKS = [
+  { id: "mage",   symbol: "[M]" },
+  { id: "knight", symbol: "[K]" },
+  { id: "ranger", symbol: "[R]" },
+]
+
+let WEAKNESS_HINTS = [
+  { id: "arcane",   hint: "weak to ARCANE (mage bonus)" },
+  { id: "fire",     hint: "weak to FIRE (mage bonus)" },
+  { id: "nature",   hint: "weak to NATURE (ranger bonus)" },
+  { id: "cold",     hint: "weak to COLD (ranger bonus)" },
+  { id: "physical", hint: "weak to PHYSICAL (knight bonus)" },
+]
+
+@intent "Single-char symbol for each hero class"
+@pure @total
+fn class_symbol :: (heroClass: string) -> string {
+  let hit = CLASS_MARKS.find(m => m.id == heroClass)
+  hit ? hit.symbol : "[?]"
+}
+
+@intent "Display label for enemy weakness"
+@pure @total
 fn class_weakness_hint :: (weakness: string) -> string {
-  @pure @total
-  @intent "Display label for enemy weakness"
-  match weakness {
-    | "arcane"   => "weak to ARCANE (mage bonus)"
-    | "fire"     => "weak to FIRE (mage bonus)"
-    | "nature"   => "weak to NATURE (ranger bonus)"
-    | "cold"     => "weak to COLD (ranger bonus)"
-    | "physical" => "weak to PHYSICAL (knight bonus)"
-    | _          => "no known weakness"
-  }
+  let hit = WEAKNESS_HINTS.find(w => w.id == weakness)
+  hit ? hit.hint : "no known weakness"
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -162,17 +176,17 @@ fn class_weakness_hint :: (weakness: string) -> string {
 // result is cached and the formula runs only once ever.
 // ══════════════════════════════════════════════════════════════════════════════
 
+@intent "Core damage formula — memoized, same inputs always produce same damage"
+@pure @total @memo
 fn compute_damage :: (atk: int, def: int, bonus: int, roll: int) -> int {
-  @pure @total @memo
-  @intent "Core damage formula — memoized, same inputs always produce same damage"
   let base = Math.max(1, atk + bonus - Math.floor(def / 2))
   let mult = roll >= 18 ? 2 : 1
   Math.max(1, base * mult)
 }
 
+@intent "Composite strength rating — memoized per unique hero state"
+@pure @total @memo
 fn hero_power :: (hero: Hero) -> int {
-  @pure @total @memo
-  @intent "Composite strength rating — memoized per unique hero state"
   hero.strength * hero.level + Math.floor(hero.maxHp / 10)
 }
 
@@ -183,9 +197,9 @@ fn hero_power :: (hero: Hero) -> int {
 // clauses at function entry — no manual validation code needed.
 // ══════════════════════════════════════════════════════════════════════════════
 
+@intent "Construct a Hero — all 5 typed params auto-validated at entry"
+@pure @total
 fn create_hero :: (name: HeroName, heroClass: ClassName, hp: HP, strength: StatValue, defense: StatValue, level: Level) -> Hero {
-  @pure @total
-  @intent "Construct a Hero — all 5 typed params auto-validated at entry"
   { name, heroClass, hp, maxHp: hp, strength, defense, level, alive: true }
 }
 
@@ -193,27 +207,27 @@ fn create_hero :: (name: HeroName, heroClass: ClassName, hp: HP, strength: StatV
 // v0.3: .FIELD ACCESSOR SHORTHAND
 // ══════════════════════════════════════════════════════════════════════════════
 
+@intent "Living party members via .alive shorthand"
+@pure @total
 fn alive_heroes :: (party: Hero[]) -> Hero[] {
-  @pure @total
-  @intent "Living party members via .alive shorthand"
   party |> filter(.alive)
 }
 
+@intent "Names of all living heroes — chain of .field shorthands"
+@pure @total
 fn party_names :: (party: Hero[]) -> string[] {
-  @pure @total
-  @intent "Names of all living heroes — chain of .field shorthands"
   party |> filter(.alive) |> map(.name)
 }
 
+@intent "Sum of living HP — .hp shorthand after .alive filter"
+@pure @total @memo
 fn total_party_hp :: (party: Hero[]) -> int {
-  @pure @total @memo
-  @intent "Sum of living HP — .hp shorthand after .alive filter"
   party |> filter(.alive) |> map(.hp) |> sum
 }
 
+@intent "Sum of hero_power across all party members"
+@pure @total @memo
 fn party_power_rating :: (party: Hero[]) -> int {
-  @pure @total @memo
-  @intent "Sum of hero_power across all party members"
   party |> map(hero_power) |> sum
 }
 
@@ -221,23 +235,23 @@ fn party_power_rating :: (party: Hero[]) -> int {
 // v0.2: STDLIB SHOWCASE
 // ══════════════════════════════════════════════════════════════════════════════
 
+@intent "Count surviving heroes"
+@pure @total
 fn count_alive :: (party: Hero[]) -> int {
-  @pure @total
-  @intent "Count surviving heroes"
   party |> filter(.alive) |> count
 }
 
+@intent "The hero with the highest power rating"
+@pure @total
 fn strongest_hero :: (party: Hero[]) -> Hero {
-  @pure @total
-  @intent "The hero with the highest power rating"
   // v1.0: max_by replaces sort-then-first — no mutation, no checker warning
   party |> max_by(hero_power)
 }
 
 // Intentionally impure — demonstrates @pure checker warning
+@intent "Debug party state — @pure is false, checker will warn"
+@pure @total
 fn debug_party :: (party: Hero[]) -> bool {
-  @pure @total
-  @intent "Debug party state — @pure is false, checker will warn"
   let _ = console.log("debug_party:", party |> map(.name))
   true
 }
@@ -246,9 +260,9 @@ fn debug_party :: (party: Hero[]) -> bool {
 // PURE UTILITIES
 // ══════════════════════════════════════════════════════════════════════════════
 
+@intent "Return entity with updated hp and alive flag — no mutation"
+@pure @total
 fn apply_damage :: (entity: any, dmg: int) -> any {
-  @pure @total
-  @intent "Return entity with updated hp and alive flag — no mutation"
   let newHp = Math.max(0, entity.hp - dmg)
   { ...entity, hp: newHp, alive: newHp > 0 }
 }
@@ -257,9 +271,9 @@ fn apply_damage :: (entity: any, dmg: int) -> any {
 // DOM BUILDER
 // ══════════════════════════════════════════════════════════════════════════════
 
+@intent "Create a DOM element with attributes and children"
+@effects [dom.create, dom.attrs, dom.children]
 fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
-  @effects [dom.create, dom.attrs, dom.children]
-  @intent "Create a DOM element with attributes and children"
   let e = document.createElement(tag)
   let _ = Object.entries(attrs).forEach(([k, v]) => {
     if (k === "class") { e.className = v }
@@ -280,9 +294,9 @@ fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
 // RENDERERS — pure element builders
 // ══════════════════════════════════════════════════════════════════════════════
 
+@intent "Render one hero row with HP bar and stats"
+@effects [dom.create]
 fn render_hero_row :: (hero: Hero) -> Element {
-  @effects [dom.create]
-  @intent "Render one hero row with HP bar and stats"
   let sym   = class_symbol(hero.heroClass)
   let label = format_hero_card_line(hero)
   let power = hero_power(hero)
@@ -294,9 +308,9 @@ fn render_hero_row :: (hero: Hero) -> Element {
   )
 }
 
+@intent "Render the enemy status panel"
+@effects [dom.create]
 fn render_enemy_panel :: (enemy: Enemy) -> Element {
-  @effects [dom.create]
-  @intent "Render the enemy status panel"
   let label   = format_enemy_card_line(enemy)
   let hint    = class_weakness_hint(enemy.weakness)
   el("div", { class: "enemy-panel" },
@@ -307,9 +321,9 @@ fn render_enemy_panel :: (enemy: Enemy) -> Element {
   )
 }
 
+@intent "Render all hero rows with party-level stats"
+@effects [dom.create]
 fn render_party_panel :: (party: Hero[]) -> Element {
-  @effects [dom.create]
-  @intent "Render all hero rows with party-level stats"
   let aliveCount  = count_alive(party)
   let totalHp     = total_party_hp(party)
   let powerRating = party_power_rating(party)
@@ -325,9 +339,9 @@ fn render_party_panel :: (party: Hero[]) -> Element {
 // MAIN ENTRY — orchestrates state, events, re-renders
 // ══════════════════════════════════════════════════════════════════════════════
 
+@intent "Bootstrap the combat engine — pure logic, thin DOM layer"
+@effects [dom.write, dom.events, state.mutable, rng]
 fn render_combat :: (rootId: string) -> void {
-  @effects [dom.write, dom.events, state.mutable, rng]
-  @intent "Bootstrap the combat engine — pure logic, thin DOM layer"
 
   let make_party = () => [
     create_hero("Aria",   "mage",   60, 12, 5,  8),
@@ -519,17 +533,30 @@ const combat_outcome_label = (roll) => ((_m) => (_m >= "20") ? "lands a perfect 
  */
 const element_bonus = (heroClass, weakness) => ((_m) => (_m === "mage") ? ((_m) => (_m === "arcane") ? 8 : (_m === "fire") ? 5 : 0)(weakness) : (_m === "ranger") ? ((_m) => (_m === "nature") ? 6 : (_m === "cold") ? 4 : 0)(weakness) : (_m === "knight") ? ((_m) => (_m === "physical") ? 5 : 0)(weakness) : 0)(heroClass);
 
+const ClassMark = (id, symbol) => ({ id, symbol });
+
+const WeaknessHint = (id, hint) => ({ id, hint });
+
+let CLASS_MARKS = [{id: "mage", symbol: "[M]"}, {id: "knight", symbol: "[K]"}, {id: "ranger", symbol: "[R]"}];
+let WEAKNESS_HINTS = [{id: "arcane", hint: "weak to ARCANE (mage bonus)"}, {id: "fire", hint: "weak to FIRE (mage bonus)"}, {id: "nature", hint: "weak to NATURE (ranger bonus)"}, {id: "cold", hint: "weak to COLD (ranger bonus)"}, {id: "physical", hint: "weak to PHYSICAL (knight bonus)"}];
+
 /**
  * @param {string} heroClass
  * @returns {string}
  */
-const class_symbol = (heroClass) => ((_m) => (_m === "mage") ? "[M]" : (_m === "knight") ? "[K]" : (_m === "ranger") ? "[R]" : "[?]")(heroClass);
+const class_symbol = (heroClass) => {
+  let hit = \$find(CLASS_MARKS, (m) => m.id == heroClass);
+  return hit ? hit.symbol : "[?]";
+};
 
 /**
  * @param {string} weakness
  * @returns {string}
  */
-const class_weakness_hint = (weakness) => ((_m) => (_m === "arcane") ? "weak to ARCANE (mage bonus)" : (_m === "fire") ? "weak to FIRE (mage bonus)" : (_m === "nature") ? "weak to NATURE (ranger bonus)" : (_m === "cold") ? "weak to COLD (ranger bonus)" : (_m === "physical") ? "weak to PHYSICAL (knight bonus)" : "no known weakness")(weakness);
+const class_weakness_hint = (weakness) => {
+  let hit = \$find(WEAKNESS_HINTS, (w) => w.id == weakness);
+  return hit ? hit.hint : "no known weakness";
+};
 
 const compute_damage = (() => {
   const __cache = new Map();

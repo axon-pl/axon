@@ -93,26 +93,13 @@ fn xp_bar :: (xp: int, xpNext: int) -> string {
   bar.join("")
 }
 
-@pure @total @memo
+// Index = level (1..14); out-of-range falls back to 99999
+let XP_TABLE = [0, 150, 340, 600, 950, 1400, 2000, 2750, 3700, 4900, 6400, 8200, 10500, 13200, 16500]
+
 @intent "XP needed for next level — exponential curve across 15 levels"
+@pure @total @memo
 fn xp_to_next :: (level: int) -> int {
-  match level {
-    | 1  => 150
-    | 2  => 340
-    | 3  => 600
-    | 4  => 950
-    | 5  => 1400
-    | 6  => 2000
-    | 7  => 2750
-    | 8  => 3700
-    | 9  => 4900
-    | 10 => 6400
-    | 11 => 8200
-    | 12 => 10500
-    | 13 => 13200
-    | 14 => 16500
-    | _  => 99999
-  }
+  level >= 1 and level <= 14 ? XP_TABLE[level] : 99999
 }
 
 fn weapon_atk(w) = w ? w.atkBonus : 0
@@ -158,8 +145,8 @@ fn fmt_attack :: (attacker: string, means: string, outcome: string, defender: st
     : "{attacker} {outcome} {defender} with {means} for {dmg}!"
 }
 
-@pure @total
 @intent "Breakdown line — power, armor mitigation, crit, final damage"
+@pure @total
 fn fmt_dmg_detail :: (atk: int, bonus: int, mitigation: int, source: string, isCrit: bool, finalDmg: int) -> string {
   let powerPart = bonus > 0 ? "ATK {atk} + elem {bonus}" : "ATK {atk}"
   let armorPart = mitigation > 0 ? ", {source} -{mitigation}" : ", no armor reduction"
@@ -184,8 +171,8 @@ fn mage_spell :: (weaponId: string) -> string {
   }
 }
 
-@pure @total
 @intent "What the hero attacks with — weapon for martial classes, spell for mages"
+@pure @total
 fn attack_means :: (hero: Hero) -> string {
   match hero.heroClass {
     | "mage" => hero.weapon?.id ? mage_spell(hero.weapon.id) : "Magic Missile"
@@ -197,8 +184,8 @@ fn attack_means :: (hero: Hero) -> string {
 // PATTERN MATCHING FUNCTIONS
 // ══════════════════════════════════════════════════════════════════════════════
 
-@pure @total
 @intent "Class-specific rank titles by level band"
+@pure @total
 fn level_title :: (heroClass: string, level: int) -> string {
   match heroClass {
     | "mage" => match level {
@@ -254,8 +241,8 @@ fn combat_outcome_label :: (roll: int) -> string {
 }
 
 // v0.4: when-guarded match — HP status label with ratio thresholds
-@pure @total
 @intent "v0.4 when guards — classify HP as a ratio, one expressive match"
+@pure @total
 fn hp_status_label :: (hp: int, maxHp: int) -> string {
   let pct = maxHp > 0 ? hp * 100 / maxHp : 0
   match pct {
@@ -285,8 +272,8 @@ fn hp_status_label :: (hp: int, maxHp: int) -> string {
 @test "element_bonus: no match = 0"         { element_bonus("mage", "fire") === 7 }
 
 // Nested match — core Synth feature: two axes in one expression
-@pure @total
 @intent "Elemental affinity bonus — heroClass column vs weakness row"
+@pure @total
 fn element_bonus :: (heroClass: string, weakness: string) -> int {
   match heroClass {
     | "mage"   => match weakness { | "arcane" => 9 | "fire" => 7 | "light" => 8 | _ => 0 }
@@ -337,8 +324,8 @@ fn item_label :: (effect: string, power: int) -> string {
 // GAME LOGIC — @pure functions
 // ══════════════════════════════════════════════════════════════════════════════
 
-@pure @total
 @intent "Full hit breakdown — power, armor mitigation (def/2), crit multiplier, final"
+@pure @total
 fn damage_breakdown :: (atk: int, def: int, bonus: int, roll: int) -> any {
   let mitigation = Math.floor(def / 2)
   let power      = atk + bonus
@@ -349,8 +336,8 @@ fn damage_breakdown :: (atk: int, def: int, bonus: int, roll: int) -> any {
   { atk, bonus, power, mitigation, afterArmor, isCrit, finalDmg }
 }
 
-@pure @total @memo
 @intent "Memoized damage formula — same inputs always yield same result"
+@pure @total @memo
 fn compute_damage :: (atk: int, def: int, bonus: int, roll: int) -> int {
   damage_breakdown(atk, def, bonus, roll).finalDmg
 }
@@ -360,8 +347,8 @@ fn armor_source :: (defender: any) -> string {
   defender.armor ? defender.armor.name : "defense"
 }
 
-@pure @total
 @intent "Battle payout — 25% bonus so potion-heavy runs can still finish the weapon ladder"
+@pure @total
 fn battle_gold :: (baseReward: int) -> int {
   Math.floor(baseReward * 5 / 4)
 }
@@ -384,8 +371,8 @@ fn apply_revive :: (hero: Hero, hp: int) -> Hero {
   { ...hero, hp: revHp, alive: true }
 }
 
-@pure @total
 @intent "Increment level, increase stats, carry over excess XP"
+@pure @total
 fn apply_level_up :: (hero: Hero) -> Hero {
   let newLevel = hero.level + 1
   let hpGain   = 12
@@ -408,8 +395,8 @@ fn maybe_level_up :: (hero: Hero) -> Hero {
     : hero
 }
 
-@pure @total
 @intent "Add XP and trigger level-up if threshold crossed; dead heroes unchanged"
+@pure @total
 fn award_xp :: (hero: Hero, xpGained: int) -> Hero {
   hero.alive ? maybe_level_up({ ...hero, xp: hero.xp + xpGained }) : hero
 }
@@ -421,16 +408,16 @@ fn party_hp(party)     = party |> filter(.alive) |> map(.hp) |> sum
 fn any_alive(party)    = party |> any(.alive)
 fn hero_names(party)   = party |> filter(.alive) |> map(.name)
 
-@pure @total
 @intent "Heroes recover 50 HP resting in town; dead heroes stay dead"
+@pure @total
 fn rest_party :: (party: Hero[]) -> Hero[] {
   party |> map(h => h.alive ? { ...h, hp: Math.min(h.maxHp, h.hp + 50) } : h)
 }
 
 // ── Param-validation-injected constructor ─────────────────────────────────────
 
-@pure @total
 @intent "All 6 params auto-validated at entry; each with its own guard clause"
+@pure @total
 fn create_hero :: (name: HeroName, heroClass: ClassName, hp: HP, strength: StatValue, defense: StatValue, level: Level) -> Hero {
   { name, heroClass, hp, maxHp: hp, baseStrength: strength, baseDefense: defense, level, xp: 0, alive: true, weapon: null, armor: null }
 }
@@ -439,8 +426,8 @@ fn create_hero :: (name: HeroName, heroClass: ClassName, hp: HP, strength: StatV
 // DATA — ENEMIES AND SHOP STOCK
 // ══════════════════════════════════════════════════════════════════════════════
 
-@pure @total @memo
 @intent "Complete 50-enemy roster for the marathon — 5 chapters of 10, each ending in a boss"
+@pure @total @memo
 fn all_enemies :: () -> any[] {
   [
     // ── Chapter I: The Wilds (0-9) ───────────────────────────────────────────
@@ -501,14 +488,14 @@ fn all_enemies :: () -> any[] {
   ]
 }
 
-@pure @total
 @intent "Look up enemy for this stage from the memoized roster"
+@pure @total
 fn make_enemy :: (stageNum: int) -> any {
   all_enemies()[stageNum]
 }
 
-@pure @total
 @intent "ASCII portrait — unique art for bosses and notable enemies, fallback for rest"
+@pure @total
 fn enemy_art :: (id: string) -> string[] {
   match id {
     // Chapter bosses
@@ -551,8 +538,8 @@ fn enemy_art :: (id: string) -> string[] {
   }
 }
 
-@pure @total
 @intent "5-line ASCII portrait for each party member — match on name"
+@pure @total
 fn hero_art :: (name: string) -> string[] {
   match name {
     | "Aria"   => [
@@ -587,8 +574,8 @@ fn hero_art_mini :: (name: string) -> string {
   }
 }
 
-@pure @total
 @intent "Short ASCII icon for each item/equipment ID — shown in shop and on hero cards"
+@pure @total
 fn equip_icon :: (id: string) -> string {
   match id {
     // Weapons — tier 1 (icons are always 4 chars for column alignment)
@@ -636,8 +623,8 @@ fn equip_icon :: (id: string) -> string {
   }
 }
 
-@pure @total
 @intent "Weapon and armor line with ASCII icons for the town party panel"
+@pure @total
 fn format_equip_with_icons :: (hero: Hero) -> string {
   let wIcon = hero.weapon?.id ? equip_icon(hero.weapon.id) : "--- "
   let aIcon = hero.armor?.id  ? equip_icon(hero.armor.id)  : "--- "
@@ -646,8 +633,8 @@ fn format_equip_with_icons :: (hero: Hero) -> string {
   "{wIcon}{wName}  ·  {aIcon}{aName}"
 }
 
-@pure @total
 @intent "Chapter label for each stage group — bosses get a special prefix"
+@pure @total
 fn stage_name :: (stageNum: int) -> string {
   let chapter = stageNum < 10 ? "Ch.I  The Wilds"
               : stageNum < 20 ? "Ch.II  The Ruins"
@@ -743,8 +730,8 @@ fn el :: (tag: string, attrs: object, ...children: any[]) -> Element {
 // MAIN ENTRY — state machine + scene renderers
 // ══════════════════════════════════════════════════════════════════════════════
 
-@effects [dom.write, dom.events, state.mutable, rng]
 @intent "Bootstrap the RPG — all scenes wired to a single mutable state"
+@effects [dom.write, dom.events, state.mutable, rng]
 fn render_game :: (rootId: string) -> void {
 
   let state = {

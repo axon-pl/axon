@@ -288,12 +288,14 @@ const render_toggle = (containerId, onLabel, offLabel) => {
   return mount(containerId, btn);
 };
 
+let THEMES = ["light", "dark", "synthwave"];
+
 /**
  * @param {string} containerId
  * @returns {void}
  */
 const render_theme_switcher = (containerId) => {
-  let themes = ["light", "dark", "synthwave"];
+  let themes = THEMES;
   let labels = theme_options(themes);
   let current = 0;
   document.body.className = theme_class(themes[current]);

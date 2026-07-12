@@ -1,5 +1,23 @@
-// Intent Router — Synth v1.1 demo
-// Showcases: likely match arms · host embedding API · exact arms first
+// Intent Router — light structural rewrite
+// Host: route_intent · route_label · route_reply · handle_message
+
+record RouteCopy {
+  intent: string
+  label:  string
+  reply:  string
+}
+
+let ROUTE_COPY = [
+  { intent: "exit",    label: "Exit",            reply: "Goodbye — session closed." },
+  { intent: "greet",   label: "Greeting",        reply: "Hey! What can I help you with today?" },
+  { intent: "help",    label: "Help / Docs",     reply: "Opening the docs — try the Quick Start section." },
+  { intent: "billing", label: "Billing / Refund", reply: "Routing you to billing support for refunds and charges." },
+  { intent: "bug",     label: "Bug Report",      reply: "Thanks for the report — filing a bug ticket." },
+  { intent: "pricing", label: "Pricing",         reply: "Here are the current plans and upgrade options." },
+]
+
+fn find_copy(intent: string) -> RouteCopy? =
+  ROUTE_COPY.find(r => r.intent == intent)
 
 fn route_intent(msg: string) -> string {
   match msg {
@@ -16,27 +34,13 @@ fn route_intent(msg: string) -> string {
 }
 
 fn route_label(intent: string) -> string {
-  match intent {
-    | "exit"    => "Exit"
-    | "greet"   => "Greeting"
-    | "help"    => "Help / Docs"
-    | "billing" => "Billing / Refund"
-    | "bug"     => "Bug Report"
-    | "pricing" => "Pricing"
-    | _         => "Unknown"
-  }
+  let hit = find_copy(intent)
+  hit ? hit.label : "Unknown"
 }
 
 fn route_reply(intent: string) -> string {
-  match intent {
-    | "exit"    => "Goodbye — session closed."
-    | "greet"   => "Hey! What can I help you with today?"
-    | "help"    => "Opening the docs — try the Quick Start section."
-    | "billing" => "Routing you to billing support for refunds and charges."
-    | "bug"     => "Thanks for the report — filing a bug ticket."
-    | "pricing" => "Here are the current plans and upgrade options."
-    | _         => "I am not sure — try rephrasing, or say help."
-  }
+  let hit = find_copy(intent)
+  hit ? hit.reply : "I am not sure — try rephrasing, or say help."
 }
 
 fn handle_message(msg: string) -> { intent: string, label: string, reply: string } {
