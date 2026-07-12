@@ -276,8 +276,9 @@ fn skill_menu() -> any[] = [
 ]
 
 fn item_menu() -> any[] {
-  let n = Game.potions
-  [{ id: "potion", label: "Potion  x{n}" }]
+  let count = Game.potions
+  let rows = [{ id: "potion", label: "Potion x" + count }]
+  rows
 }
 
 fn target_enemy_menu() -> any[] =

@@ -261,7 +261,9 @@ const skill_menu = () => [{id: "pierce", label: "Pierce  4 MP"}, {id: "rain", la
  * @returns {*}
  */
 const item_menu = () => {
-  let n = Game.potions[{id: "potion", label: `Potion  x${n}`}];
+  let count = Game.potions;
+  let rows = [{id: "potion", label: "Potion x" + count}];
+  return rows;
 };
 
 const target_enemy_menu = () => $map($filter($range(0, foes.length), (i) => foes[i].alive), (i) => ({id: "enemy", label: foes[i].name, index: i}));
