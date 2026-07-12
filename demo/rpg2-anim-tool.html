@@ -1343,7 +1343,11 @@
       $('btnPlay').click()
     } else if (ev.key === 'Delete' || ev.key === 'Backspace') {
       ev.preventDefault()
-      $('btnDel').click()
+      if (selectedDetect >= 0 && detectBoxes[selectedDetect]) {
+        $('btnDelDetect').click()
+      } else {
+        $('btnDel').click()
+      }
     }
   })
 
