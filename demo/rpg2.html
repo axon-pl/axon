@@ -1207,24 +1207,40 @@ function drawBattle(view, dt) {
   }
 
   // Party status strip
-  drawPanel(312, 342, 472, 162, 'rgba(16,16,40,0.92)', 'rgba(0,229,255,0.35)')
+  const partyBox = { x: 312, y: 342, w: 472, h: 162 }
+  const padX = 14
+  const padY = 12
+  drawPanel(partyBox.x, partyBox.y, partyBox.w, partyBox.h, 'rgba(16,16,40,0.92)', 'rgba(0,229,255,0.35)')
+  const rowH = (partyBox.h - padY * 2) / 3
+  const contentL = partyBox.x + padX
+  const contentR = partyBox.x + partyBox.w - padX
+  const portraitSize = 36
+  const afterPortrait = contentL + portraitSize + 12
+  // Even columns: name · class · HP · MP (equal bar widths, shared right edge)
+  const barW = 96
+  const mpX = contentR - barW
+  const hpX = mpX - 14 - barW
+  const nameX = afterPortrait
+  const classX = nameX + 78
   party.forEach((h, i) => {
-    const yy = 360 + i * 48
+    const rowTop = partyBox.y + padY + i * rowH
+    const midY = rowTop + rowH * 0.5
+    const textY = midY + 4
     const id = heroSpriteId(h)
-    drawPortrait(id, 322, yy - 14, 36, h.alive)
+    drawPortrait(id, contentL, midY - portraitSize * 0.5, portraitSize, h.alive)
     ctx.fillStyle = h.alive ? h.color : '#6a6490'
     ctx.font = 'bold 13px Courier New'
     ctx.textAlign = 'left'
-    ctx.fillText(h.name, 366, yy)
+    ctx.fillText(h.name, nameX, textY)
     ctx.fillStyle = '#6a6490'
     ctx.font = '11px Courier New'
-    ctx.fillText(h.heroClass.toUpperCase(), 440, yy)
+    ctx.fillText(h.heroClass.toUpperCase(), classX, textY)
     ctx.fillStyle = '#e8e0ff'
-    ctx.fillText('HP ' + h.hp + '/' + h.maxHp, 520, yy)
-    drawBar(520, yy + 6, 100, 6, h.maxHp ? h.hp / h.maxHp : 0, '#ff2d78')
+    ctx.fillText('HP ' + h.hp + '/' + h.maxHp, hpX, textY - 2)
+    drawBar(hpX, midY + 6, barW, 6, h.maxHp ? h.hp / h.maxHp : 0, '#ff2d78')
     ctx.fillStyle = '#e8e0ff'
-    ctx.fillText('MP ' + h.mp + '/' + h.maxMp, 640, yy)
-    drawBar(640, yy + 6, 110, 6, h.maxMp ? h.mp / h.maxMp : 0, '#00e5ff')
+    ctx.fillText('MP ' + h.mp + '/' + h.maxMp, mpX, textY - 2)
+    drawBar(mpX, midY + 6, barW, 6, h.maxMp ? h.mp / h.maxMp : 0, '#00e5ff')
   })
 
   ctx.fillStyle = '#6a6490'
