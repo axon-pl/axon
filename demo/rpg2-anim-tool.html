@@ -55,6 +55,26 @@
   .sheet-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .sheet-stage { position: relative; min-height: 0; overflow: auto; background: #0c0e12;
     border: 1px solid var(--border); border-radius: 6px; }
+  .sheet-stage.keyed {
+    background-color: #1a1e28;
+    background-image:
+      linear-gradient(45deg, #2a303c 25%, transparent 25%),
+      linear-gradient(-45deg, #2a303c 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #2a303c 75%),
+      linear-gradient(-45deg, transparent 75%, #2a303c 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  }
+  #previewCanvas.keyed {
+    background-color: #1a1e28;
+    background-image:
+      linear-gradient(45deg, #2a303c 25%, transparent 25%),
+      linear-gradient(-45deg, #2a303c 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #2a303c 75%),
+      linear-gradient(-45deg, transparent 75%, #2a303c 75%);
+    background-size: 12px 12px;
+    background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+  }
   #sheetCanvas { display: block; cursor: crosshair; max-width: none; image-rendering: pixelated; }
   .hint { color: var(--muted); font-size: 12px; }
   .warn { color: var(--warn); }
@@ -167,6 +187,7 @@
 
       <div class="card">
         <h2>Chroma / detect</h2>
+        <label><input id="hideChroma" type="checkbox"> Hide chroma on sheet &amp; preview</label>
         <div class="nudge">
           <label>R <input id="chromaR" type="number" min="0" max="255" value="240"></label>
           <label>G <input id="chromaG" type="number" min="0" max="255" value="4"></label>
@@ -232,6 +253,9 @@
   let selectedTl = -1
   let nextDetectId = 1
   let sheetImg = null
+  /** @type {HTMLCanvasElement|null} */
+  let keyedSheet = null
+  let keyedSheetDirty = true
   let sheetNatural = { w: 0, h: 0 }
   let playing = false
   let playFrame = 0
@@ -347,6 +371,62 @@
     if (bright || dark || fringe || hotPink || dist < ch.tol) return true
     if (r + g + b <= 42) return true
     return false
+  }
+
+  function invalidateKeyedSheet() {
+    keyedSheetDirty = true
+    keyedSheet = null
+  }
+
+  function hideChromaOn() {
+    return !!$('hideChroma').checked
+  }
+
+  /** Source used for drawing (raw or chroma-keyed). */
+  function displaySheet() {
+    if (!sheetImg) return null
+    if (!hideChromaOn()) return sheetImg
+    if (!keyedSheetDirty && keyedSheet) return keyedSheet
+    const w = sheetImg.naturalWidth || sheetImg.width
+    const h = sheetImg.naturalHeight || sheetImg.height
+    const c = document.createElement('canvas')
+    c.width = w
+    c.height = h
+    const ctx = c.getContext('2d')
+    ctx.drawImage(sheetImg, 0, 0)
+    const image = ctx.getImageData(0, 0, w, h)
+    const d = image.data
+    const ch = chroma()
+    for (let i = 0; i < d.length; i += 4) {
+      if (isBg(d[i], d[i + 1], d[i + 2], d[i + 3], ch)) {
+        d[i] = d[i + 1] = d[i + 2] = 0
+        d[i + 3] = 0
+      } else {
+        // Soft fringe: pull magenta spill toward transparent
+        const mag = Math.min(d[i], d[i + 2]) - d[i + 1]
+        if (mag >= 25 && Math.min(d[i], d[i + 2]) >= 85 && d[i + 1] < 160) {
+          const t = Math.min(1, (mag - 25) / 55)
+          const spill = Math.min(d[i], d[i + 2]) * t * 0.55
+          d[i] = Math.max(0, Math.round(d[i] - spill))
+          d[i + 2] = Math.max(0, Math.round(d[i + 2] - spill))
+          d[i + 3] = Math.round(d[i + 3] * (1 - t * 0.9))
+          if (d[i + 3] < 8) {
+            d[i] = d[i + 1] = d[i + 2] = 0
+            d[i + 3] = 0
+          }
+        }
+      }
+    }
+    ctx.putImageData(image, 0, 0)
+    keyedSheet = c
+    keyedSheetDirty = false
+    return keyedSheet
+  }
+
+  function updateKeyedChrome() {
+    const on = hideChromaOn()
+    $('sheetStage').classList.toggle('keyed', on)
+    previewCanvas.classList.toggle('keyed', on)
   }
 
   /**
@@ -594,6 +674,7 @@
       img.onload = () => {
         sheetImg = img
         sheetNatural = { w: img.naturalWidth, h: img.naturalHeight }
+        invalidateKeyedSheet()
         if (!detectBoxes.length) {
           detectBoxes = adoptDetectBoxes(detectFrames(img))
           s.detectBoxes = detectBoxes.map((b) => ({ ...b }))
@@ -697,17 +778,19 @@
   }
 
   function drawSheet() {
+    updateKeyedChrome()
     if (!sheetImg) {
       sheetCtx.clearRect(0, 0, sheetCanvas.width, sheetCanvas.height)
       return
     }
+    const src = displaySheet()
     const w = sheetNatural.w
     const h = sheetNatural.h
     sheetCanvas.width = w
     sheetCanvas.height = h
     sheetCtx.imageSmoothingEnabled = false
     sheetCtx.clearRect(0, 0, w, h)
-    sheetCtx.drawImage(sheetImg, 0, 0)
+    sheetCtx.drawImage(src, 0, 0)
 
     detectBoxes.forEach((b, i) => {
       const sel = i === selectedDetect
@@ -830,13 +913,14 @@
       ctx.imageSmoothingEnabled = false
       ctx.fillStyle = '#0a0c10'
       ctx.fillRect(0, 0, 68, 68)
-      if (sheetImg) {
+      const src = displaySheet()
+      if (src) {
         const scale = Math.min(64 / box.w, 64 / box.h)
         const dw = box.w * scale
         const dh = box.h * scale
         const dx = (68 - dw) / 2
         const dy = (68 - dh) / 2
-        ctx.drawImage(sheetImg, box.x, box.y, box.w, box.h, dx, dy, dw, dh)
+        ctx.drawImage(src, box.x, box.y, box.w, box.h, dx, dy, dw, dh)
       }
       const idx = document.createElement('div')
       idx.className = 'idx'
@@ -872,24 +956,29 @@
   }
 
   function drawPreviewFrame(fi) {
+    updateKeyedChrome()
     const s = active()
     const ctx = previewCtx
     const W = previewCanvas.width
     const H = previewCanvas.height
     ctx.imageSmoothingEnabled = false
-    ctx.fillStyle = '#0a0c10'
-    ctx.fillRect(0, 0, W, H)
+    ctx.clearRect(0, 0, W, H)
+    if (!hideChromaOn()) {
+      ctx.fillStyle = '#0a0c10'
+      ctx.fillRect(0, 0, W, H)
+    }
     const box = s.timeline[fi]
     $('previewFrame').textContent = box
       ? `frame ${fi + 1}/${s.timeline.length}`
       : 'frame —'
-    if (!sheetImg || !box) return
+    const src = displaySheet()
+    if (!src || !box) return
     const scale = Math.min((W - 16) / box.w, (H - 16) / box.h)
     const dw = box.w * scale
     const dh = box.h * scale
     const dx = (W - dw) / 2
     const dy = (H - dh) / 2
-    ctx.drawImage(sheetImg, box.x, box.y, box.w, box.h, dx, dy, dw, dh)
+    ctx.drawImage(src, box.x, box.y, box.w, box.h, dx, dy, dw, dh)
   }
 
   function redrawAll() {
@@ -976,6 +1065,7 @@
         $('sheetName').value = s.sheetName
         sheetImg = img
         sheetNatural = { w: img.naturalWidth, h: img.naturalHeight }
+        invalidateKeyedSheet()
         detectBoxes = adoptDetectBoxes(detectFrames(img))
         s.detectBoxes = detectBoxes.map((b) => ({ ...b }))
         selectedDetect = detectBoxes.length ? 0 : -1
@@ -1329,12 +1419,25 @@
 
   ;['chromaR', 'chromaG', 'chromaB', 'chromaTol', 'minW', 'minH', 'mergeGap', 'boxPad'].forEach((id) => {
     $(id).addEventListener('change', () => {
-      if (!sheetImg) return
+      invalidateKeyedSheet()
+      if (!sheetImg) {
+        redrawAll()
+        return
+      }
+      // Chroma RGB/tol affect keying display; min/merge still re-detect
+      if (id === 'chromaR' || id === 'chromaG' || id === 'chromaB' || id === 'chromaTol') {
+        redrawAll()
+        return
+      }
       detectBoxes = adoptDetectBoxes(detectFrames(sheetImg))
       active().detectBoxes = detectBoxes.map((b) => ({ ...b }))
       updateDetectStatus()
       redrawAll()
     })
+  })
+  $('hideChroma').addEventListener('change', () => {
+    invalidateKeyedSheet()
+    redrawAll()
   })
 
   $('sheetName').addEventListener('input', () => {
