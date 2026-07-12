@@ -341,53 +341,331 @@ function drawStrikeFx() {
 
 function drawSilhouette(x, y, w, h, color, kind) {
   ctx.save()
+  ctx.translate(x, y)
   ctx.shadowColor = color
-  ctx.shadowBlur = 16
+  ctx.shadowBlur = 14
   ctx.fillStyle = color
+  ctx.strokeStyle = color
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+
+  const fill = () => { ctx.fill() }
+  const stroke = (lw) => { ctx.lineWidth = lw || 2; ctx.stroke() }
+
   if (kind === 'knight') {
-    ctx.fillRect(x + w * 0.3, y + h * 0.25, w * 0.4, h * 0.55)
+    // Theron — crested helm, plate, kite shield, longsword
     ctx.beginPath()
-    ctx.moveTo(x + w * 0.5, y)
-    ctx.lineTo(x + w * 0.85, y + h * 0.28)
-    ctx.lineTo(x + w * 0.15, y + h * 0.28)
-    ctx.closePath()
-    ctx.fill()
+    ctx.moveTo(w * 0.38, h * 0.22)
+    ctx.lineTo(w * 0.62, h * 0.22)
+    ctx.lineTo(w * 0.58, h * 0.72)
+    ctx.lineTo(w * 0.42, h * 0.72)
+    ctx.closePath(); fill()
+    // helm
+    ctx.beginPath()
+    ctx.ellipse(w * 0.5, h * 0.16, w * 0.16, h * 0.14, 0, 0, Math.PI * 2); fill()
+    // crest
+    ctx.beginPath()
+    ctx.moveTo(w * 0.5, h * 0.02)
+    ctx.lineTo(w * 0.58, h * 0.16)
+    ctx.lineTo(w * 0.42, h * 0.16)
+    ctx.closePath(); fill()
+    // visor slit (cut with darker overlay)
+    ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#07071a'
+    ctx.fillRect(w * 0.38, h * 0.14, w * 0.24, h * 0.04)
+    ctx.restore(); ctx.fillStyle = color
+    // shield
+    ctx.beginPath()
+    ctx.moveTo(w * 0.12, h * 0.32)
+    ctx.lineTo(w * 0.36, h * 0.28)
+    ctx.lineTo(w * 0.36, h * 0.58)
+    ctx.lineTo(w * 0.24, h * 0.68)
+    ctx.lineTo(w * 0.12, h * 0.58)
+    ctx.closePath(); fill()
+    // sword
+    ctx.fillRect(w * 0.68, h * 0.18, w * 0.07, h * 0.48)
+    ctx.beginPath()
+    ctx.moveTo(w * 0.62, h * 0.34)
+    ctx.lineTo(w * 0.82, h * 0.34)
+    ctx.lineTo(w * 0.72, h * 0.4)
+    ctx.closePath(); fill()
+    // boots
+    ctx.fillRect(w * 0.40, h * 0.72, w * 0.08, h * 0.16)
+    ctx.fillRect(w * 0.52, h * 0.72, w * 0.08, h * 0.16)
   } else if (kind === 'mage') {
+    // Aria — pointed hat, flowing robe, staff + orb
     ctx.beginPath()
-    ctx.moveTo(x + w * 0.5, y)
-    ctx.lineTo(x + w, y + h * 0.85)
-    ctx.lineTo(x, y + h * 0.85)
-    ctx.closePath()
-    ctx.fill()
+    ctx.moveTo(w * 0.5, h * 0.08)
+    ctx.lineTo(w * 0.92, h * 0.88)
+    ctx.lineTo(w * 0.08, h * 0.88)
+    ctx.closePath(); fill()
+    // hat cone
+    ctx.beginPath()
+    ctx.moveTo(w * 0.5, 0)
+    ctx.lineTo(w * 0.78, h * 0.28)
+    ctx.lineTo(w * 0.22, h * 0.28)
+    ctx.closePath(); fill()
+    // brim
+    ctx.beginPath()
+    ctx.ellipse(w * 0.5, h * 0.28, w * 0.34, h * 0.06, 0, 0, Math.PI * 2); fill()
+    // face oval peek
+    ctx.save(); ctx.globalAlpha = 0.45; ctx.fillStyle = '#e8e0ff'
+    ctx.beginPath(); ctx.ellipse(w * 0.5, h * 0.34, w * 0.1, h * 0.08, 0, 0, Math.PI * 2); fill()
+    ctx.restore(); ctx.fillStyle = color
+    // staff
+    ctx.fillRect(w * 0.82, h * 0.2, w * 0.06, h * 0.68)
+    ctx.beginPath()
+    ctx.arc(w * 0.85, h * 0.16, w * 0.1, 0, Math.PI * 2); fill()
+    ctx.save(); ctx.globalAlpha = 0.55; ctx.fillStyle = '#ffd166'
+    ctx.beginPath(); ctx.arc(w * 0.85, h * 0.16, w * 0.05, 0, Math.PI * 2); fill()
+    ctx.restore()
   } else if (kind === 'ranger') {
-    ctx.fillRect(x + w * 0.35, y + h * 0.15, w * 0.3, h * 0.7)
-    ctx.fillRect(x + w * 0.1, y + h * 0.35, w * 0.8, h * 0.12)
-  } else if (kind === 'boss') {
+    // Lyra — hooded cloak, drawn bow, quiver
     ctx.beginPath()
-    ctx.ellipse(x + w / 2, y + h * 0.55, w * 0.45, h * 0.4, 0, 0, Math.PI * 2)
-    ctx.fill()
+    ctx.moveTo(w * 0.35, h * 0.2)
+    ctx.lineTo(w * 0.62, h * 0.2)
+    ctx.lineTo(w * 0.68, h * 0.78)
+    ctx.lineTo(w * 0.30, h * 0.78)
+    ctx.closePath(); fill()
+    // hood
     ctx.beginPath()
-    ctx.moveTo(x + w * 0.2, y + h * 0.35)
-    ctx.lineTo(x + w * 0.35, y)
-    ctx.lineTo(x + w * 0.5, y + h * 0.3)
-    ctx.fill()
+    ctx.arc(w * 0.48, h * 0.18, w * 0.18, Math.PI * 1.05, Math.PI * 1.95); fill()
     ctx.beginPath()
-    ctx.moveTo(x + w * 0.8, y + h * 0.35)
-    ctx.lineTo(x + w * 0.65, y)
-    ctx.lineTo(x + w * 0.5, y + h * 0.3)
-    ctx.fill()
+    ctx.ellipse(w * 0.48, h * 0.2, w * 0.14, h * 0.12, 0, 0, Math.PI * 2); fill()
+    // cape flare
+    ctx.beginPath()
+    ctx.moveTo(w * 0.30, h * 0.4)
+    ctx.lineTo(w * 0.12, h * 0.82)
+    ctx.lineTo(w * 0.34, h * 0.78)
+    ctx.closePath(); fill()
+    // bow
+    ctx.beginPath()
+    ctx.arc(w * 0.22, h * 0.48, w * 0.28, -1.1, 1.1)
+    stroke(3)
+    ctx.beginPath()
+    ctx.moveTo(w * 0.22 + Math.cos(-1.1) * w * 0.28, h * 0.48 + Math.sin(-1.1) * w * 0.28)
+    ctx.lineTo(w * 0.22 + Math.cos(1.1) * w * 0.28, h * 0.48 + Math.sin(1.1) * w * 0.28)
+    stroke(1.5)
+    // arrow nocked
+    ctx.beginPath()
+    ctx.moveTo(w * 0.05, h * 0.48)
+    ctx.lineTo(w * 0.55, h * 0.48)
+    stroke(2)
+    // quiver
+    ctx.fillRect(w * 0.62, h * 0.32, w * 0.12, h * 0.28)
+    ctx.beginPath()
+    ctx.moveTo(w * 0.64, h * 0.22)
+    ctx.lineTo(w * 0.68, h * 0.32)
+    ctx.lineTo(w * 0.72, h * 0.22)
+    ctx.closePath(); fill()
+    // boots
+    ctx.fillRect(w * 0.34, h * 0.78, w * 0.1, h * 0.14)
+    ctx.fillRect(w * 0.52, h * 0.78, w * 0.1, h * 0.14)
+  } else if (kind === 'goblin') {
+    // Goblin Scout — squat, big ears, snout, crooked knife
+    ctx.beginPath()
+    ctx.ellipse(w * 0.5, h * 0.62, w * 0.28, h * 0.28, 0, 0, Math.PI * 2); fill()
+    // head
+    ctx.beginPath()
+    ctx.ellipse(w * 0.5, h * 0.32, w * 0.22, h * 0.2, 0, 0, Math.PI * 2); fill()
+    // ears
+    ctx.beginPath()
+    ctx.moveTo(w * 0.28, h * 0.28)
+    ctx.lineTo(w * 0.05, h * 0.08)
+    ctx.lineTo(w * 0.32, h * 0.38)
+    ctx.closePath(); fill()
+    ctx.beginPath()
+    ctx.moveTo(w * 0.72, h * 0.28)
+    ctx.lineTo(w * 0.95, h * 0.08)
+    ctx.lineTo(w * 0.68, h * 0.38)
+    ctx.closePath(); fill()
+    // snout
+    ctx.beginPath()
+    ctx.ellipse(w * 0.5, h * 0.4, w * 0.12, h * 0.08, 0, 0, Math.PI * 2); fill()
+    // eye dots
+    ctx.save(); ctx.globalAlpha = 0.4; ctx.fillStyle = '#07071a'
+    ctx.beginPath(); ctx.arc(w * 0.42, h * 0.28, w * 0.04, 0, Math.PI * 2); fill()
+    ctx.beginPath(); ctx.arc(w * 0.58, h * 0.28, w * 0.04, 0, Math.PI * 2); fill()
+    ctx.restore(); ctx.fillStyle = color
+    // knife
+    ctx.beginPath()
+    ctx.moveTo(w * 0.72, h * 0.5)
+    ctx.lineTo(w * 0.98, h * 0.38)
+    ctx.lineTo(w * 0.74, h * 0.58)
+    ctx.closePath(); fill()
+    // legs
+    ctx.fillRect(w * 0.36, h * 0.82, w * 0.1, h * 0.14)
+    ctx.fillRect(w * 0.54, h * 0.82, w * 0.1, h * 0.14)
+  } else if (kind === 'slime') {
+    // Neon Slime — drippy blob, eyes, highlight
+    ctx.beginPath()
+    ctx.moveTo(w * 0.15, h * 0.55)
+    ctx.bezierCurveTo(w * 0.1, h * 0.2, w * 0.9, h * 0.2, w * 0.85, h * 0.55)
+    ctx.bezierCurveTo(w * 0.9, h * 0.85, w * 0.1, h * 0.85, w * 0.15, h * 0.55)
+    ctx.closePath(); fill()
+    // drip
+    ctx.beginPath()
+    ctx.ellipse(w * 0.3, h * 0.88, w * 0.06, h * 0.1, 0, 0, Math.PI * 2); fill()
+    ctx.beginPath()
+    ctx.ellipse(w * 0.7, h * 0.9, w * 0.05, h * 0.08, 0, 0, Math.PI * 2); fill()
+    // eyes
+    ctx.save(); ctx.fillStyle = '#07071a'; ctx.globalAlpha = 0.55
+    ctx.beginPath(); ctx.ellipse(w * 0.38, h * 0.45, w * 0.07, h * 0.1, 0, 0, Math.PI * 2); fill()
+    ctx.beginPath(); ctx.ellipse(w * 0.62, h * 0.45, w * 0.07, h * 0.1, 0, 0, Math.PI * 2); fill()
+    ctx.fillStyle = '#ffffff'; ctx.globalAlpha = 0.9
+    ctx.beginPath(); ctx.arc(w * 0.4, h * 0.42, w * 0.025, 0, Math.PI * 2); fill()
+    ctx.beginPath(); ctx.arc(w * 0.64, h * 0.42, w * 0.025, 0, Math.PI * 2); fill()
+    ctx.restore()
+    // shine
+    ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#ffffff'
+    ctx.beginPath(); ctx.ellipse(w * 0.35, h * 0.32, w * 0.08, h * 0.05, -0.5, 0, Math.PI * 2); fill()
+    ctx.restore()
+  } else if (kind === 'bandit') {
+    // Forest Bandit — hooded cloak, mask, short blade
+    ctx.beginPath()
+    ctx.moveTo(w * 0.32, h * 0.28)
+    ctx.lineTo(w * 0.68, h * 0.28)
+    ctx.lineTo(w * 0.78, h * 0.85)
+    ctx.lineTo(w * 0.22, h * 0.85)
+    ctx.closePath(); fill()
+    // hood
+    ctx.beginPath()
+    ctx.moveTo(w * 0.28, h * 0.32)
+    ctx.quadraticCurveTo(w * 0.5, h * 0.02, w * 0.72, h * 0.32)
+    ctx.lineTo(w * 0.62, h * 0.38)
+    ctx.quadraticCurveTo(w * 0.5, h * 0.22, w * 0.38, h * 0.38)
+    ctx.closePath(); fill()
+    // mask band
+    ctx.save(); ctx.globalAlpha = 0.4; ctx.fillStyle = '#07071a'
+    ctx.fillRect(w * 0.36, h * 0.34, w * 0.28, h * 0.08)
+    ctx.restore(); ctx.fillStyle = color
+    // dagger
+    ctx.beginPath()
+    ctx.moveTo(w * 0.78, h * 0.48)
+    ctx.lineTo(w * 0.98, h * 0.36)
+    ctx.lineTo(w * 0.82, h * 0.55)
+    ctx.closePath(); fill()
+    ctx.fillRect(w * 0.72, h * 0.5, w * 0.1, h * 0.08)
+    // boots
+    ctx.fillRect(w * 0.3, h * 0.85, w * 0.12, h * 0.12)
+    ctx.fillRect(w * 0.58, h * 0.85, w * 0.12, h * 0.12)
+  } else if (kind === 'archer') {
+    // Ash Archer — cloak + longbow aimed left
+    ctx.beginPath()
+    ctx.moveTo(w * 0.4, h * 0.22)
+    ctx.lineTo(w * 0.65, h * 0.22)
+    ctx.lineTo(w * 0.7, h * 0.8)
+    ctx.lineTo(w * 0.35, h * 0.8)
+    ctx.closePath(); fill()
+    ctx.beginPath()
+    ctx.ellipse(w * 0.52, h * 0.18, w * 0.14, h * 0.12, 0, 0, Math.PI * 2); fill()
+    // cloak
+    ctx.beginPath()
+    ctx.moveTo(w * 0.65, h * 0.3)
+    ctx.lineTo(w * 0.92, h * 0.78)
+    ctx.lineTo(w * 0.65, h * 0.78)
+    ctx.closePath(); fill()
+    // longbow facing party (right side of canvas = enemies face right toward heroes)
+    ctx.beginPath()
+    ctx.arc(w * 0.55, h * 0.48, w * 0.32, -0.9, 0.9)
+    stroke(3)
+    ctx.beginPath()
+    ctx.moveTo(w * 0.55 + Math.cos(-0.9) * w * 0.32, h * 0.48 + Math.sin(-0.9) * w * 0.32)
+    ctx.lineTo(w * 0.55 + Math.cos(0.9) * w * 0.32, h * 0.48 + Math.sin(0.9) * w * 0.32)
+    stroke(1.5)
+    // arrow toward heroes (to the right)
+    ctx.beginPath()
+    ctx.moveTo(w * 0.35, h * 0.48)
+    ctx.lineTo(w * 0.95, h * 0.48)
+    stroke(2)
+    ctx.beginPath()
+    ctx.moveTo(w * 0.95, h * 0.48)
+    ctx.lineTo(w * 0.86, h * 0.42)
+    ctx.lineTo(w * 0.86, h * 0.54)
+    ctx.closePath(); fill()
+  } else if (kind === 'wyrm' || kind === 'boss') {
+    // Shadow Wyrm — coiled body, wings, horned head, tail
+    // body coil
+    ctx.beginPath()
+    ctx.ellipse(w * 0.48, h * 0.58, w * 0.32, h * 0.22, -0.2, 0, Math.PI * 2); fill()
+    // neck
+    ctx.beginPath()
+    ctx.moveTo(w * 0.55, h * 0.45)
+    ctx.quadraticCurveTo(w * 0.72, h * 0.28, w * 0.78, h * 0.18)
+    ctx.lineTo(w * 0.68, h * 0.14)
+    ctx.quadraticCurveTo(w * 0.58, h * 0.32, w * 0.42, h * 0.48)
+    ctx.closePath(); fill()
+    // head
+    ctx.beginPath()
+    ctx.ellipse(w * 0.82, h * 0.16, w * 0.16, h * 0.1, -0.3, 0, Math.PI * 2); fill()
+    // snout
+    ctx.beginPath()
+    ctx.moveTo(w * 0.92, h * 0.14)
+    ctx.lineTo(w * 1.02, h * 0.18)
+    ctx.lineTo(w * 0.9, h * 0.22)
+    ctx.closePath(); fill()
+    // horns
+    ctx.beginPath()
+    ctx.moveTo(w * 0.72, h * 0.1)
+    ctx.lineTo(w * 0.68, h * -0.02)
+    ctx.lineTo(w * 0.78, h * 0.1)
+    ctx.closePath(); fill()
+    ctx.beginPath()
+    ctx.moveTo(w * 0.8, h * 0.08)
+    ctx.lineTo(w * 0.84, h * -0.04)
+    ctx.lineTo(w * 0.88, h * 0.1)
+    ctx.closePath(); fill()
+    // eye
+    ctx.save(); ctx.fillStyle = '#ff2d78'; ctx.shadowColor = '#ff2d78'
+    ctx.beginPath(); ctx.arc(w * 0.86, h * 0.14, w * 0.035, 0, Math.PI * 2); fill()
+    ctx.restore(); ctx.fillStyle = color; ctx.shadowColor = color
+    // wings
+    ctx.beginPath()
+    ctx.moveTo(w * 0.4, h * 0.42)
+    ctx.lineTo(w * 0.08, h * 0.08)
+    ctx.lineTo(w * 0.18, h * 0.42)
+    ctx.lineTo(w * 0.05, h * 0.55)
+    ctx.lineTo(w * 0.38, h * 0.52)
+    ctx.closePath(); fill()
+    ctx.beginPath()
+    ctx.moveTo(w * 0.52, h * 0.4)
+    ctx.lineTo(w * 0.7, h * 0.05)
+    ctx.lineTo(w * 0.62, h * 0.38)
+    ctx.closePath(); fill()
+    // tail
+    ctx.beginPath()
+    ctx.moveTo(w * 0.2, h * 0.62)
+    ctx.quadraticCurveTo(w * -0.05, h * 0.7, w * 0.08, h * 0.92)
+    ctx.quadraticCurveTo(w * 0.2, h * 0.78, w * 0.3, h * 0.7)
+    ctx.closePath(); fill()
+    // spines
+    for (let i = 0; i < 4; i++) {
+      const sx = w * (0.3 + i * 0.1)
+      const sy = h * (0.42 - i * 0.02)
+      ctx.beginPath()
+      ctx.moveTo(sx, sy)
+      ctx.lineTo(sx + w * 0.03, sy - h * 0.1)
+      ctx.lineTo(sx + w * 0.06, sy)
+      ctx.closePath(); fill()
+    }
   } else {
+    // generic foe fallback
     ctx.beginPath()
-    ctx.ellipse(x + w / 2, y + h * 0.55, w * 0.4, h * 0.38, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillRect(x + w * 0.35, y + h * 0.1, w * 0.3, h * 0.35)
+    ctx.ellipse(w * 0.5, h * 0.55, w * 0.32, h * 0.32, 0, 0, Math.PI * 2); fill()
+    ctx.beginPath()
+    ctx.ellipse(w * 0.5, h * 0.22, w * 0.18, h * 0.16, 0, 0, Math.PI * 2); fill()
   }
+
   ctx.restore()
   ctx.shadowBlur = 0
+  ctx.globalAlpha = 1
 }
 
 function foeKind(id) {
-  if (id === 'wyrm') return 'boss'
+  if (id === 'wyrm') return 'wyrm'
+  if (id === 'goblin') return 'goblin'
+  if (id === 'slime') return 'slime'
+  if (id === 'bandit') return 'bandit'
+  if (id === 'archer') return 'archer'
   return 'foe'
 }
 
@@ -477,22 +755,25 @@ function drawBattle(view, dt) {
     if (!e.alive && !(anim.side === 'hero' && foeHitKinds[anim.kind] && anim.target === i && anim.timer > 0)) return
     // Only shake the targeted foe on real hits — never on defend/potion/heal
     const shake = foeHitKinds[anim.kind] && anim.side === 'hero' && anim.target === i ? pulse : 0
-    const x = 80 + (i % 2) * 110 + shake
-    const y = 95 + Math.floor(i / 2) * 88
+    const boss = e.id === 'wyrm'
+    const bw = boss ? 110 : 70
+    const bh = boss ? 115 : 90
+    const x = 80 + (i % 2) * 110 + shake - (boss ? 20 : 0)
+    const y = 95 + Math.floor(i / 2) * 88 - (boss ? 18 : 0)
     const alpha = e.alive ? 1 : 0.35
     ctx.globalAlpha = alpha
     const flash = foeHitKinds[anim.kind] && anim.side === 'hero' && anim.target === i && anim.timer > 0.2
-    drawSilhouette(x, y, 70, 90, flash ? '#ffffff' : e.color, foeKind(e.id))
+    drawSilhouette(x, y, bw, bh, flash ? '#ffffff' : e.color, foeKind(e.id))
     ctx.globalAlpha = 1
     ctx.fillStyle = '#e8e0ff'
     ctx.font = '12px Courier New'
     ctx.textAlign = 'center'
-    ctx.fillText(e.name, x + 35, y + 105)
-    drawBar(x, y + 110, 70, 7, e.maxHp ? e.hp / e.maxHp : 0, '#ff2d78')
+    ctx.fillText(e.name, x + bw / 2, y + bh + 14)
+    drawBar(x + (bw - 70) / 2, y + bh + 18, 70, 7, e.maxHp ? e.hp / e.maxHp : 0, '#ff2d78')
     if (foeHitKinds[anim.kind] && anim.side === 'hero' && anim.target === i && anim.amount > 0 && anim.timer > 0.05) {
       ctx.fillStyle = '#ffd166'
       ctx.font = 'bold 16px Courier New'
-      ctx.fillText('-' + anim.amount, x + 35, y - 8 + (0.55 - anim.timer) * 30)
+      ctx.fillText('-' + anim.amount, x + bw / 2, y - 8 + (0.55 - anim.timer) * 30)
     }
   })
 
@@ -512,7 +793,7 @@ function drawBattle(view, dt) {
     }
     const flash = (anim.side === 'enemy' && anim.target === i && anim.timer > 0.2) ||
       (allyFxKinds[anim.kind] && anim.side === 'hero' && anim.target === i && anim.timer > 0.2)
-    drawSilhouette(x, y, 70, 70, flash ? '#ffffff' : h.color, heroKind(h.heroClass))
+    drawSilhouette(x - 4, y - 4, 78, 78, flash ? '#ffffff' : h.color, heroKind(h.heroClass))
     ctx.globalAlpha = 1
     if (h.defending) {
       ctx.fillStyle = '#00e5ff'
