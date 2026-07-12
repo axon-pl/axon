@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Synth Fantasy — Classic Turn Battle</title>
+<title>Mistwood — Turn Battle</title>
 <style>
   :root {
     --bg: #07071a;
@@ -38,14 +38,14 @@
     width: 100%; display: flex; align-items: center; justify-content: space-between;
     padding-bottom: 10px; border-bottom: 1px solid #1e1e3a;
   }
-  .logo { font-size: 1rem; font-weight: bold; letter-spacing: .18em; color: var(--gold); text-shadow: 0 0 12px #ffd16666; }
-  .logo span { color: var(--pink); text-shadow: 0 0 12px #ff2d7899; }
+  .logo { font-size: 1rem; font-weight: bold; letter-spacing: .22em; color: #e8d5a3; text-shadow: 0 0 14px rgba(232,213,163,0.35); }
+  .logo span { color: #c4b8a0; text-shadow: none; letter-spacing: .18em; }
   .hdr-right { font-size: .62rem; color: var(--muted); letter-spacing: .08em; text-align: right; line-height: 1.5; }
-  .hdr-right a { color: var(--cyan); text-decoration: none; }
+  .hdr-right a { color: #e8d5a3; text-decoration: none; }
   .canvas-wrap {
     position: relative; width: 100%; max-width: 800px; aspect-ratio: var(--rpg2-ratio, 800 / 520);
-    border: 1px solid #2a2a4a; border-radius: 8px; overflow: hidden;
-    box-shadow: 0 0 40px #b84fff22, 0 0 80px #00e5ff11;
+    border: 1px solid #3a3548; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 0 40px rgba(232,213,163,0.08), 0 0 80px rgba(80,90,120,0.12);
   }
   .canvas-wrap::after {
     content: ''; position: absolute; inset: 0;
@@ -83,9 +83,9 @@
 <body>
 <div class="wrap">
   <header class="hdr">
-    <div class="logo">SYNTH<span>FANTASY</span></div>
+    <div class="logo">MIST<span>WOOD</span></div>
     <div class="hdr-right">
-      Classic FF turn battle · Built with <a href="landing.html">Synth</a><br>
+      Into the mist · Built with <a href="landing.html">Synth</a><br>
       <a href="https://github.com/synth-pl/synth" target="_blank">github.com/synth-pl/synth</a>
     </div>
   </header>
@@ -95,7 +95,7 @@
   <div class="controls-hint">
     <span class="desk">↑↓ / W S select · Z / Enter confirm · X / Esc / ← Back cancel · Tap menu rows</span>
     <span class="mob">Tap a menu row to choose · Tap the screen to continue</span><br>
-    Sequel to <a href="rpg.standalone.html">RPG Adventure</a> — Aria · Theron · Lyra
+    Sequel to <a href="rpg.standalone.html">RPG Adventure</a> — Theron · Aria · Lyra
   </div>
 </div>
 
@@ -381,112 +381,144 @@ function drawLoadingScreen(dt) {
   loadState.t += dt
   const t = loadState.t
   const compact = isCompactUi()
+  const horizon = compact ? H * 0.52 : H * 0.55
 
-  // Void
-  ctx.fillStyle = '#07071a'
+  // Dusk sky — deep indigo into soft violet-grey
+  const sky = ctx.createLinearGradient(0, 0, 0, H)
+  sky.addColorStop(0, '#0c1024')
+  sky.addColorStop(0.35, '#1a1a38')
+  sky.addColorStop(0.62, '#2a2438')
+  sky.addColorStop(1, '#121018')
+  ctx.fillStyle = sky
   ctx.fillRect(0, 0, W, H)
 
-  // Soft vignette glow
-  const glow = ctx.createRadialGradient(W * 0.5, H * 0.42, 20, W * 0.5, H * 0.42, W * 0.55)
-  glow.addColorStop(0, 'rgba(184,79,255,0.18)')
-  glow.addColorStop(0.45, 'rgba(0,229,255,0.06)')
-  glow.addColorStop(1, 'rgba(7,7,26,0)')
-  ctx.fillStyle = glow
+  // Soft moon glow
+  const moonX = W * 0.72
+  const moonY = H * 0.18
+  const moonGlow = ctx.createRadialGradient(moonX, moonY, 4, moonX, moonY, 90)
+  moonGlow.addColorStop(0, 'rgba(232,224,210,0.55)')
+  moonGlow.addColorStop(0.25, 'rgba(200,210,230,0.18)')
+  moonGlow.addColorStop(1, 'rgba(12,16,36,0)')
+  ctx.fillStyle = moonGlow
   ctx.fillRect(0, 0, W, H)
-
-  // Perspective grid floor
-  const horizon = compact ? H * 0.38 : H * 0.42
-  ctx.save()
+  ctx.fillStyle = 'rgba(236,230,220,0.85)'
   ctx.beginPath()
-  ctx.rect(0, horizon, W, H - horizon)
-  ctx.clip()
-  ctx.strokeStyle = 'rgba(0,229,255,0.22)'
-  ctx.lineWidth = 1
-  const scroll = (t * 48) % 36
-  for (let i = 0; i < 18; i++) {
-    const y = horizon + 8 + i * 28 + scroll * 0.35
-    if (y > H) continue
-    const depth = (y - horizon) / (H - horizon)
-    ctx.globalAlpha = 0.12 + depth * 0.45
-    ctx.beginPath()
-    ctx.moveTo(0, y)
-    ctx.lineTo(W, y)
-    ctx.stroke()
-  }
-  ctx.globalAlpha = 1
-  const vanishX = W * 0.5
-  for (let i = -10; i <= 10; i++) {
-    const x0 = vanishX + i * 18
-    const x1 = vanishX + i * 70
-    ctx.globalAlpha = 0.08 + Math.abs(i) * 0.01
-    ctx.beginPath()
-    ctx.moveTo(vanishX, horizon)
-    ctx.lineTo(x1, H + 20)
-    ctx.stroke()
-  }
-  ctx.restore()
-  ctx.globalAlpha = 1
-
-  // Horizon line
-  ctx.strokeStyle = 'rgba(255,45,120,0.45)'
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.moveTo(40, horizon)
-  ctx.lineTo(W - 40, horizon)
-  ctx.stroke()
-
-  // Floating motes
-  for (let i = 0; i < 14; i++) {
-    const px = ((i * 97 + t * (18 + (i % 5) * 7)) % (W + 40)) - 20
-    const py = horizon - 30 - ((i * 53 + t * 22) % (horizon - 40))
-    const a = 0.25 + 0.35 * Math.sin(t * 2.2 + i)
-    ctx.fillStyle = i % 2 ? `rgba(0,229,255,${a})` : `rgba(255,209,102,${a})`
-    ctx.fillRect(px, py, 2 + (i % 3), 2 + (i % 3))
-  }
-
-  // Title
-  ctx.textAlign = 'center'
-  ctx.fillStyle = '#ffd166'
-  ctx.font = 'bold ' + (compact ? 34 : 40) + 'px Courier New'
-  ctx.shadowColor = '#ffd166'
-  ctx.shadowBlur = 16 + Math.sin(t * 2.5) * 6
-  ctx.fillText('SYNTH FANTASY', W / 2, horizon - (compact ? 70 : 78))
-  ctx.shadowBlur = 0
-
-  ctx.fillStyle = '#e8e0ff'
-  ctx.font = (compact ? 14 : 13) + 'px Courier New'
-  ctx.fillText(loadState.failed ? 'Asset load failed — continuing anyway' : 'Summoning the party…', W / 2, horizon - (compact ? 36 : 42))
-
-  // Progress bar
-  const barW = compact ? 320 : 360
-  const barH = compact ? 14 : 12
-  const barX = (W - barW) / 2
-  const barY = horizon + (compact ? 36 : 28)
-  const p = loadState.failed ? 1 : loadProgress()
-  ctx.fillStyle = 'rgba(16,16,40,0.95)'
-  roundRect(barX, barY, barW, barH, 4)
+  ctx.arc(moonX, moonY, 14, 0, Math.PI * 2)
   ctx.fill()
-  ctx.strokeStyle = 'rgba(0,229,255,0.45)'
-  ctx.lineWidth = 1.5
-  roundRect(barX, barY, barW, barH, 4)
-  ctx.stroke()
-  if (p > 0) {
-    const fill = ctx.createLinearGradient(barX, 0, barX + barW, 0)
-    fill.addColorStop(0, '#b84fff')
-    fill.addColorStop(0.55, '#00e5ff')
-    fill.addColorStop(1, '#ff2d78')
-    ctx.fillStyle = fill
-    const inner = Math.max(4, (barW - 4) * p)
-    roundRect(barX + 2, barY + 2, inner, barH - 4, 3)
+
+  // Distant tree silhouettes along the horizon
+  ctx.fillStyle = '#0a0c14'
+  const trees = [
+    [40, 52], [90, 70], [140, 44], [200, 80], [260, 58], [330, 90],
+    [400, 64], [470, 86], [540, 50], [600, 78], [670, 56], [730, 72], [780, 48]
+  ]
+  for (let i = 0; i < trees.length; i++) {
+    const [tx, th] = trees[i]
+    const sway = Math.sin(t * 0.6 + i * 0.7) * 2
+    const baseX = tx + sway
+    const top = horizon - th
+    ctx.beginPath()
+    ctx.moveTo(baseX, horizon + 4)
+    ctx.lineTo(baseX - th * 0.28, horizon + 4)
+    ctx.lineTo(baseX - 2, top)
+    ctx.lineTo(baseX + 2, top)
+    ctx.lineTo(baseX + th * 0.28, horizon + 4)
+    ctx.closePath()
+    ctx.fill()
+    // trunk hint
+    ctx.fillRect(baseX - 3, horizon - th * 0.22, 6, th * 0.22 + 4)
+  }
+
+  // Ground wash under trees
+  const ground = ctx.createLinearGradient(0, horizon, 0, H)
+  ground.addColorStop(0, 'rgba(10,12,20,0.55)')
+  ground.addColorStop(1, '#0a0c12')
+  ctx.fillStyle = ground
+  ctx.fillRect(0, horizon, W, H - horizon)
+
+  // Layered drifting mist bands
+  for (let layer = 0; layer < 4; layer++) {
+    const speed = 12 + layer * 7
+    const y = horizon - 20 - layer * 28 + Math.sin(t * 0.4 + layer) * 6
+    const alpha = 0.08 + layer * 0.05
+    const drift = ((t * speed) + layer * 90) % (W + 200)
+    ctx.fillStyle = `rgba(210,220,230,${alpha})`
+    for (let k = -1; k <= 1; k++) {
+      const cx = drift + k * (W + 200) - 100
+      ctx.beginPath()
+      ctx.ellipse(cx, y, 160 + layer * 30, 18 + layer * 4, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(cx + 90, y + 8, 120 + layer * 20, 14 + layer * 3, 0, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+
+  // Soft foreground mist
+  const fog = ctx.createLinearGradient(0, H * 0.55, 0, H)
+  fog.addColorStop(0, 'rgba(180,190,205,0)')
+  fog.addColorStop(0.45, 'rgba(180,190,205,0.08)')
+  fog.addColorStop(1, 'rgba(160,170,185,0.22)')
+  ctx.fillStyle = fog
+  ctx.fillRect(0, H * 0.5, W, H * 0.5)
+
+  // Floating mote dust in the mist
+  for (let i = 0; i < 16; i++) {
+    const px = ((i * 83 + t * (10 + (i % 4) * 4)) % (W + 30)) - 15
+    const py = horizon - 40 - ((i * 47 + t * 14) % (horizon * 0.55))
+    const a = 0.15 + 0.25 * Math.sin(t * 1.6 + i)
+    ctx.fillStyle = `rgba(255,230,180,${a})`
+    ctx.beginPath()
+    ctx.arc(px, py, 1 + (i % 2), 0, Math.PI * 2)
     ctx.fill()
   }
 
-  // Pulse tip
-  const pulse = 0.55 + Math.sin(t * 3.2) * 0.45
+  // Wordmark
+  ctx.textAlign = 'center'
+  ctx.fillStyle = '#e8d5a3'
+  ctx.font = 'bold ' + (compact ? 36 : 44) + 'px Courier New'
+  ctx.shadowColor = 'rgba(232,213,163,0.55)'
+  ctx.shadowBlur = 10 + Math.sin(t * 1.8) * 3
+  ctx.fillText('MISTWOOD', W / 2, compact ? 120 : 130)
+  ctx.shadowBlur = 0
+
+  ctx.fillStyle = 'rgba(220,210,195,0.85)'
+  ctx.font = (compact ? 14 : 13) + 'px Courier New'
+  ctx.fillText(
+    loadState.failed ? 'The path is unclear — continuing anyway' : 'The mist gathers…',
+    W / 2,
+    compact ? 152 : 164
+  )
+
+  // Gold / ivory progress track
+  const barW = compact ? 300 : 340
+  const barH = compact ? 10 : 8
+  const barX = (W - barW) / 2
+  const barY = compact ? H - 120 : H - 100
+  const p = loadState.failed ? 1 : loadProgress()
+  ctx.fillStyle = 'rgba(20,18,28,0.75)'
+  roundRect(barX, barY, barW, barH, 3)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(232,213,163,0.45)'
+  ctx.lineWidth = 1
+  roundRect(barX, barY, barW, barH, 3)
+  ctx.stroke()
+  if (p > 0) {
+    const fill = ctx.createLinearGradient(barX, 0, barX + barW, 0)
+    fill.addColorStop(0, '#c4a574')
+    fill.addColorStop(0.5, '#e8d5a3')
+    fill.addColorStop(1, '#f0e6c8')
+    ctx.fillStyle = fill
+    const inner = Math.max(3, (barW - 4) * p)
+    roundRect(barX + 2, barY + 2, inner, barH - 4, 2)
+    ctx.fill()
+  }
+
+  const pulse = 0.55 + Math.sin(t * 2.4) * 0.35
   ctx.globalAlpha = pulse
-  ctx.fillStyle = '#00e5ff'
+  ctx.fillStyle = '#e8d5a3'
   ctx.font = (compact ? 13 : 12) + 'px Courier New'
-  ctx.fillText(loadState.ready ? 'Ready' : Math.round(p * 100) + '%', W / 2, barY + (compact ? 36 : 32))
+  ctx.fillText(loadState.ready ? 'The path opens' : Math.round(p * 100) + '%', W / 2, barY + (compact ? 32 : 28))
   ctx.globalAlpha = 1
 }
 
@@ -1217,34 +1249,56 @@ function drawTitle(view) {
     const dh = ih * scale
     ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh)
   } else {
-    ctx.fillStyle = '#07071a'
+    ctx.fillStyle = '#121018'
     ctx.fillRect(0, 0, W, H)
   }
-  // Readable overlay for title text
-  const g = ctx.createLinearGradient(0, 0, 0, H)
-  g.addColorStop(0, 'rgba(7,7,26,0.55)')
-  g.addColorStop(0.45, 'rgba(7,7,26,0.35)')
-  g.addColorStop(1, 'rgba(7,7,26,0.7)')
-  ctx.fillStyle = g
+
+  // Soft mist wash — readable without crushing the plains
+  const mist = ctx.createLinearGradient(0, 0, 0, H)
+  mist.addColorStop(0, 'rgba(18,20,32,0.55)')
+  mist.addColorStop(0.35, 'rgba(24,26,36,0.28)')
+  mist.addColorStop(0.65, 'rgba(20,22,30,0.35)')
+  mist.addColorStop(1, 'rgba(12,14,22,0.72)')
+  ctx.fillStyle = mist
   ctx.fillRect(0, 0, W, H)
 
+  // Gentle drifting haze bands
+  const t = performance.now() / 1000
+  for (let i = 0; i < 3; i++) {
+    const y = H * (0.28 + i * 0.16) + Math.sin(t * 0.5 + i) * 8
+    const drift = ((t * (8 + i * 3)) % (W + 160)) - 80
+    ctx.fillStyle = `rgba(210,220,230,${0.04 + i * 0.02})`
+    ctx.beginPath()
+    ctx.ellipse(drift, y, 180, 22, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.ellipse(drift + 120, y + 10, 140, 16, 0, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
   const compact = isCompactUi()
-  ctx.fillStyle = '#ffd166'
-  ctx.font = 'bold ' + (compact ? 36 : 42) + 'px Courier New'
   ctx.textAlign = 'center'
-  ctx.shadowColor = '#ffd166'
-  ctx.shadowBlur = 18
-  ctx.fillText('SYNTH FANTASY', W / 2, compact ? 170 : 180)
+  ctx.fillStyle = '#e8d5a3'
+  ctx.font = 'bold ' + (compact ? 40 : 48) + 'px Courier New'
+  ctx.shadowColor = 'rgba(232,213,163,0.5)'
+  ctx.shadowBlur = 14
+  ctx.fillText('MISTWOOD', W / 2, compact ? 168 : 178)
   ctx.shadowBlur = 0
-  ctx.fillStyle = '#e8e0ff'
-  ctx.font = (compact ? 15 : 16) + 'px Courier New'
-  ctx.fillText('A classic turn-based battle — Aria · Theron · Lyra', W / 2, compact ? 210 : 220)
-  ctx.fillStyle = '#00e5ff'
+
+  ctx.fillStyle = 'rgba(230,224,210,0.92)'
+  ctx.font = (compact ? 15 : 15) + 'px Courier New'
+  ctx.fillText('Theron · Aria · Lyra — into the mist', W / 2, compact ? 208 : 220)
+
+  const pulse = 0.65 + Math.sin(performance.now() / 380) * 0.35
+  ctx.globalAlpha = pulse
+  ctx.fillStyle = '#e8d5a3'
   ctx.font = (compact ? 16 : 14) + 'px Courier New'
-  ctx.fillText(view.hint || (compact ? 'Tap to start' : 'Press Z / Enter to start'), W / 2, compact ? 310 : 320)
-  ctx.fillStyle = '#6a6490'
+  ctx.fillText(view.hint || (compact ? 'Tap to begin' : 'Press Z / Enter to begin'), W / 2, compact ? 300 : 310)
+  ctx.globalAlpha = 1
+
+  ctx.fillStyle = 'rgba(160,155,140,0.85)'
   ctx.font = (compact ? 13 : 12) + 'px Courier New'
-  ctx.fillText('Vertical slice sequel to RPG Adventure', W / 2, compact ? 350 : 360)
+  ctx.fillText('A quiet road through fog and fang', W / 2, compact ? 340 : 348)
 }
 
 function drawVictoryModal(view) {

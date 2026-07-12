@@ -1,4 +1,4 @@
-// ── SYNTH FANTASY — classic FF turn battle (vertical slice) ───────────────────
+// ── MISTWOOD — classic FF turn battle (vertical slice) ───────────────────────
 // Host contract:
 //   Game · start_game · menu_move · menu_set_index · menu_confirm · menu_cancel · tick · get_view
 // Party: Aria (mage), Theron (knight), Lyra (ranger)
