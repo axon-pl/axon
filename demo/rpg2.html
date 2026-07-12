@@ -339,13 +339,333 @@ function drawStrikeFx() {
   ctx.globalAlpha = 1
 }
 
+// Palette workflow: base hue → deep / shade / mid / lite / glow (+ optional accent).
+// Heroes use this now; foes stay flat until we roll the same pass over them.
+function parseHex(hex) {
+  const h = String(hex || '#888888').replace('#', '')
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h
+  const n = parseInt(full.slice(0, 6), 16)
+  if (Number.isNaN(n)) return { r: 136, g: 136, b: 136 }
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
+}
+function mixRgb(a, b, t) {
+  return {
+    r: Math.round(a.r + (b.r - a.r) * t),
+    g: Math.round(a.g + (b.g - a.g) * t),
+    b: Math.round(a.b + (b.b - a.b) * t)
+  }
+}
+function rgba(c, a) {
+  return `rgba(${c.r},${c.g},${c.b},${a == null ? 1 : a})`
+}
+function makePalette(hex, accentHex) {
+  const base = parseHex(hex)
+  const ink = { r: 10, g: 8, b: 28 }
+  const white = { r: 255, g: 250, b: 245 }
+  const accent = accentHex ? parseHex(accentHex) : mixRgb(base, white, 0.45)
+  return {
+    deep: mixRgb(base, ink, 0.62),
+    shade: mixRgb(base, ink, 0.36),
+    mid: base,
+    lite: mixRgb(base, white, 0.38),
+    glow: mixRgb(base, white, 0.62),
+    accent,
+    skin: mixRgb({ r: 240, g: 190, b: 160 }, base, 0.12),
+    steel: mixRgb({ r: 190, g: 205, b: 220 }, base, 0.25),
+    ink
+  }
+}
+
+function drawTheron(w, h, p) {
+  const set = (c) => { ctx.fillStyle = rgba(c); ctx.strokeStyle = rgba(c) }
+  // Boots (deep)
+  set(p.deep)
+  ctx.fillRect(w * 0.38, h * 0.74, w * 0.1, h * 0.16)
+  ctx.fillRect(w * 0.52, h * 0.74, w * 0.1, h * 0.16)
+  // Body plate mid
+  set(p.mid)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.36, h * 0.24)
+  ctx.lineTo(w * 0.64, h * 0.24)
+  ctx.lineTo(w * 0.60, h * 0.74)
+  ctx.lineTo(w * 0.40, h * 0.74)
+  ctx.closePath(); ctx.fill()
+  // Right-side shade on plate
+  set(p.shade)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.52, h * 0.26)
+  ctx.lineTo(w * 0.64, h * 0.24)
+  ctx.lineTo(w * 0.60, h * 0.74)
+  ctx.lineTo(w * 0.52, h * 0.74)
+  ctx.closePath(); ctx.fill()
+  // Chest highlight strip
+  set(p.lite)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.40, h * 0.28)
+  ctx.lineTo(w * 0.48, h * 0.28)
+  ctx.lineTo(w * 0.46, h * 0.62)
+  ctx.lineTo(w * 0.40, h * 0.62)
+  ctx.closePath(); ctx.fill()
+  // Belt
+  set(p.deep)
+  ctx.fillRect(w * 0.38, h * 0.52, w * 0.24, h * 0.06)
+  set(p.accent)
+  ctx.fillRect(w * 0.47, h * 0.52, w * 0.06, h * 0.06)
+  // Helm
+  set(p.steel)
+  ctx.beginPath()
+  ctx.ellipse(w * 0.5, h * 0.17, w * 0.17, h * 0.14, 0, 0, Math.PI * 2); ctx.fill()
+  set(p.shade)
+  ctx.beginPath()
+  ctx.ellipse(w * 0.54, h * 0.18, w * 0.11, h * 0.12, 0, 0, Math.PI * 2); ctx.fill()
+  // Crest (gold accent)
+  set(p.accent)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.5, h * 0.0)
+  ctx.lineTo(w * 0.6, h * 0.16)
+  ctx.lineTo(w * 0.4, h * 0.16)
+  ctx.closePath(); ctx.fill()
+  set(p.glow)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.5, h * 0.02)
+  ctx.lineTo(w * 0.54, h * 0.14)
+  ctx.lineTo(w * 0.46, h * 0.14)
+  ctx.closePath(); ctx.fill()
+  // Visor
+  set(p.ink)
+  ctx.fillRect(w * 0.38, h * 0.15, w * 0.24, h * 0.045)
+  set(p.mid)
+  ctx.fillRect(w * 0.42, h * 0.16, w * 0.05, h * 0.025)
+  // Shield — face + rim + shadow
+  set(p.shade)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.1, h * 0.32)
+  ctx.lineTo(w * 0.36, h * 0.28)
+  ctx.lineTo(w * 0.36, h * 0.58)
+  ctx.lineTo(w * 0.23, h * 0.7)
+  ctx.lineTo(w * 0.1, h * 0.58)
+  ctx.closePath(); ctx.fill()
+  set(p.mid)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.14, h * 0.34)
+  ctx.lineTo(w * 0.32, h * 0.31)
+  ctx.lineTo(w * 0.32, h * 0.55)
+  ctx.lineTo(w * 0.23, h * 0.64)
+  ctx.lineTo(w * 0.14, h * 0.55)
+  ctx.closePath(); ctx.fill()
+  set(p.lite)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.16, h * 0.36)
+  ctx.lineTo(w * 0.24, h * 0.34)
+  ctx.lineTo(w * 0.24, h * 0.5)
+  ctx.lineTo(w * 0.16, h * 0.5)
+  ctx.closePath(); ctx.fill()
+  set(p.accent)
+  ctx.beginPath()
+  ctx.arc(w * 0.23, h * 0.46, w * 0.04, 0, Math.PI * 2); ctx.fill()
+  // Sword — steel blade + dark grip + gold guard
+  set(p.steel)
+  ctx.fillRect(w * 0.7, h * 0.14, w * 0.07, h * 0.5)
+  set(p.glow)
+  ctx.fillRect(w * 0.7, h * 0.14, w * 0.025, h * 0.5)
+  set(p.deep)
+  ctx.fillRect(w * 0.7, h * 0.64, w * 0.07, h * 0.12)
+  set(p.accent)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.62, h * 0.34)
+  ctx.lineTo(w * 0.86, h * 0.34)
+  ctx.lineTo(w * 0.74, h * 0.42)
+  ctx.closePath(); ctx.fill()
+}
+
+function drawAria(w, h, p) {
+  const set = (c) => { ctx.fillStyle = rgba(c); ctx.strokeStyle = rgba(c) }
+  // Robe base
+  set(p.mid)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.5, h * 0.1)
+  ctx.lineTo(w * 0.92, h * 0.9)
+  ctx.lineTo(w * 0.08, h * 0.9)
+  ctx.closePath(); ctx.fill()
+  // Robe right shade fold
+  set(p.shade)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.55, h * 0.2)
+  ctx.lineTo(w * 0.92, h * 0.9)
+  ctx.lineTo(w * 0.58, h * 0.9)
+  ctx.closePath(); ctx.fill()
+  // Robe left deep under-fold
+  set(p.deep)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.42, h * 0.28)
+  ctx.lineTo(w * 0.28, h * 0.9)
+  ctx.lineTo(w * 0.08, h * 0.9)
+  ctx.closePath(); ctx.fill()
+  // Highlight panel
+  set(p.lite)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.48, h * 0.22)
+  ctx.lineTo(w * 0.58, h * 0.24)
+  ctx.lineTo(w * 0.52, h * 0.7)
+  ctx.lineTo(w * 0.44, h * 0.68)
+  ctx.closePath(); ctx.fill()
+  // Sash
+  set(p.accent)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.32, h * 0.48)
+  ctx.lineTo(w * 0.68, h * 0.46)
+  ctx.lineTo(w * 0.66, h * 0.54)
+  ctx.lineTo(w * 0.34, h * 0.56)
+  ctx.closePath(); ctx.fill()
+  // Hat cone
+  set(p.shade)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.5, 0)
+  ctx.lineTo(w * 0.8, h * 0.3)
+  ctx.lineTo(w * 0.2, h * 0.3)
+  ctx.closePath(); ctx.fill()
+  set(p.lite)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.5, h * 0.02)
+  ctx.lineTo(w * 0.58, h * 0.28)
+  ctx.lineTo(w * 0.42, h * 0.28)
+  ctx.closePath(); ctx.fill()
+  // Brim
+  set(p.deep)
+  ctx.beginPath()
+  ctx.ellipse(w * 0.5, h * 0.3, w * 0.36, h * 0.07, 0, 0, Math.PI * 2); ctx.fill()
+  set(p.mid)
+  ctx.beginPath()
+  ctx.ellipse(w * 0.5, h * 0.29, w * 0.32, h * 0.05, 0, 0, Math.PI * 2); ctx.fill()
+  // Face
+  set(p.skin)
+  ctx.beginPath()
+  ctx.ellipse(w * 0.5, h * 0.36, w * 0.1, h * 0.08, 0, 0, Math.PI * 2); ctx.fill()
+  set(p.shade)
+  ctx.beginPath()
+  ctx.ellipse(w * 0.53, h * 0.37, w * 0.05, h * 0.06, 0, 0, Math.PI * 2); ctx.fill()
+  // Staff shaft
+  set(p.deep)
+  ctx.fillRect(w * 0.83, h * 0.22, w * 0.055, h * 0.68)
+  set(p.shade)
+  ctx.fillRect(w * 0.83, h * 0.22, w * 0.02, h * 0.68)
+  // Orb shell + core
+  set(p.mid)
+  ctx.beginPath(); ctx.arc(w * 0.86, h * 0.16, w * 0.11, 0, Math.PI * 2); ctx.fill()
+  set(p.accent)
+  ctx.beginPath(); ctx.arc(w * 0.86, h * 0.16, w * 0.07, 0, Math.PI * 2); ctx.fill()
+  set(p.glow)
+  ctx.beginPath(); ctx.arc(w * 0.84, h * 0.14, w * 0.03, 0, Math.PI * 2); ctx.fill()
+}
+
+function drawLyra(w, h, p) {
+  const set = (c) => { ctx.fillStyle = rgba(c); ctx.strokeStyle = rgba(c) }
+  // Boots
+  set(p.deep)
+  ctx.fillRect(w * 0.34, h * 0.8, w * 0.1, h * 0.14)
+  ctx.fillRect(w * 0.52, h * 0.8, w * 0.1, h * 0.14)
+  // Tunic
+  set(p.mid)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.34, h * 0.22)
+  ctx.lineTo(w * 0.64, h * 0.22)
+  ctx.lineTo(w * 0.7, h * 0.8)
+  ctx.lineTo(w * 0.28, h * 0.8)
+  ctx.closePath(); ctx.fill()
+  // Tunic shade
+  set(p.shade)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.52, h * 0.24)
+  ctx.lineTo(w * 0.64, h * 0.22)
+  ctx.lineTo(w * 0.7, h * 0.8)
+  ctx.lineTo(w * 0.54, h * 0.8)
+  ctx.closePath(); ctx.fill()
+  // Belt / straps
+  set(p.deep)
+  ctx.fillRect(w * 0.34, h * 0.48, w * 0.3, h * 0.05)
+  set(p.accent)
+  ctx.fillRect(w * 0.46, h * 0.48, w * 0.06, h * 0.05)
+  // Cape flare (deeper cloth)
+  set(p.deep)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.3, h * 0.38)
+  ctx.lineTo(w * 0.08, h * 0.84)
+  ctx.lineTo(w * 0.34, h * 0.78)
+  ctx.closePath(); ctx.fill()
+  set(p.shade)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.3, h * 0.4)
+  ctx.lineTo(w * 0.16, h * 0.72)
+  ctx.lineTo(w * 0.32, h * 0.7)
+  ctx.closePath(); ctx.fill()
+  // Hood
+  set(p.shade)
+  ctx.beginPath()
+  ctx.arc(w * 0.48, h * 0.18, w * 0.19, Math.PI * 1.05, Math.PI * 1.95)
+  ctx.closePath(); ctx.fill()
+  set(p.mid)
+  ctx.beginPath()
+  ctx.ellipse(w * 0.48, h * 0.2, w * 0.14, h * 0.12, 0, 0, Math.PI * 2); ctx.fill()
+  // Face in hood
+  set(p.skin)
+  ctx.beginPath()
+  ctx.ellipse(w * 0.48, h * 0.22, w * 0.08, h * 0.07, 0, 0, Math.PI * 2); ctx.fill()
+  set(p.deep)
+  ctx.beginPath()
+  ctx.ellipse(w * 0.48, h * 0.2, w * 0.14, h * 0.04, 0, Math.PI, Math.PI * 2); ctx.fill()
+  // Quiver
+  set(p.deep)
+  ctx.fillRect(w * 0.64, h * 0.34, w * 0.12, h * 0.3)
+  set(p.shade)
+  ctx.fillRect(w * 0.64, h * 0.34, w * 0.04, h * 0.3)
+  set(p.accent)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.66, h * 0.2)
+  ctx.lineTo(w * 0.7, h * 0.34)
+  ctx.lineTo(w * 0.74, h * 0.2)
+  ctx.closePath(); ctx.fill()
+  ctx.beginPath()
+  ctx.moveTo(w * 0.7, h * 0.18)
+  ctx.lineTo(w * 0.74, h * 0.34)
+  ctx.lineTo(w * 0.78, h * 0.18)
+  ctx.closePath(); ctx.fill()
+  // Bow (wood shade + string lite)
+  set(p.shade)
+  ctx.lineWidth = 3.5
+  ctx.beginPath()
+  ctx.arc(w * 0.22, h * 0.5, w * 0.3, -1.15, 1.15)
+  ctx.stroke()
+  set(p.lite)
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.arc(w * 0.22, h * 0.5, w * 0.28, -1.1, 1.1)
+  ctx.stroke()
+  set(p.glow)
+  ctx.lineWidth = 1.2
+  ctx.beginPath()
+  ctx.moveTo(w * 0.22 + Math.cos(-1.1) * w * 0.3, h * 0.5 + Math.sin(-1.1) * w * 0.3)
+  ctx.lineTo(w * 0.22 + Math.cos(1.1) * w * 0.3, h * 0.5 + Math.sin(1.1) * w * 0.3)
+  ctx.stroke()
+  // Arrow
+  set(p.steel)
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(w * 0.02, h * 0.5)
+  ctx.lineTo(w * 0.58, h * 0.5)
+  ctx.stroke()
+  set(p.accent)
+  ctx.beginPath()
+  ctx.moveTo(w * 0.02, h * 0.5)
+  ctx.lineTo(w * 0.1, h * 0.46)
+  ctx.lineTo(w * 0.1, h * 0.54)
+  ctx.closePath(); ctx.fill()
+}
+
 function drawSilhouette(x, y, w, h, color, kind) {
   ctx.save()
   ctx.translate(x, y)
   ctx.shadowColor = color
-  ctx.shadowBlur = 14
-  ctx.fillStyle = color
-  ctx.strokeStyle = color
+  ctx.shadowBlur = kind === 'knight' || kind === 'mage' || kind === 'ranger' ? 18 : 14
   ctx.lineJoin = 'round'
   ctx.lineCap = 'round'
 
@@ -353,114 +673,14 @@ function drawSilhouette(x, y, w, h, color, kind) {
   const stroke = (lw) => { ctx.lineWidth = lw || 2; ctx.stroke() }
 
   if (kind === 'knight') {
-    // Theron — crested helm, plate, kite shield, longsword
-    ctx.beginPath()
-    ctx.moveTo(w * 0.38, h * 0.22)
-    ctx.lineTo(w * 0.62, h * 0.22)
-    ctx.lineTo(w * 0.58, h * 0.72)
-    ctx.lineTo(w * 0.42, h * 0.72)
-    ctx.closePath(); fill()
-    // helm
-    ctx.beginPath()
-    ctx.ellipse(w * 0.5, h * 0.16, w * 0.16, h * 0.14, 0, 0, Math.PI * 2); fill()
-    // crest
-    ctx.beginPath()
-    ctx.moveTo(w * 0.5, h * 0.02)
-    ctx.lineTo(w * 0.58, h * 0.16)
-    ctx.lineTo(w * 0.42, h * 0.16)
-    ctx.closePath(); fill()
-    // visor slit (cut with darker overlay)
-    ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#07071a'
-    ctx.fillRect(w * 0.38, h * 0.14, w * 0.24, h * 0.04)
-    ctx.restore(); ctx.fillStyle = color
-    // shield
-    ctx.beginPath()
-    ctx.moveTo(w * 0.12, h * 0.32)
-    ctx.lineTo(w * 0.36, h * 0.28)
-    ctx.lineTo(w * 0.36, h * 0.58)
-    ctx.lineTo(w * 0.24, h * 0.68)
-    ctx.lineTo(w * 0.12, h * 0.58)
-    ctx.closePath(); fill()
-    // sword
-    ctx.fillRect(w * 0.68, h * 0.18, w * 0.07, h * 0.48)
-    ctx.beginPath()
-    ctx.moveTo(w * 0.62, h * 0.34)
-    ctx.lineTo(w * 0.82, h * 0.34)
-    ctx.lineTo(w * 0.72, h * 0.4)
-    ctx.closePath(); fill()
-    // boots
-    ctx.fillRect(w * 0.40, h * 0.72, w * 0.08, h * 0.16)
-    ctx.fillRect(w * 0.52, h * 0.72, w * 0.08, h * 0.16)
+    drawTheron(w, h, makePalette(color, '#ffd166'))
   } else if (kind === 'mage') {
-    // Aria — pointed hat, flowing robe, staff + orb
-    ctx.beginPath()
-    ctx.moveTo(w * 0.5, h * 0.08)
-    ctx.lineTo(w * 0.92, h * 0.88)
-    ctx.lineTo(w * 0.08, h * 0.88)
-    ctx.closePath(); fill()
-    // hat cone
-    ctx.beginPath()
-    ctx.moveTo(w * 0.5, 0)
-    ctx.lineTo(w * 0.78, h * 0.28)
-    ctx.lineTo(w * 0.22, h * 0.28)
-    ctx.closePath(); fill()
-    // brim
-    ctx.beginPath()
-    ctx.ellipse(w * 0.5, h * 0.28, w * 0.34, h * 0.06, 0, 0, Math.PI * 2); fill()
-    // face oval peek
-    ctx.save(); ctx.globalAlpha = 0.45; ctx.fillStyle = '#e8e0ff'
-    ctx.beginPath(); ctx.ellipse(w * 0.5, h * 0.34, w * 0.1, h * 0.08, 0, 0, Math.PI * 2); fill()
-    ctx.restore(); ctx.fillStyle = color
-    // staff
-    ctx.fillRect(w * 0.82, h * 0.2, w * 0.06, h * 0.68)
-    ctx.beginPath()
-    ctx.arc(w * 0.85, h * 0.16, w * 0.1, 0, Math.PI * 2); fill()
-    ctx.save(); ctx.globalAlpha = 0.55; ctx.fillStyle = '#ffd166'
-    ctx.beginPath(); ctx.arc(w * 0.85, h * 0.16, w * 0.05, 0, Math.PI * 2); fill()
-    ctx.restore()
+    drawAria(w, h, makePalette(color, '#ffd166'))
   } else if (kind === 'ranger') {
-    // Lyra — hooded cloak, drawn bow, quiver
-    ctx.beginPath()
-    ctx.moveTo(w * 0.35, h * 0.2)
-    ctx.lineTo(w * 0.62, h * 0.2)
-    ctx.lineTo(w * 0.68, h * 0.78)
-    ctx.lineTo(w * 0.30, h * 0.78)
-    ctx.closePath(); fill()
-    // hood
-    ctx.beginPath()
-    ctx.arc(w * 0.48, h * 0.18, w * 0.18, Math.PI * 1.05, Math.PI * 1.95); fill()
-    ctx.beginPath()
-    ctx.ellipse(w * 0.48, h * 0.2, w * 0.14, h * 0.12, 0, 0, Math.PI * 2); fill()
-    // cape flare
-    ctx.beginPath()
-    ctx.moveTo(w * 0.30, h * 0.4)
-    ctx.lineTo(w * 0.12, h * 0.82)
-    ctx.lineTo(w * 0.34, h * 0.78)
-    ctx.closePath(); fill()
-    // bow
-    ctx.beginPath()
-    ctx.arc(w * 0.22, h * 0.48, w * 0.28, -1.1, 1.1)
-    stroke(3)
-    ctx.beginPath()
-    ctx.moveTo(w * 0.22 + Math.cos(-1.1) * w * 0.28, h * 0.48 + Math.sin(-1.1) * w * 0.28)
-    ctx.lineTo(w * 0.22 + Math.cos(1.1) * w * 0.28, h * 0.48 + Math.sin(1.1) * w * 0.28)
-    stroke(1.5)
-    // arrow nocked
-    ctx.beginPath()
-    ctx.moveTo(w * 0.05, h * 0.48)
-    ctx.lineTo(w * 0.55, h * 0.48)
-    stroke(2)
-    // quiver
-    ctx.fillRect(w * 0.62, h * 0.32, w * 0.12, h * 0.28)
-    ctx.beginPath()
-    ctx.moveTo(w * 0.64, h * 0.22)
-    ctx.lineTo(w * 0.68, h * 0.32)
-    ctx.lineTo(w * 0.72, h * 0.22)
-    ctx.closePath(); fill()
-    // boots
-    ctx.fillRect(w * 0.34, h * 0.78, w * 0.1, h * 0.14)
-    ctx.fillRect(w * 0.52, h * 0.78, w * 0.1, h * 0.14)
+    drawLyra(w, h, makePalette(color, '#7CFC9A'))
   } else if (kind === 'goblin') {
+    ctx.fillStyle = color
+    ctx.strokeStyle = color
     // Goblin Scout — squat, big ears, snout, crooked knife
     ctx.beginPath()
     ctx.ellipse(w * 0.5, h * 0.62, w * 0.28, h * 0.28, 0, 0, Math.PI * 2); fill()
@@ -496,6 +716,8 @@ function drawSilhouette(x, y, w, h, color, kind) {
     ctx.fillRect(w * 0.36, h * 0.82, w * 0.1, h * 0.14)
     ctx.fillRect(w * 0.54, h * 0.82, w * 0.1, h * 0.14)
   } else if (kind === 'slime') {
+    ctx.fillStyle = color
+    ctx.strokeStyle = color
     // Neon Slime — drippy blob, eyes, highlight
     ctx.beginPath()
     ctx.moveTo(w * 0.15, h * 0.55)
@@ -520,6 +742,8 @@ function drawSilhouette(x, y, w, h, color, kind) {
     ctx.beginPath(); ctx.ellipse(w * 0.35, h * 0.32, w * 0.08, h * 0.05, -0.5, 0, Math.PI * 2); fill()
     ctx.restore()
   } else if (kind === 'bandit') {
+    ctx.fillStyle = color
+    ctx.strokeStyle = color
     // Forest Bandit — hooded cloak, mask, short blade
     ctx.beginPath()
     ctx.moveTo(w * 0.32, h * 0.28)
@@ -549,7 +773,9 @@ function drawSilhouette(x, y, w, h, color, kind) {
     ctx.fillRect(w * 0.3, h * 0.85, w * 0.12, h * 0.12)
     ctx.fillRect(w * 0.58, h * 0.85, w * 0.12, h * 0.12)
   } else if (kind === 'archer') {
-    // Ash Archer — cloak + longbow aimed left
+    ctx.fillStyle = color
+    ctx.strokeStyle = color
+    // Ash Archer — cloak + longbow aimed toward the party
     ctx.beginPath()
     ctx.moveTo(w * 0.4, h * 0.22)
     ctx.lineTo(w * 0.65, h * 0.22)
