@@ -271,7 +271,27 @@ const target_ally_menu = () => $map($filter($range(0, party.length), (i) => part
 /**
  * @returns {*}
  */
-const current_menu = () => ((_m) => (_m === "command") ? command_menu(party[Game.active]) : (_m === "magic") ? magic_menu() : (_m === "skill") ? skill_menu() : (_m === "item") ? item_menu() : (_m === "target_enemy") ? target_enemy_menu() : (_m === "target_ally") ? target_ally_menu() : [])(Game.menu_mode);
+const current_menu = () => {
+  if (Game.scene != "battle" || party.length == 0) {
+    return [];
+  } else if (Game.active < 0 || Game.active >= party.length) {
+    return [];
+  } else if (Game.menu_mode == "command") {
+    return command_menu(party[Game.active]);
+  } else if (Game.menu_mode == "magic") {
+    return magic_menu();
+  } else if (Game.menu_mode == "skill") {
+    return skill_menu();
+  } else if (Game.menu_mode == "item") {
+    return item_menu();
+  } else if (Game.menu_mode == "target_enemy") {
+    return target_enemy_menu();
+  } else if (Game.menu_mode == "target_ally") {
+    return target_ally_menu();
+  } else {
+    return [];
+  }
+};
 
 /**
  * @returns {*}

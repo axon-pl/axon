@@ -291,14 +291,24 @@ fn target_ally_menu() -> any[] =
     .map(i => { id: "ally", label: party[i].name, index: i })
 
 fn current_menu() -> any[] {
-  match Game.menu_mode {
-    | "command"      => command_menu(party[Game.active])
-    | "magic"        => magic_menu()
-    | "skill"        => skill_menu()
-    | "item"         => item_menu()
-    | "target_enemy" => target_enemy_menu()
-    | "target_ally"  => target_ally_menu()
-    | _              => []
+  if Game.scene != "battle" or party.length == 0 {
+    []
+  } else if Game.active < 0 or Game.active >= party.length {
+    []
+  } else if Game.menu_mode == "command" {
+    command_menu(party[Game.active])
+  } else if Game.menu_mode == "magic" {
+    magic_menu()
+  } else if Game.menu_mode == "skill" {
+    skill_menu()
+  } else if Game.menu_mode == "item" {
+    item_menu()
+  } else if Game.menu_mode == "target_enemy" {
+    target_enemy_menu()
+  } else if Game.menu_mode == "target_ally" {
+    target_ally_menu()
+  } else {
+    []
   }
 }
 
