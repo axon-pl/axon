@@ -269,6 +269,34 @@ function animFrameUsesPolygon(frame) {
   )
 }
 
+function animFrameMaxBounds(frames) {
+  let maxW = 1
+  let maxH = 1
+  for (let i = 0; i < (frames || []).length; i++) {
+    const b = frames[i]
+    if (b.w > maxW) maxW = b.w
+    if (b.h > maxH) maxH = b.h
+  }
+  return { maxW, maxH }
+}
+
+/** One scale for all frames — largest bbox fits the slot; smaller frames stay smaller. */
+function animUniformScale(frames, slotW, slotH) {
+  const { maxW, maxH } = animFrameMaxBounds(frames)
+  return Math.min(slotW / maxW, slotH / maxH)
+}
+
+function layoutAnimFrame(box, scale, slotW, slotH) {
+  const dw = box.w * scale
+  const dh = box.h * scale
+  return {
+    ox: (slotW - dw) / 2,
+    oy: slotH - dh,
+    dw,
+    dh,
+  }
+}
+
 function drawClippedFrame(ctx, sheet, frame, dx, dy, dw, dh, baked) {
   if (baked) {
     ctx.drawImage(baked, dx, dy, dw, dh)
@@ -669,12 +697,8 @@ function drawHeroSprite(h, i, x, y, drawW, drawH, flash) {
   if (!box) return
   const sheet = heroSheets[id]
   const baked = box.file ? frameFiles[box.file] : null
-  // Contain frame in draw box (sheets are irregular cell sizes)
-  const scale = Math.min(drawW / box.w, drawH / box.h)
-  const dw = box.w * scale
-  const dh = box.h * scale
-  const ox = (drawW - dw) / 2
-  const oy = drawH - dh // feet on the bottom of the slot
+  const scale = animUniformScale(boxes, drawW, drawH)
+  const { ox, oy, dw, dh } = layoutAnimFrame(box, scale, drawW, drawH)
   ctx.save()
   if (flash) ctx.globalAlpha = Math.min(ctx.globalAlpha, 1) * 0.85
   // Flip horizontally — sheets face right, party should face foes (left)
@@ -742,23 +766,8 @@ function drawFoeSprite(e, i, x, y, drawW, drawH, flash) {
   if (!box) return
   const sheet = enemySheets[id]
   const baked = box.file ? frameFiles[box.file] : null
-  let scale = Math.min(drawW / box.w, drawH / box.h)
-  // Shadow Wyrm frames vary a lot in bbox size — keep a steady on-screen
-  // height by scaling shorter frames up to the tallest in the anim.
-  if (id === 'wyrm' && boxes.length > 1) {
-    let maxW = box.w
-    let maxH = box.h
-    for (let fi = 0; fi < boxes.length; fi++) {
-      if (boxes[fi].w > maxW) maxW = boxes[fi].w
-      if (boxes[fi].h > maxH) maxH = boxes[fi].h
-    }
-    const base = Math.min(drawW / maxW, drawH / maxH)
-    scale = base * (maxH / Math.max(box.h, 1))
-  }
-  const dw = box.w * scale
-  const dh = box.h * scale
-  const ox = (drawW - dw) / 2
-  const oy = drawH - dh
+  const scale = animUniformScale(boxes, drawW, drawH)
+  const { ox, oy, dw, dh } = layoutAnimFrame(box, scale, drawW, drawH)
   ctx.save()
   if (flash) ctx.globalAlpha = Math.min(ctx.globalAlpha, 1) * 0.85
   // Sheets face right toward the party — no flip
