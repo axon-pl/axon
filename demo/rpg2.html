@@ -289,8 +289,10 @@ function animUniformScale(frames, slotW, slotH) {
 function layoutAnimFrame(box, scale, slotW, slotH) {
   const dw = box.w * scale
   const dh = box.h * scale
+  const ax = box.ax != null ? box.ax : box.anchorX != null ? box.anchorX : 0.5
+  // Align feet-anchor (ax along bottom) to horizontal center of the draw slot
   return {
-    ox: (slotW - dw) / 2,
+    ox: slotW / 2 - ax * dw,
     oy: slotH - dh,
     dw,
     dh,
